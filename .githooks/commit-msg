@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# Color output helpers
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+COMMIT_MSG_FILE="$1"
+if [ ! -f "$COMMIT_MSG_FILE" ]; then
+  exit 0
+fi
+
+# Extract non-comment lines
+COMMIT_MSG=$(grep -v '^#' "$COMMIT_MSG_FILE" | grep -v '^[[:space:]]*$')
+
+# Allow automated git messages (e.g. merge commits, fixup!, squash!)
+if echo "$COMMIT_MSG" | grep -qE '^(Merge branch|Merge pull request|Merge tag|Fixup!|Squash!)'; then
+  exit 0
+fi
+
+# Extract the first line of the commit message (subject line) and remove carriage returns (\r)
+FIRST_LINE=$(echo "$COMMIT_MSG" | head -n 1 | tr -d '\r')
+
+# Regex pattern for Conventional Commits
+TYPES="feat|fix|refactor|test|docs|ci|build|chore|perf|style|revert"
+PATTERN="^($TYPES)(\([a-zA-Z0-9_/\-]+\))?!?: .+$"
+
+if ! echo "$FIRST_LINE" | grep -qE "$PATTERN"; then
+  printf "\n"
+  printf "${RED}======================================================${NC}\n"
+  printf "${RED} ERROR: Invalid Commit Message Format${NC}\n"
+  printf "${RED}======================================================${NC}\n"
+  printf "\n"
+  printf " Your commit message:\n"
+  printf "   ${YELLOW}\"%s\"${NC}\n" "$FIRST_LINE"
+  printf "\n"
+  printf " Must follow the Conventional Commits format:\n"
+  printf "   ${CYAN}type(scope): short description${NC}   OR   ${CYAN}type: short description${NC}\n"
+  printf "\n"
+  printf " ${GREEN}Allowed Types:${NC}\n"
+  printf "   feat, fix, refactor, test, docs, ci, build, chore, perf, style, revert\n"
+  printf "\n"
+  printf " ${GREEN}Common Scopes:${NC}\n"
+  printf "   auth, api, ui, backend, frontend, database, service, config, deploy, build, docs, tests...\n"
+  printf "\n"
+  printf " ${GREEN}Examples:${NC}\n"
+  printf "   feat(auth): add user login support\n"
+  printf "   fix(api): handle missing request parameters\n"
+  printf "   docs(readme): update installation guide\n"
+  printf "   chore: update project dependencies\n"
+  printf "\n"
+  printf "${RED}======================================================${NC}\n"
+  printf "\n"
+  exit 1
+fi
+
+exit 0
