@@ -7,18 +7,30 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    fullName: {
+    passwordHash: {
       type: String,
       required: true,
     },
-    password: {
+    role: {
       type: String,
-      required: true,
-      minlength: 6,
+      enum: ["traveller", "operator", "authority"],
+      default: "traveller",
     },
-    profilePic: {
+    phone: {
       type: String,
-      default: "",
+    },
+    preferences: {
+      interests: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {},
+      },
+      budgetBand: {
+        type: String,
+      },
+      languages: {
+        type: [String],
+        default: [],
+      },
     },
   },
   { timestamps: true }
