@@ -14,7 +14,7 @@
 #   "totalCost": 13150,
 #   "contingency": 1315,
 #   "grandTotal": 14465,
-#   "budget": 25000,
+#   "budgetINR": 25000,
 #   "remaining": 11850,
 #   "utilizationPercent": 52.6,
 #   "isOverBudget": false,
@@ -32,7 +32,7 @@ Content-Type: application/json
   "destId": "dest-ts-001",
   "travellers": 2,
   "days": 4,
-  "budget": 25000,
+  "budgetINR": 25000,
   "transport": { "mode": "train", "totalCost": 3000, "source": "provider:railradar" },
   "hotel": { "pricePerNight": 2000, "nights": 3, "rooms": 1, "source": "business_declared" },
   "food": { "pricePerPersonPerDay": 350, "source": "manual" },
@@ -45,7 +45,7 @@ Content-Type: application/json
 
 ### 2. Missing Budget (Expect 400 Bad Request)
 # Expected response:
-# { "error": true, "message": "budget is required and must be a number greater than 0" }
+# { "error": true, "message": "budgetINR is required and must be a number greater than 0" }
 POST {{baseUrl}}/calculate
 Content-Type: application/json
 
@@ -70,7 +70,7 @@ Content-Type: application/json
   "destId": "dest-ts-003",
   "travellers": 2,
   "days": 4,
-  "budget": 25000,
+  "budgetINR": 25000,
   "hotel": { "pricePerNight": -500, "nights": 3, "source": "business_declared" }
 }
 
@@ -87,7 +87,7 @@ Content-Type: application/json
 #   "totalCost": 9500,
 #   "contingency": 950,
 #   "grandTotal": 10450,
-#   "budget": 25000,
+#   "budgetINR": 25000,
 #   "remaining": 15500,
 #   "utilizationPercent": 38,
 #   "isOverBudget": false,
@@ -105,7 +105,7 @@ Content-Type: application/json
   "destId": "dest-ts-004",
   "travellers": 2,
   "days": 4,
-  "budget": 25000,
+  "budgetINR": 25000,
   "transport": { "mode": "flight", "totalCost": 5000, "source": "provider:amadeus" },
   "hotel": { "pricePerNight": 1500, "nights": 3, "source": "business_declared" },
   "activities": []
@@ -124,7 +124,7 @@ Content-Type: application/json
 #   "totalCost": 14000,
 #   "contingency": 1400,
 #   "grandTotal": 15400,
-#   "budget": 10000,
+#   "budgetINR": 10000,
 #   "remaining": -4000,
 #   "utilizationPercent": 140,
 #   "isOverBudget": true,
@@ -147,7 +147,7 @@ Content-Type: application/json
   "destId": "dest-ts-005",
   "travellers": 2,
   "days": 5,
-  "budget": 10000,
+  "budgetINR": 10000,
   "hotel": { "pricePerNight": 2500, "nights": 4, "rooms": 1, "source": "business_declared" },
   "transport": { "totalCost": 4000, "source": "provider:railradar" }
 }
@@ -165,7 +165,7 @@ Content-Type: application/json
 #   "totalCost": 13150,
 #   "contingency": 1315,
 #   "grandTotal": 14465,
-#   "budget": 25000,
+#   "budgetINR": 25000,
 #   "remaining": 11850,
 #   "utilizationPercent": 52.6,
 #   "isOverBudget": false,
@@ -181,7 +181,7 @@ Content-Type: application/json
 {
   "travellers": 2,
   "days": 4,
-  "budget": 25000,
+  "budgetINR": 25000,
   "transport": { "mode": "train", "totalCost": 3000 },
   "hotel": { "pricePerNight": 2000, "nights": 3 },
   "food": { "pricePerPersonPerDay": 350 },
@@ -205,7 +205,7 @@ Content-Type: application/json
 #   "totalCost": 12000,
 #   "contingency": 1200,
 #   "grandTotal": 13200,
-#   "budget": 30000,
+#   "budgetINR": 30000,
 #   "remaining": 18000,
 #   "utilizationPercent": 40,
 #   "isOverBudget": false,
@@ -223,7 +223,7 @@ Content-Type: application/json
   "destId": "dest-ts-007",
   "travellers": 4,
   "days": 3,
-  "budget": 30000,
+  "budgetINR": 30000,
   "hotel": { "pricePerNight": 2000, "nights": 3, "rooms": 2, "source": "business_declared" }
 }
 
@@ -238,6 +238,6 @@ Content-Type: application/json
   "destId": "dest-ts-008",
   "travellers": 2,
   "days": 4,
-  "budget": 25000,
+  "budgetINR": 25000,
   "hotel": { "pricePerNight": 2000, "nights": 3, "rooms": -1, "source": "business_declared" }
 }

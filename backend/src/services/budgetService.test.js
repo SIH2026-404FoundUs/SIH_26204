@@ -8,7 +8,7 @@ describe("budgetService - calculateBudget", () => {
       destId: "dest-hyd-202",
       travellers: 2,
       days: 4,
-      budget: 25000,
+      budgetINR: 25000,
       transport: { mode: "train", totalCost: 3000, source: "provider:railradar" },
       hotel: { pricePerNight: 2000, nights: 3, source: "business_declared" },
       food: { pricePerPersonPerDay: 350, source: "manual" },
@@ -32,7 +32,7 @@ describe("budgetService - calculateBudget", () => {
       totalCost: 13150,
       contingency: 1315,
       grandTotal: 14465,
-      budget: 25000,
+      budgetINR: 25000,
       remaining: 11850,
       utilizationPercent: 52.6,
       isOverBudget: false,
@@ -48,7 +48,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 2,
       days: 4,
-      budget: 25000,
+      budgetINR: 25000,
       transport: { totalCost: 3000 },
       hotel: { pricePerNight: 2000, nights: 3 },
       food: { pricePerPersonPerDay: 350 },
@@ -76,7 +76,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 2,
       days: 4,
-      budget: 25000,
+      budgetINR: 25000,
       transport: { totalCost: 3000, source: "unrecognised_source_xyz" },
       hotel: { pricePerNight: 2000, nights: 3, source: "business_declared" },
       food: { pricePerPersonPerDay: 350, source: "manual" },
@@ -101,7 +101,7 @@ describe("budgetService - calculateBudget", () => {
       destId: "dest-888",
       travellers: 1,
       days: 1,
-      budget: 1000,
+      budgetINR: 1000,
     });
     expect(withIds.tripId).toBe("trip-999");
     expect(withIds.destId).toBe("dest-888");
@@ -109,7 +109,7 @@ describe("budgetService - calculateBudget", () => {
     const withoutIds = calculateBudget({
       travellers: 1,
       days: 1,
-      budget: 1000,
+      budgetINR: 1000,
     });
     expect(withoutIds.tripId).toBeNull();
     expect(withoutIds.destId).toBeNull();
@@ -119,7 +119,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 2,
       days: 2,
-      budget: 10000,
+      budgetINR: 10000,
       transport: { totalCost: 1000, source: "manual" },
       hotel: { pricePerNight: 1000, nights: 1, source: "manual" },
       food: { pricePerPersonPerDay: 100, source: "manual" },
@@ -143,7 +143,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 2,
       days: 3,
-      budget: 10000,
+      budgetINR: 10000,
       hotel: { pricePerNight: 1500, nights: 2, source: "business_declared" },
     };
 
@@ -171,7 +171,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 3,
       days: 2,
-      budget: 10000,
+      budgetINR: 10000,
       transport: { totalCost: 1500, source: "manual" },
       activities: [],
     };
@@ -201,7 +201,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 2,
       days: 5,
-      budget: 10000,
+      budgetINR: 10000,
       hotel: { pricePerNight: 2000, nights: 5 }, // 10000
       transport: { totalCost: 4000 },
     };
@@ -211,7 +211,7 @@ describe("budgetService - calculateBudget", () => {
     expect(result.totalCost).toBe(14000);
     expect(result.contingency).toBe(1400);
     expect(result.grandTotal).toBe(15400);
-    expect(result.budget).toBe(10000);
+    expect(result.budgetINR).toBe(10000);
     expect(result.remaining).toBe(-4000);
     expect(result.utilizationPercent).toBe(140);
     expect(result.isOverBudget).toBe(true);
@@ -228,7 +228,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 2,
       days: 3,
-      budget: 15000,
+      budgetINR: 15000,
     };
 
     const result = calculateBudget(payload);
@@ -243,7 +243,7 @@ describe("budgetService - calculateBudget", () => {
     expect(result.totalCost).toBe(0);
     expect(result.contingency).toBe(0);
     expect(result.grandTotal).toBe(0);
-    expect(result.budget).toBe(15000);
+    expect(result.budgetINR).toBe(15000);
     expect(result.remaining).toBe(15000);
     expect(result.utilizationPercent).toBe(0);
     expect(result.isOverBudget).toBe(false);
@@ -255,7 +255,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 3,
       days: 3,
-      budget: 10000,
+      budgetINR: 10000,
       food: { pricePerPersonPerDay: 333.333 }, // 333.333 * 3 * 3 = 2999.997 -> 3000
       transport: { totalCost: 123.456 }, // 123.46
     };
@@ -275,7 +275,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 1,
       days: 1,
-      budget: 5000,
+      budgetINR: 5000,
       transport: { totalCost: 1000, source: "provider:custom_flight_api" },
       hotel: { pricePerNight: 1000, nights: 1, source: "provider:any_hotel_feed" },
       food: { pricePerPersonPerDay: 200, source: "provider:food_service" },
@@ -296,7 +296,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 4,
       days: 3,
-      budget: 50000,
+      budgetINR: 50000,
       hotel: { pricePerNight: 2000, nights: 3, rooms: 2 },
     };
 
@@ -310,7 +310,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 2,
       days: 2,
-      budget: 10000,
+      budgetINR: 10000,
       hotel: { pricePerNight: 1500, nights: 2 },
     };
 
@@ -323,7 +323,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 1,
       days: 1,
-      budget: 10000,
+      budgetINR: 10000,
       hotel: { pricePerNight: 1000, nights: 1 },
     };
 
@@ -337,7 +337,7 @@ describe("budgetService - calculateBudget", () => {
     const payload = {
       travellers: 2,
       days: 2,
-      budget: 1000,
+      budgetINR: 1000,
       hotel: { pricePerNight: 5000, nights: 2, rooms: 1 },
     };
 

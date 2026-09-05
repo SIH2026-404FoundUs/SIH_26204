@@ -14,7 +14,7 @@ describe("validateBudgetInput middleware", () => {
       body: {
         travellers: 2,
         days: 4,
-        budget: 25000,
+        budgetINR: 25000,
         transport: { mode: "train", totalCost: 3000 },
         hotel: { pricePerNight: 2000, nights: 3 },
         food: { pricePerPersonPerDay: 350 },
@@ -36,7 +36,7 @@ describe("validateBudgetInput middleware", () => {
       body: {
         travellers: 2,
         days: 4,
-        budget: 25000,
+        budgetINR: 25000,
       },
     };
     const res = mockResponse();
@@ -57,14 +57,14 @@ describe("validateBudgetInput middleware", () => {
       expect.objectContaining({ error: true, message: expect.any(String) })
     );
 
-    const req2 = { body: { budget: 0, travellers: 2, days: 4 } };
+    const req2 = { body: { budgetINR: 0, travellers: 2, days: 4 } };
     const res2 = mockResponse();
     validateBudgetInput(req2, res2, next1);
     expect(res2.status).toHaveBeenCalledWith(400);
   });
 
   test("rejects when travellers is missing or <= 0", () => {
-    const req = { body: { budget: 10000, days: 4 } };
+    const req = { body: { budgetINR: 10000, days: 4 } };
     const res = mockResponse();
     const next = jest.fn();
     validateBudgetInput(req, res, next);
@@ -75,7 +75,7 @@ describe("validateBudgetInput middleware", () => {
   });
 
   test("rejects when days is missing or <= 0", () => {
-    const req = { body: { budget: 10000, travellers: 2, days: -1 } };
+    const req = { body: { budgetINR: 10000, travellers: 2, days: -1 } };
     const res = mockResponse();
     const next = jest.fn();
     validateBudgetInput(req, res, next);
@@ -89,31 +89,31 @@ describe("validateBudgetInput middleware", () => {
     const testCases = [
       {
         field: "transport.totalCost",
-        body: { budget: 10000, travellers: 2, days: 3, transport: { totalCost: -100 } },
+        body: { budgetINR: 10000, travellers: 2, days: 3, transport: { totalCost: -100 } },
       },
       {
         field: "hotel.pricePerNight",
-        body: { budget: 10000, travellers: 2, days: 3, hotel: { pricePerNight: -500, nights: 2 } },
+        body: { budgetINR: 10000, travellers: 2, days: 3, hotel: { pricePerNight: -500, nights: 2 } },
       },
       {
         field: "hotel.nights",
-        body: { budget: 10000, travellers: 2, days: 3, hotel: { pricePerNight: 500, nights: -2 } },
+        body: { budgetINR: 10000, travellers: 2, days: 3, hotel: { pricePerNight: 500, nights: -2 } },
       },
       {
         field: "hotel.rooms",
-        body: { budget: 10000, travellers: 2, days: 3, hotel: { pricePerNight: 500, nights: 2, rooms: -1 } },
+        body: { budgetINR: 10000, travellers: 2, days: 3, hotel: { pricePerNight: 500, nights: 2, rooms: -1 } },
       },
       {
         field: "food.pricePerPersonPerDay",
-        body: { budget: 10000, travellers: 2, days: 3, food: { pricePerPersonPerDay: -50 } },
+        body: { budgetINR: 10000, travellers: 2, days: 3, food: { pricePerPersonPerDay: -50 } },
       },
       {
         field: "localTransport.estimatedCost",
-        body: { budget: 10000, travellers: 2, days: 3, localTransport: { estimatedCost: -200 } },
+        body: { budgetINR: 10000, travellers: 2, days: 3, localTransport: { estimatedCost: -200 } },
       },
       {
         field: "activities[0].pricePerPerson",
-        body: { budget: 10000, travellers: 2, days: 3, activities: [{ pricePerPerson: -20 }] },
+        body: { budgetINR: 10000, travellers: 2, days: 3, activities: [{ pricePerPerson: -20 }] },
       },
     ];
 
@@ -132,7 +132,7 @@ describe("validateBudgetInput middleware", () => {
   test("defaults tripId and destId to null when omitted, and passes through when provided", () => {
     const req1 = {
       body: {
-        budget: 10000,
+        budgetINR: 10000,
         travellers: 2,
         days: 3,
       },
@@ -148,7 +148,7 @@ describe("validateBudgetInput middleware", () => {
       body: {
         tripId: "trip-abc",
         destId: "dest-xyz",
-        budget: 10000,
+        budgetINR: 10000,
         travellers: 2,
         days: 3,
       },
@@ -164,7 +164,7 @@ describe("validateBudgetInput middleware", () => {
   test("tolerates missing or unrecognised source strings without throwing 400", () => {
     const req = {
       body: {
-        budget: 10000,
+        budgetINR: 10000,
         travellers: 2,
         days: 3,
         transport: { totalCost: 1000, source: "unknown_source_string" },
@@ -182,7 +182,7 @@ describe("validateBudgetInput middleware", () => {
   test("passes validation with a positive hotel.rooms value, and when rooms is omitted", () => {
     const withRooms = {
       body: {
-        budget: 10000,
+        budgetINR: 10000,
         travellers: 4,
         days: 3,
         hotel: { pricePerNight: 2000, nights: 3, rooms: 2 },
@@ -196,7 +196,7 @@ describe("validateBudgetInput middleware", () => {
 
     const withoutRooms = {
       body: {
-        budget: 10000,
+        budgetINR: 10000,
         travellers: 2,
         days: 3,
         hotel: { pricePerNight: 2000, nights: 3 },

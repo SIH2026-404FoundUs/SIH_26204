@@ -45,14 +45,14 @@ function resolveCategorySource(rawSource) {
  * Pure calculation service for budget and expense breakdown.
  * Does not depend on Express req or res objects for full testability.
  *
- * @param {Object} tripData - The trip payload containing budget, travellers, days, and cost categories.
+ * @param {Object} tripData - The trip payload containing budgetINR, travellers, days, and cost categories.
  * @returns {Object} Structured cost breakdown, total, contingency, grandTotal, remaining, utilization %,
  *   largest category, tripId, destId, hasUnlabelledEstimates, reductionOptions (when over budget).
  */
 export function calculateBudget(tripData = {}) {
   const travellers = Number(tripData.travellers) || 0;
   const days = Number(tripData.days) || 0;
-  const budget = roundToTwo(Number(tripData.budget) || 0);
+  const budgetINR = roundToTwo(Number(tripData.budgetINR) || 0);
 
   // Top-level tripId and destId (default to null if not provided)
   const tripId = tripData.tripId !== undefined ? tripData.tripId : null;
@@ -151,9 +151,9 @@ export function calculateBudget(tripData = {}) {
   const grandTotal = roundToTwo(totalCost + contingency);
 
   // Remaining budget and utilization
-  const remaining = roundToTwo(budget - totalCost);
-  const utilizationPercent = budget > 0 ? roundToTwo((totalCost / budget) * 100) : 0;
-  const isOverBudget = totalCost > budget;
+  const remaining = roundToTwo(budgetINR - totalCost);
+  const utilizationPercent = budgetINR > 0 ? roundToTwo((totalCost / budgetINR) * 100) : 0;
+  const isOverBudget = totalCost > budgetINR;
 
   // Identify largest category by amount
   // If all categories have 0 cost, largestCategory is null
@@ -181,7 +181,7 @@ export function calculateBudget(tripData = {}) {
     totalCost,
     contingency,
     grandTotal,
-    budget,
+    budgetINR,
     remaining,
     utilizationPercent,
     isOverBudget,

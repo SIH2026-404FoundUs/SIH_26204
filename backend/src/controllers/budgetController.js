@@ -15,7 +15,7 @@ export const calculateTripBudget = async (req, res) => {
         Budget.create({
           travellers: req.body.travellers,
           days: req.body.days,
-          budget: req.body.budget,
+          budgetINR: req.body.budgetINR,
           transport: req.body.transport,
           hotel: req.body.hotel,
           food: req.body.food,

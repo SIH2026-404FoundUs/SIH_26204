@@ -11,7 +11,7 @@ const budgetSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    budget: {
+    budgetINR: {
       type: Number,
       required: true,
     },

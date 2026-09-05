@@ -3,7 +3,7 @@
  * Runs before budgetController.
  *
  * Validation rules:
- * - Reject with 400 if budget is missing, not a number, or <= 0
+ * - Reject with 400 if budgetINR is missing, not a number, or <= 0
  * - Reject with 400 if travellers is missing, not a number, or <= 0
  * - Reject with 400 if days is missing, not a number, or <= 0
  * - Reject with 400 if any provided cost field is negative
@@ -30,13 +30,19 @@ export function validateBudgetInput(req, res, next) {
     body.destId = null;
   }
 
-  const { budget, travellers, days, transport, hotel, food, activities, localTransport } = body;
+  const { budgetINR, travellers, days, transport, hotel, food, activities, localTransport } = body;
 
-  // 1. Validate budget
-  if (budget === undefined || budget === null || typeof budget !== "number" || isNaN(budget) || budget <= 0) {
+  // 1. Validate budgetINR
+  if (
+    budgetINR === undefined ||
+    budgetINR === null ||
+    typeof budgetINR !== "number" ||
+    isNaN(budgetINR) ||
+    budgetINR <= 0
+  ) {
     return res.status(400).json({
       error: true,
-      message: "budget is required and must be a number greater than 0",
+      message: "budgetINR is required and must be a number greater than 0",
     });
   }
 

@@ -22,7 +22,7 @@ describe("budget.routes integration", () => {
         body: JSON.stringify({
           travellers: 2,
           days: 4,
-          budget: 25000,
+          budgetINR: 25000,
           transport: { mode: "train", totalCost: 3000 },
           hotel: { pricePerNight: 2000, nights: 3 },
           food: { pricePerPersonPerDay: 350 },
@@ -47,7 +47,7 @@ describe("budget.routes integration", () => {
         totalCost: 13150,
         contingency: 1315,
         grandTotal: 14465,
-        budget: 25000,
+        budgetINR: 25000,
         remaining: 11850,
         utilizationPercent: 52.6,
         isOverBudget: false,
@@ -81,7 +81,7 @@ describe("budget.routes integration", () => {
       const data = await response.json();
       expect(data).toEqual({
         error: true,
-        message: "budget is required and must be a number greater than 0",
+        message: "budgetINR is required and must be a number greater than 0",
       });
     } finally {
       server.close();
@@ -100,7 +100,7 @@ describe("budget.routes integration", () => {
         body: JSON.stringify({
           travellers: 2,
           days: 4,
-          budget: 25000,
+          budgetINR: 25000,
           hotel: { pricePerNight: -200, nights: 2 },
         }),
       });
@@ -126,7 +126,7 @@ describe("budget.routes integration", () => {
         body: JSON.stringify({
           travellers: 2,
           days: 4,
-          budget: 25000,
+          budgetINR: 25000,
           activities: [],
         }),
       });
@@ -152,7 +152,7 @@ describe("budget.routes integration", () => {
         body: JSON.stringify({
           travellers: 2,
           days: 4,
-          budget: 25000,
+          budgetINR: 25000,
           hotel: { pricePerNight: 2000, nights: 2, rooms: -1 },
         }),
       });
@@ -178,7 +178,7 @@ describe("budget.routes integration", () => {
         body: JSON.stringify({
           travellers: 2,
           days: 2,
-          budget: 5000,
+          budgetINR: 5000,
           hotel: { pricePerNight: 2000, nights: 2, rooms: 2 },
         }),
       });
@@ -206,7 +206,7 @@ describe("budget.routes integration", () => {
         body: JSON.stringify({
           travellers: 2,
           days: 2,
-          budget: 500,
+          budgetINR: 500,
           hotel: { pricePerNight: 5000, nights: 2 },
         }),
       });

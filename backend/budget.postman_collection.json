@@ -18,7 +18,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"tripId\": \"trip-hyd-101\",\n  \"destId\": \"dest-ts-001\",\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budget\": 25000,\n  \"transport\": { \"mode\": \"train\", \"totalCost\": 3000, \"source\": \"provider:railradar\" },\n  \"hotel\": { \"pricePerNight\": 2000, \"nights\": 3, \"rooms\": 1, \"source\": \"business_declared\" },\n  \"food\": { \"pricePerPersonPerDay\": 350, \"source\": \"manual\" },\n  \"activities\": [\n    { \"name\": \"Golconda Fort\", \"pricePerPerson\": 25, \"source\": \"provider:google_places\" },\n    { \"name\": \"Salar Jung Museum\", \"pricePerPerson\": 50, \"source\": \"provider:google_places\" }\n  ],\n  \"localTransport\": { \"estimatedCost\": 1200, \"source\": \"seeded\" }\n}"
+          "raw": "{\n  \"tripId\": \"trip-hyd-101\",\n  \"destId\": \"dest-ts-001\",\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budgetINR\": 25000,\n  \"transport\": { \"mode\": \"train\", \"totalCost\": 3000, \"source\": \"provider:railradar\" },\n  \"hotel\": { \"pricePerNight\": 2000, \"nights\": 3, \"rooms\": 1, \"source\": \"business_declared\" },\n  \"food\": { \"pricePerPersonPerDay\": 350, \"source\": \"manual\" },\n  \"activities\": [\n    { \"name\": \"Golconda Fort\", \"pricePerPerson\": 25, \"source\": \"provider:google_places\" },\n    { \"name\": \"Salar Jung Museum\", \"pricePerPerson\": 50, \"source\": \"provider:google_places\" }\n  ],\n  \"localTransport\": { \"estimatedCost\": 1200, \"source\": \"seeded\" }\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/budget/calculate",
@@ -60,7 +60,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"tripId\": \"trip-hyd-103\",\n  \"destId\": \"dest-ts-003\",\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budget\": 25000,\n  \"hotel\": { \"pricePerNight\": -500, \"nights\": 3, \"source\": \"business_declared\" }\n}"
+          "raw": "{\n  \"tripId\": \"trip-hyd-103\",\n  \"destId\": \"dest-ts-003\",\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budgetINR\": 25000,\n  \"hotel\": { \"pricePerNight\": -500, \"nights\": 3, \"source\": \"business_declared\" }\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/budget/calculate",
@@ -81,7 +81,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"tripId\": \"trip-hyd-104\",\n  \"destId\": \"dest-ts-004\",\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budget\": 25000,\n  \"transport\": { \"mode\": \"flight\", \"totalCost\": 5000, \"source\": \"provider:amadeus\" },\n  \"hotel\": { \"pricePerNight\": 1500, \"nights\": 3, \"source\": \"business_declared\" },\n  \"activities\": []\n}"
+          "raw": "{\n  \"tripId\": \"trip-hyd-104\",\n  \"destId\": \"dest-ts-004\",\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budgetINR\": 25000,\n  \"transport\": { \"mode\": \"flight\", \"totalCost\": 5000, \"source\": \"provider:amadeus\" },\n  \"hotel\": { \"pricePerNight\": 1500, \"nights\": 3, \"source\": \"business_declared\" },\n  \"activities\": []\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/budget/calculate",
@@ -102,7 +102,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"tripId\": \"trip-hyd-105\",\n  \"destId\": \"dest-ts-005\",\n  \"travellers\": 2,\n  \"days\": 5,\n  \"budget\": 10000,\n  \"hotel\": { \"pricePerNight\": 2500, \"nights\": 4, \"rooms\": 1, \"source\": \"business_declared\" },\n  \"transport\": { \"totalCost\": 4000, \"source\": \"provider:railradar\" }\n}"
+          "raw": "{\n  \"tripId\": \"trip-hyd-105\",\n  \"destId\": \"dest-ts-005\",\n  \"travellers\": 2,\n  \"days\": 5,\n  \"budgetINR\": 10000,\n  \"hotel\": { \"pricePerNight\": 2500, \"nights\": 4, \"rooms\": 1, \"source\": \"business_declared\" },\n  \"transport\": { \"totalCost\": 4000, \"source\": \"provider:railradar\" }\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/budget/calculate",
@@ -123,7 +123,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budget\": 25000,\n  \"transport\": { \"mode\": \"train\", \"totalCost\": 3000 },\n  \"hotel\": { \"pricePerNight\": 2000, \"nights\": 3 },\n  \"food\": { \"pricePerPersonPerDay\": 350 },\n  \"activities\": [\n    { \"name\": \"Golconda Fort\", \"pricePerPerson\": 25 },\n    { \"name\": \"Salar Jung Museum\", \"pricePerPerson\": 50 }\n  ],\n  \"localTransport\": { \"estimatedCost\": 1200 }\n}"
+          "raw": "{\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budgetINR\": 25000,\n  \"transport\": { \"mode\": \"train\", \"totalCost\": 3000 },\n  \"hotel\": { \"pricePerNight\": 2000, \"nights\": 3 },\n  \"food\": { \"pricePerPersonPerDay\": 350 },\n  \"activities\": [\n    { \"name\": \"Golconda Fort\", \"pricePerPerson\": 25 },\n    { \"name\": \"Salar Jung Museum\", \"pricePerPerson\": 50 }\n  ],\n  \"localTransport\": { \"estimatedCost\": 1200 }\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/budget/calculate",
@@ -144,7 +144,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"tripId\": \"trip-hyd-107\",\n  \"destId\": \"dest-ts-007\",\n  \"travellers\": 4,\n  \"days\": 3,\n  \"budget\": 30000,\n  \"hotel\": { \"pricePerNight\": 2000, \"nights\": 3, \"rooms\": 2, \"source\": \"business_declared\" }\n}"
+          "raw": "{\n  \"tripId\": \"trip-hyd-107\",\n  \"destId\": \"dest-ts-007\",\n  \"travellers\": 4,\n  \"days\": 3,\n  \"budgetINR\": 30000,\n  \"hotel\": { \"pricePerNight\": 2000, \"nights\": 3, \"rooms\": 2, \"source\": \"business_declared\" }\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/budget/calculate",
@@ -165,7 +165,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"tripId\": \"trip-hyd-108\",\n  \"destId\": \"dest-ts-008\",\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budget\": 25000,\n  \"hotel\": { \"pricePerNight\": 2000, \"nights\": 3, \"rooms\": -1, \"source\": \"business_declared\" }\n}"
+          "raw": "{\n  \"tripId\": \"trip-hyd-108\",\n  \"destId\": \"dest-ts-008\",\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budgetINR\": 25000,\n  \"hotel\": { \"pricePerNight\": 2000, \"nights\": 3, \"rooms\": -1, \"source\": \"business_declared\" }\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/budget/calculate",
