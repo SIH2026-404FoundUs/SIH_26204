@@ -1,0 +1,174 @@
+import { filterAndRankWaitlists } from "./matchingEngine.js";
+
+/**
+ * Waitlist Service
+ *
+ * Handles creation, retrieval, cancellation, and notification dispatch
+ * for standing tourist waitlist requests.
+ */
+
+/**
+ * Create a new standing waitlist request for a tourist.
+ *
+ * @param {Object} params - Entry details.
+ * @param {string} params.userId - Tourist user ID.
+ * @param {string} [params.businessId] - Specific business ID (or null for destination-wide).
+ * @param {string} params.destId - Destination slug (e.g. "shimla").
+ * @param {Date|string} params.windowFrom - Start of availability window.
+ * @param {Date|string} params.windowTo - End of availability window.
+ * @param {number} [params.maxPriceINR=10000] - Maximum price willing to pay in INR.
+ * @param {number} [params.travellers=1] - Number of travellers.
+ * @param {Object} [models] - Database models (WaitlistModel).
+ * @returns {Promise<Object>} Created waitlist object.
+ */
+export async function createWaitlistEntry(params, models = {}) {
+  const { WaitlistModel } = models;
+  const {
+    userId,
+    businessId = null,
+    destId,
+    windowFrom,
+    windowTo,
+    maxPriceINR = 10000,
+    travellers = 1,
+  } = params;
+
+  if (!userId || !destId || !windowFrom || !windowTo) {
+    throw new Error("userId, destId, windowFrom, and windowTo are required to create waitlist entry");
+  }
+
+  const newEntry = {
+    userId,
+    businessId,
+    destId,
+    window: {
+      from: new Date(windowFrom),
+      to: new Date(windowTo),
+    },
+    criteria: {
+      maxPriceINR: Number(maxPriceINR),
+      travellers: Number(travellers),
+    },
+    state: "waiting",
+    lastNotifiedAt: null,
+    notificationsInLast24h: 0,
+    notificationHistory: [],
+    declinedDestinations: [],
+    createdAt: new Date(),
+  };
+
+  if (WaitlistModel && typeof WaitlistModel.create === "function") {
+    const doc = await WaitlistModel.create(newEntry);
+    return doc;
+  }
+
+  return {
+    _id: "waitlist_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+    ...newEntry,
+  };
+}
+
+/**
+ * Fetch standing waitlists for a given user.
+ *
+ * @param {string} userId - Tourist user ID.
+ * @param {Object} [models] - Database models (WaitlistModel).
+ * @returns {Promise<Array<Object>>} List of waitlists.
+ */
+export async function getUserWaitlists(userId, models = {}) {
+  const { WaitlistModel } = models;
+  if (!userId) return [];
+
+  if (WaitlistModel && typeof WaitlistModel.find === "function") {
+    return WaitlistModel.find({ userId }).sort({ createdAt: -1 });
+  }
+
+  return [];
+}
+
+/**
+ * Cancel a standing waitlist entry.
+ *
+ * @param {string} waitlistId - Waitlist ID to cancel.
+ * @param {string} userId - User ID requesting cancellation.
+ * @param {Object} [models] - Database models (WaitlistModel).
+ * @returns {Promise<Object>} Updated waitlist object.
+ */
+export async function cancelWaitlistEntry(waitlistId, userId, models = {}) {
+  const { WaitlistModel } = models;
+  if (!waitlistId || !userId) {
+    throw new Error("waitlistId and userId are required to cancel entry");
+  }
+
+  if (WaitlistModel && typeof WaitlistModel.findOneAndUpdate === "function") {
+    const updated = await WaitlistModel.findOneAndUpdate(
+      { _id: waitlistId, userId, state: "waiting" },
+      { $set: { state: "cancelled", cancelledAt: new Date() } },
+      { new: true, returnDocument: "after" }
+    );
+    return updated;
+  }
+
+  return { _id: waitlistId, userId, state: "cancelled", cancelledAt: new Date() };
+}
+
+/**
+ * Process matching for an offer against all active waitlists.
+ * Matches, ranks (max 20), updates notification timestamps, and returns recipients.
+ *
+ * @param {Object} offer - Offer object.
+ * @param {Object} [models] - Database models (WaitlistModel, AuditLogModel).
+ * @returns {Promise<{ matchCount: number, recipients: Array<Object> }>} Matching summary.
+ */
+export async function processOfferMatching(offer, models = {}) {
+  const { WaitlistModel, AuditLogModel } = models;
+  if (!offer) return { matchCount: 0, recipients: [] };
+
+  let activeWaitlists = [];
+  if (WaitlistModel && typeof WaitlistModel.find === "function") {
+    activeWaitlists = await WaitlistModel.find({
+      destId: offer.destId,
+      state: "waiting",
+    });
+  }
+
+  const recipients = filterAndRankWaitlists(activeWaitlists, offer);
+
+  const now = new Date();
+  // Update lastNotifiedAt and notificationHistory for matched recipients
+  if (WaitlistModel && recipients.length > 0) {
+    const recipientIds = recipients.map((r) => r._id);
+    await WaitlistModel.updateMany(
+      { _id: { $in: recipientIds } },
+      {
+        $set: { lastNotifiedAt: now },
+        $inc: { notificationsInLast24h: 1 },
+        $push: {
+          notificationHistory: {
+            offerId: offer._id,
+            sentAt: now,
+          },
+        },
+      }
+    ).catch(() => {});
+  }
+
+  if (AuditLogModel && typeof AuditLogModel.create === "function") {
+    await AuditLogModel.create({
+      actor: "system",
+      action: "waitlist.match.executed",
+      target: String(offer._id),
+      reasonCode: "NOTIFIED_WAITLIST_RECIPIENTS",
+      meta: {
+        destId: offer.destId,
+        recipientCount: recipients.length,
+      },
+      at: now,
+    }).catch(() => {});
+  }
+
+  return {
+    matchCount: recipients.length,
+    recipients,
+  };
+}
