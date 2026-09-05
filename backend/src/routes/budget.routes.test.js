@@ -45,10 +45,13 @@ describe("budget.routes integration", () => {
           localTransport: { amount: 1200, source: "estimated" },
         },
         totalCost: 13150,
+        contingency: 1315,
+        grandTotal: 14465,
         budget: 25000,
         remaining: 11850,
         utilizationPercent: 52.6,
         isOverBudget: false,
+        reductionOptions: [],
         largestCategory: "hotel",
         tripId: null,
         destId: null,
@@ -132,6 +135,92 @@ describe("budget.routes integration", () => {
       const data = await response.json();
       expect(data.costBreakdown.activities.amount).toBe(0);
       expect(data.costBreakdown.activities.source).toBe("estimated");
+    } finally {
+      server.close();
+    }
+  });
+
+  test("POST /api/v1/budget/calculate returns 400 with negative hotel rooms", async () => {
+    const app = createTestApp();
+    const server = app.listen(0);
+    const { port } = server.address();
+
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/api/v1/budget/calculate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          travellers: 2,
+          days: 4,
+          budget: 25000,
+          hotel: { pricePerNight: 2000, nights: 2, rooms: -1 },
+        }),
+      });
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toBe(true);
+      expect(data.message).toContain("hotel rooms cannot be negative");
+    } finally {
+      server.close();
+    }
+  });
+
+  test("POST /api/v1/budget/calculate multiplies hotel cost by rooms and returns contingency/grandTotal", async () => {
+    const app = createTestApp();
+    const server = app.listen(0);
+    const { port } = server.address();
+
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/api/v1/budget/calculate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          travellers: 2,
+          days: 2,
+          budget: 5000,
+          hotel: { pricePerNight: 2000, nights: 2, rooms: 2 },
+        }),
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.costBreakdown.hotel.amount).toBe(8000); // 2000 * 2 * 2
+      expect(data.totalCost).toBe(8000);
+      expect(data.contingency).toBe(800);
+      expect(data.grandTotal).toBe(8800);
+    } finally {
+      server.close();
+    }
+  });
+
+  test("POST /api/v1/budget/calculate returns all four reductionOptions when over budget", async () => {
+    const app = createTestApp();
+    const server = app.listen(0);
+    const { port } = server.address();
+
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/api/v1/budget/calculate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          travellers: 2,
+          days: 2,
+          budget: 500,
+          hotel: { pricePerNight: 5000, nights: 2 },
+        }),
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.isOverBudget).toBe(true);
+      expect(data.reductionOptions).toHaveLength(4);
+      expect(data.reductionOptions.map((o) => o.type)).toEqual([
+        "reduce_hotel_cost",
+        "switch_to_train",
+        "remove_activity",
+        "lower_pressure_alternative",
+      ]);
     } finally {
       server.close();
     }

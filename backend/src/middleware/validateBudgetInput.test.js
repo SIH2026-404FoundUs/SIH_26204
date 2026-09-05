@@ -100,6 +100,10 @@ describe("validateBudgetInput middleware", () => {
         body: { budget: 10000, travellers: 2, days: 3, hotel: { pricePerNight: 500, nights: -2 } },
       },
       {
+        field: "hotel.rooms",
+        body: { budget: 10000, travellers: 2, days: 3, hotel: { pricePerNight: 500, nights: 2, rooms: -1 } },
+      },
+      {
         field: "food.pricePerPersonPerDay",
         body: { budget: 10000, travellers: 2, days: 3, food: { pricePerPersonPerDay: -50 } },
       },
@@ -173,6 +177,36 @@ describe("validateBudgetInput middleware", () => {
     validateBudgetInput(req, res, next);
     expect(next).toHaveBeenCalled();
     expect(res.status).not.toHaveBeenCalled();
+  });
+
+  test("passes validation with a positive hotel.rooms value, and when rooms is omitted", () => {
+    const withRooms = {
+      body: {
+        budget: 10000,
+        travellers: 4,
+        days: 3,
+        hotel: { pricePerNight: 2000, nights: 3, rooms: 2 },
+      },
+    };
+    const res1 = mockResponse();
+    const next1 = jest.fn();
+    validateBudgetInput(withRooms, res1, next1);
+    expect(next1).toHaveBeenCalled();
+    expect(res1.status).not.toHaveBeenCalled();
+
+    const withoutRooms = {
+      body: {
+        budget: 10000,
+        travellers: 2,
+        days: 3,
+        hotel: { pricePerNight: 2000, nights: 3 },
+      },
+    };
+    const res2 = mockResponse();
+    const next2 = jest.fn();
+    validateBudgetInput(withoutRooms, res2, next2);
+    expect(next2).toHaveBeenCalled();
+    expect(res2.status).not.toHaveBeenCalled();
   });
 });
 

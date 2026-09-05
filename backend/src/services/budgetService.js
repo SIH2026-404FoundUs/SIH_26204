@@ -46,7 +46,8 @@ function resolveCategorySource(rawSource) {
  * Does not depend on Express req or res objects for full testability.
  *
  * @param {Object} tripData - The trip payload containing budget, travellers, days, and cost categories.
- * @returns {Object} Structured cost breakdown, total, remaining, utilization %, largest category, tripId, destId, hasUnlabelledEstimates.
+ * @returns {Object} Structured cost breakdown, total, contingency, grandTotal, remaining, utilization %,
+ *   largest category, tripId, destId, hasUnlabelledEstimates, reductionOptions (when over budget).
  */
 export function calculateBudget(tripData = {}) {
   const travellers = Number(tripData.travellers) || 0;
@@ -64,7 +65,8 @@ export function calculateBudget(tripData = {}) {
   // 2. Hotel cost & source
   const pricePerNight = Number(tripData.hotel?.pricePerNight) || 0;
   const nights = Number(tripData.hotel?.nights) || 0;
-  const hotelCost = pricePerNight * nights;
+  const rooms = tripData.hotel?.rooms !== undefined ? Number(tripData.hotel.rooms) || 0 : 1;
+  const hotelCost = pricePerNight * nights * rooms;
   const hotelSourceInfo = resolveCategorySource(tripData.hotel?.source);
 
   // 3. Food cost & source
@@ -144,6 +146,10 @@ export function calculateBudget(tripData = {}) {
     costBreakdown.localTransport.amount
   );
 
+  // Contingency buffer, shown as its own line, not folded into totalCost
+  const contingency = roundToTwo(totalCost * 0.1);
+  const grandTotal = roundToTwo(totalCost + contingency);
+
   // Remaining budget and utilization
   const remaining = roundToTwo(budget - totalCost);
   const utilizationPercent = budget > 0 ? roundToTwo((totalCost / budget) * 100) : 0;
@@ -160,13 +166,26 @@ export function calculateBudget(tripData = {}) {
     }
   }
 
+  // Over-budget handling: offer the four concrete reduction options from bharani-tasks.md Section 3
+  const reductionOptions = isOverBudget
+    ? [
+        { type: "reduce_hotel_cost", description: "Reduce hotel cost by choosing a cheaper room or fewer nights" },
+        { type: "switch_to_train", description: "Switch transport to train instead of flight" },
+        { type: "remove_activity", description: "Remove one activity from the itinerary" },
+        { type: "lower_pressure_alternative", description: "Switch to a lower-pressure destination alternative" },
+      ]
+    : [];
+
   return {
     costBreakdown,
     totalCost,
+    contingency,
+    grandTotal,
     budget,
     remaining,
     utilizationPercent,
     isOverBudget,
+    reductionOptions,
     largestCategory,
     tripId,
     destId,

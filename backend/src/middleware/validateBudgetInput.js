@@ -104,6 +104,14 @@ export function validateBudgetInput(req, res, next) {
         });
       }
     }
+    if (hotel.rooms !== undefined && hotel.rooms !== null) {
+      if (typeof hotel.rooms !== "number" || isNaN(hotel.rooms) || hotel.rooms < 0) {
+        return res.status(400).json({
+          error: true,
+          message: "hotel rooms cannot be negative and must be a valid number",
+        });
+      }
+    }
   }
 
   // 6. Validate food costs if provided

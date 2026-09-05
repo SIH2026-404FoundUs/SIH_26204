@@ -30,10 +30,13 @@ describe("budgetService - calculateBudget", () => {
         localTransport: { amount: 1200, source: "seeded" },
       },
       totalCost: 13150,
+      contingency: 1315,
+      grandTotal: 14465,
       budget: 25000,
       remaining: 11850,
       utilizationPercent: 52.6,
       isOverBudget: false,
+      reductionOptions: [],
       largestCategory: "hotel",
       tripId: "trip-xyz-101",
       destId: "dest-hyd-202",
@@ -154,9 +157,12 @@ describe("budgetService - calculateBudget", () => {
       localTransport: { amount: 0, source: "estimated" },
     });
     expect(result.totalCost).toBe(3000);
+    expect(result.contingency).toBe(300);
+    expect(result.grandTotal).toBe(3300);
     expect(result.remaining).toBe(7000);
     expect(result.utilizationPercent).toBe(30);
     expect(result.isOverBudget).toBe(false);
+    expect(result.reductionOptions).toEqual([]);
     expect(result.largestCategory).toBe("hotel");
     expect(result.hasUnlabelledEstimates).toBe(true);
   });
@@ -181,9 +187,12 @@ describe("budgetService - calculateBudget", () => {
       source: "manual",
     });
     expect(result.totalCost).toBe(1500);
+    expect(result.contingency).toBe(150);
+    expect(result.grandTotal).toBe(1650);
     expect(result.remaining).toBe(8500);
     expect(result.utilizationPercent).toBe(15);
     expect(result.isOverBudget).toBe(false);
+    expect(result.reductionOptions).toEqual([]);
     expect(result.largestCategory).toBe("transport");
     expect(result.hasUnlabelledEstimates).toBe(true);
   });
@@ -200,11 +209,19 @@ describe("budgetService - calculateBudget", () => {
     const result = calculateBudget(payload);
 
     expect(result.totalCost).toBe(14000);
+    expect(result.contingency).toBe(1400);
+    expect(result.grandTotal).toBe(15400);
     expect(result.budget).toBe(10000);
     expect(result.remaining).toBe(-4000);
     expect(result.utilizationPercent).toBe(140);
     expect(result.isOverBudget).toBe(true);
     expect(result.largestCategory).toBe("hotel");
+    expect(result.reductionOptions).toEqual([
+      { type: "reduce_hotel_cost", description: expect.any(String) },
+      { type: "switch_to_train", description: expect.any(String) },
+      { type: "remove_activity", description: expect.any(String) },
+      { type: "lower_pressure_alternative", description: expect.any(String) },
+    ]);
   });
 
   test("9. Zero utilization case when no expenses are provided", () => {
@@ -224,10 +241,13 @@ describe("budgetService - calculateBudget", () => {
       localTransport: { amount: 0, source: "estimated" },
     });
     expect(result.totalCost).toBe(0);
+    expect(result.contingency).toBe(0);
+    expect(result.grandTotal).toBe(0);
     expect(result.budget).toBe(15000);
     expect(result.remaining).toBe(15000);
     expect(result.utilizationPercent).toBe(0);
     expect(result.isOverBudget).toBe(false);
+    expect(result.reductionOptions).toEqual([]);
     expect(result.largestCategory).toBeNull();
   });
 
@@ -245,6 +265,8 @@ describe("budgetService - calculateBudget", () => {
     expect(result.costBreakdown.transport.amount).toBe(123.46);
     expect(result.costBreakdown.food.amount).toBe(3000);
     expect(result.totalCost).toBe(3123.46);
+    expect(result.contingency).toBe(312.35);
+    expect(result.grandTotal).toBe(3435.81);
     expect(result.remaining).toBe(6876.54);
     expect(result.utilizationPercent).toBe(31.23);
   });
@@ -268,6 +290,71 @@ describe("budgetService - calculateBudget", () => {
     expect(result.costBreakdown.transport.source).toBe("provider:custom_flight_api");
     expect(result.costBreakdown.hotel.source).toBe("provider:any_hotel_feed");
     expect(result.hasUnlabelledEstimates).toBe(false);
+  });
+
+  test("12. hotelCost multiplies pricePerNight * nights * rooms", () => {
+    const payload = {
+      travellers: 4,
+      days: 3,
+      budget: 50000,
+      hotel: { pricePerNight: 2000, nights: 3, rooms: 2 },
+    };
+
+    const result = calculateBudget(payload);
+
+    expect(result.costBreakdown.hotel.amount).toBe(12000); // 2000 * 3 * 2
+    expect(result.totalCost).toBe(12000);
+  });
+
+  test("13. hotel.rooms defaults to 1 when omitted, preserving pre-rooms behaviour", () => {
+    const payload = {
+      travellers: 2,
+      days: 2,
+      budget: 10000,
+      hotel: { pricePerNight: 1500, nights: 2 },
+    };
+
+    const result = calculateBudget(payload);
+
+    expect(result.costBreakdown.hotel.amount).toBe(3000); // 1500 * 2 * 1
+  });
+
+  test("14. reductionOptions is empty when not over budget", () => {
+    const payload = {
+      travellers: 1,
+      days: 1,
+      budget: 10000,
+      hotel: { pricePerNight: 1000, nights: 1 },
+    };
+
+    const result = calculateBudget(payload);
+
+    expect(result.isOverBudget).toBe(false);
+    expect(result.reductionOptions).toEqual([]);
+  });
+
+  test("15. reductionOptions returns exactly the four required options when over budget", () => {
+    const payload = {
+      travellers: 2,
+      days: 2,
+      budget: 1000,
+      hotel: { pricePerNight: 5000, nights: 2, rooms: 1 },
+    };
+
+    const result = calculateBudget(payload);
+
+    expect(result.isOverBudget).toBe(true);
+    expect(result.reductionOptions).toHaveLength(4);
+    expect(result.reductionOptions.map((o) => o.type)).toEqual([
+      "reduce_hotel_cost",
+      "switch_to_train",
+      "remove_activity",
+      "lower_pressure_alternative",
+    ]);
+    for (const option of result.reductionOptions) {
+      expect(typeof option.description).toBe("string");
+      expect(option.description.length).toBeGreaterThan(0);
+    }
   });
 });
 

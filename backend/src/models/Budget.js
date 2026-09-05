@@ -22,6 +22,7 @@ const budgetSchema = new mongoose.Schema(
     hotel: {
       pricePerNight: { type: Number, default: 0 },
       nights: { type: Number, default: 0 },
+      rooms: { type: Number, default: 1 },
     },
     food: {
       pricePerPersonPerDay: { type: Number, default: 0 },
@@ -72,6 +73,14 @@ const budgetSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    contingency: {
+      type: Number,
+      required: true,
+    },
+    grandTotal: {
+      type: Number,
+      required: true,
+    },
     remaining: {
       type: Number,
       required: true,
@@ -84,6 +93,12 @@ const budgetSchema = new mongoose.Schema(
       type: Boolean,
       required: true,
     },
+    reductionOptions: [
+      {
+        type: { type: String },
+        description: { type: String },
+      },
+    ],
     largestCategory: {
       type: String,
       default: null,
