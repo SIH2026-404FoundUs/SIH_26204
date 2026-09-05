@@ -1,0 +1,122 @@
+{
+  "info": {
+    "_postman_id": "budget-calculation-collection-v1",
+    "name": "Budget Calculation Microservice",
+    "description": "Collection for testing the POST /api/v1/budget/calculate endpoint",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Valid Full Payload",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budget\": 25000,\n  \"transport\": { \"mode\": \"train\", \"totalCost\": 3000 },\n  \"hotel\": { \"pricePerNight\": 2000, \"nights\": 3 },\n  \"food\": { \"pricePerPersonPerDay\": 350 },\n  \"activities\": [\n    { \"name\": \"Golconda Fort\", \"pricePerPerson\": 25 },\n    { \"name\": \"Salar Jung Museum\", \"pricePerPerson\": 50 }\n  ],\n  \"localTransport\": { \"estimatedCost\": 1200 }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/budget/calculate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "budget", "calculate"]
+        }
+      }
+    },
+    {
+      "name": "2. Missing Budget (Expect 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"travellers\": 2,\n  \"days\": 4,\n  \"transport\": { \"mode\": \"train\", \"totalCost\": 3000 },\n  \"hotel\": { \"pricePerNight\": 2000, \"nights\": 3 },\n  \"food\": { \"pricePerPersonPerDay\": 350 }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/budget/calculate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "budget", "calculate"]
+        }
+      }
+    },
+    {
+      "name": "3. Negative Hotel Price (Expect 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budget\": 25000,\n  \"hotel\": { \"pricePerNight\": -500, \"nights\": 3 }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/budget/calculate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "budget", "calculate"]
+        }
+      }
+    },
+    {
+      "name": "4. Empty Activities Array (Expect 200)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"travellers\": 2,\n  \"days\": 4,\n  \"budget\": 25000,\n  \"transport\": { \"mode\": \"flight\", \"totalCost\": 5000 },\n  \"hotel\": { \"pricePerNight\": 1500, \"nights\": 3 },\n  \"activities\": []\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/budget/calculate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "budget", "calculate"]
+        }
+      }
+    },
+    {
+      "name": "5. Over-Budget Scenario",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"travellers\": 2,\n  \"days\": 5,\n  \"budget\": 10000,\n  \"hotel\": { \"pricePerNight\": 2500, \"nights\": 4 },\n  \"transport\": { \"totalCost\": 4000 }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/budget/calculate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "budget", "calculate"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5001",
+      "type": "string"
+    }
+  ]
+}

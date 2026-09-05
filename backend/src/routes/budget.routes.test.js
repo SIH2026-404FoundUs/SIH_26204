@@ -1,0 +1,135 @@
+import { describe, test, expect } from "@jest/globals";
+import express from "express";
+import budgetRoutes from "./budget.routes.js";
+
+describe("budget.routes integration", () => {
+  const createTestApp = () => {
+    const app = express();
+    app.use(express.json());
+    app.use("/api/v1/budget", budgetRoutes);
+    return app;
+  };
+
+  test("POST /api/v1/budget/calculate returns 200 with valid payload", async () => {
+    const app = createTestApp();
+    const server = app.listen(0);
+    const { port } = server.address();
+
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/api/v1/budget/calculate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          travellers: 2,
+          days: 4,
+          budget: 25000,
+          transport: { mode: "train", totalCost: 3000 },
+          hotel: { pricePerNight: 2000, nights: 3 },
+          food: { pricePerPersonPerDay: 350 },
+          activities: [
+            { name: "Golconda Fort", pricePerPerson: 25 },
+            { name: "Salar Jung Museum", pricePerPerson: 50 },
+          ],
+          localTransport: { estimatedCost: 1200 },
+        }),
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toEqual({
+        breakdown: {
+          transport: 3000,
+          hotel: 6000,
+          food: 2800,
+          activities: 150,
+          localTransport: 1200,
+        },
+        totalCost: 13150,
+        budget: 25000,
+        remaining: 11850,
+        utilizationPercent: 52.6,
+        isOverBudget: false,
+        largestCategory: "hotel",
+      });
+    } finally {
+      server.close();
+    }
+  });
+
+  test("POST /api/v1/budget/calculate returns 400 with missing budget", async () => {
+    const app = createTestApp();
+    const server = app.listen(0);
+    const { port } = server.address();
+
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/api/v1/budget/calculate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          travellers: 2,
+          days: 4,
+        }),
+      });
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data).toEqual({
+        error: true,
+        message: "budget is required and must be a number greater than 0",
+      });
+    } finally {
+      server.close();
+    }
+  });
+
+  test("POST /api/v1/budget/calculate returns 400 with negative hotel price", async () => {
+    const app = createTestApp();
+    const server = app.listen(0);
+    const { port } = server.address();
+
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/api/v1/budget/calculate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          travellers: 2,
+          days: 4,
+          budget: 25000,
+          hotel: { pricePerNight: -200, nights: 2 },
+        }),
+      });
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toBe(true);
+      expect(data.message).toContain("hotel pricePerNight cannot be negative");
+    } finally {
+      server.close();
+    }
+  });
+
+  test("POST /api/v1/budget/calculate returns 200 with empty activities array", async () => {
+    const app = createTestApp();
+    const server = app.listen(0);
+    const { port } = server.address();
+
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/api/v1/budget/calculate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          travellers: 2,
+          days: 4,
+          budget: 25000,
+          activities: [],
+        }),
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.breakdown.activities).toBe(0);
+    } finally {
+      server.close();
+    }
+  });
+});

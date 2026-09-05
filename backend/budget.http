@@ -1,0 +1,68 @@
+### Variable Definition
+@baseUrl = http://localhost:5001/api/v1/budget
+
+### 1. Valid Full Payload (Expect 200 OK)
+POST {{baseUrl}}/calculate
+Content-Type: application/json
+
+{
+  "travellers": 2,
+  "days": 4,
+  "budget": 25000,
+  "transport": { "mode": "train", "totalCost": 3000 },
+  "hotel": { "pricePerNight": 2000, "nights": 3 },
+  "food": { "pricePerPersonPerDay": 350 },
+  "activities": [
+    { "name": "Golconda Fort", "pricePerPerson": 25 },
+    { "name": "Salar Jung Museum", "pricePerPerson": 50 }
+  ],
+  "localTransport": { "estimatedCost": 1200 }
+}
+
+### 2. Missing Budget (Expect 400 Bad Request)
+POST {{baseUrl}}/calculate
+Content-Type: application/json
+
+{
+  "travellers": 2,
+  "days": 4,
+  "transport": { "mode": "train", "totalCost": 3000 },
+  "hotel": { "pricePerNight": 2000, "nights": 3 },
+  "food": { "pricePerPersonPerDay": 350 }
+}
+
+### 3. Negative Hotel Price (Expect 400 Bad Request)
+POST {{baseUrl}}/calculate
+Content-Type: application/json
+
+{
+  "travellers": 2,
+  "days": 4,
+  "budget": 25000,
+  "hotel": { "pricePerNight": -500, "nights": 3 }
+}
+
+### 4. Empty Activities Array (Expect 200 OK with activities: 0)
+POST {{baseUrl}}/calculate
+Content-Type: application/json
+
+{
+  "travellers": 2,
+  "days": 4,
+  "budget": 25000,
+  "transport": { "mode": "flight", "totalCost": 5000 },
+  "hotel": { "pricePerNight": 1500, "nights": 3 },
+  "activities": []
+}
+
+### 5. Over-Budget Scenario (Expect 200 OK with isOverBudget: true)
+POST {{baseUrl}}/calculate
+Content-Type: application/json
+
+{
+  "travellers": 2,
+  "days": 5,
+  "budget": 10000,
+  "hotel": { "pricePerNight": 2500, "nights": 4 },
+  "transport": { "totalCost": 4000 }
+}
