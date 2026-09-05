@@ -36,13 +36,37 @@ const budgetSchema = new mongoose.Schema(
       estimatedCost: { type: Number, default: 0 },
     },
 
+    tripId: {
+      type: String,
+      default: null,
+    },
+    destId: {
+      type: String,
+      default: null,
+    },
+
     // Calculated outputs
-    breakdown: {
-      transport: { type: Number, default: 0 },
-      hotel: { type: Number, default: 0 },
-      food: { type: Number, default: 0 },
-      activities: { type: Number, default: 0 },
-      localTransport: { type: Number, default: 0 },
+    costBreakdown: {
+      transport: {
+        amount: { type: Number, default: 0 },
+        source: { type: String, default: "estimated" },
+      },
+      hotel: {
+        amount: { type: Number, default: 0 },
+        source: { type: String, default: "estimated" },
+      },
+      food: {
+        amount: { type: Number, default: 0 },
+        source: { type: String, default: "estimated" },
+      },
+      activities: {
+        amount: { type: Number, default: 0 },
+        source: { type: String, default: "estimated" },
+      },
+      localTransport: {
+        amount: { type: Number, default: 0 },
+        source: { type: String, default: "estimated" },
+      },
     },
     totalCost: {
       type: Number,
@@ -63,6 +87,10 @@ const budgetSchema = new mongoose.Schema(
     largestCategory: {
       type: String,
       default: null,
+    },
+    hasUnlabelledEstimates: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true, bufferCommands: false }

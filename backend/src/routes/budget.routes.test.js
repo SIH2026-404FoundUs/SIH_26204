@@ -37,12 +37,12 @@ describe("budget.routes integration", () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data).toEqual({
-        breakdown: {
-          transport: 3000,
-          hotel: 6000,
-          food: 2800,
-          activities: 150,
-          localTransport: 1200,
+        costBreakdown: {
+          transport: { amount: 3000, source: "estimated" },
+          hotel: { amount: 6000, source: "estimated" },
+          food: { amount: 2800, source: "estimated" },
+          activities: { amount: 150, source: "estimated" },
+          localTransport: { amount: 1200, source: "estimated" },
         },
         totalCost: 13150,
         budget: 25000,
@@ -50,6 +50,9 @@ describe("budget.routes integration", () => {
         utilizationPercent: 52.6,
         isOverBudget: false,
         largestCategory: "hotel",
+        tripId: null,
+        destId: null,
+        hasUnlabelledEstimates: true,
       });
     } finally {
       server.close();
@@ -127,7 +130,8 @@ describe("budget.routes integration", () => {
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data.breakdown.activities).toBe(0);
+      expect(data.costBreakdown.activities.amount).toBe(0);
+      expect(data.costBreakdown.activities.source).toBe("estimated");
     } finally {
       server.close();
     }

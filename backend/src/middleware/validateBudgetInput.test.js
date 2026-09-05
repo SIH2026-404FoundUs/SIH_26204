@@ -124,4 +124,55 @@ describe("validateBudgetInput middleware", () => {
       expect(next).not.toHaveBeenCalled();
     }
   });
+
+  test("defaults tripId and destId to null when omitted, and passes through when provided", () => {
+    const req1 = {
+      body: {
+        budget: 10000,
+        travellers: 2,
+        days: 3,
+      },
+    };
+    const res1 = mockResponse();
+    const next1 = jest.fn();
+    validateBudgetInput(req1, res1, next1);
+    expect(next1).toHaveBeenCalled();
+    expect(req1.body.tripId).toBeNull();
+    expect(req1.body.destId).toBeNull();
+
+    const req2 = {
+      body: {
+        tripId: "trip-abc",
+        destId: "dest-xyz",
+        budget: 10000,
+        travellers: 2,
+        days: 3,
+      },
+    };
+    const res2 = mockResponse();
+    const next2 = jest.fn();
+    validateBudgetInput(req2, res2, next2);
+    expect(next2).toHaveBeenCalled();
+    expect(req2.body.tripId).toBe("trip-abc");
+    expect(req2.body.destId).toBe("dest-xyz");
+  });
+
+  test("tolerates missing or unrecognised source strings without throwing 400", () => {
+    const req = {
+      body: {
+        budget: 10000,
+        travellers: 2,
+        days: 3,
+        transport: { totalCost: 1000, source: "unknown_source_string" },
+        hotel: { pricePerNight: 500, nights: 2, source: "business_declared" },
+        activities: [{ pricePerPerson: 20, source: "invalid_xyz" }],
+      },
+    };
+    const res = mockResponse();
+    const next = jest.fn();
+    validateBudgetInput(req, res, next);
+    expect(next).toHaveBeenCalled();
+    expect(res.status).not.toHaveBeenCalled();
+  });
 });
+

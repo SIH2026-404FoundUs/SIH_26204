@@ -22,6 +22,14 @@ export function validateBudgetInput(req, res, next) {
     });
   }
 
+  // Default optional top-level fields to null if not provided
+  if (body.tripId === undefined) {
+    body.tripId = null;
+  }
+  if (body.destId === undefined) {
+    body.destId = null;
+  }
+
   const { budget, travellers, days, transport, hotel, food, activities, localTransport } = body;
 
   // 1. Validate budget

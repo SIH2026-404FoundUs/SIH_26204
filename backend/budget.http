@@ -1,7 +1,163 @@
 ### Variable Definition
 @baseUrl = http://localhost:5001/api/v1/budget
 
-### 1. Valid Full Payload (Expect 200 OK)
+### 1. Valid Full Payload with Explicit Sources (Expect 200 OK, hasUnlabelledEstimates: false)
+# Expected response:
+# {
+#   "costBreakdown": {
+#     "transport": { "amount": 3000, "source": "provider:railradar" },
+#     "hotel": { "amount": 6000, "source": "business_declared" },
+#     "food": { "amount": 2800, "source": "manual" },
+#     "activities": { "amount": 150, "source": "provider:google_places" },
+#     "localTransport": { "amount": 1200, "source": "seeded" }
+#   },
+#   "totalCost": 13150,
+#   "budget": 25000,
+#   "remaining": 11850,
+#   "utilizationPercent": 52.6,
+#   "isOverBudget": false,
+#   "largestCategory": "hotel",
+#   "tripId": "trip-hyd-101",
+#   "destId": "dest-ts-001",
+#   "hasUnlabelledEstimates": false
+# }
+POST {{baseUrl}}/calculate
+Content-Type: application/json
+
+{
+  "tripId": "trip-hyd-101",
+  "destId": "dest-ts-001",
+  "travellers": 2,
+  "days": 4,
+  "budget": 25000,
+  "transport": { "mode": "train", "totalCost": 3000, "source": "provider:railradar" },
+  "hotel": { "pricePerNight": 2000, "nights": 3, "source": "business_declared" },
+  "food": { "pricePerPersonPerDay": 350, "source": "manual" },
+  "activities": [
+    { "name": "Golconda Fort", "pricePerPerson": 25, "source": "provider:google_places" },
+    { "name": "Salar Jung Museum", "pricePerPerson": 50, "source": "provider:google_places" }
+  ],
+  "localTransport": { "estimatedCost": 1200, "source": "seeded" }
+}
+
+### 2. Missing Budget (Expect 400 Bad Request)
+# Expected response:
+# { "error": true, "message": "budget is required and must be a number greater than 0" }
+POST {{baseUrl}}/calculate
+Content-Type: application/json
+
+{
+  "tripId": "trip-hyd-102",
+  "destId": "dest-ts-002",
+  "travellers": 2,
+  "days": 4,
+  "transport": { "mode": "train", "totalCost": 3000, "source": "provider:railradar" },
+  "hotel": { "pricePerNight": 2000, "nights": 3, "source": "business_declared" },
+  "food": { "pricePerPersonPerDay": 350, "source": "manual" }
+}
+
+### 3. Negative Hotel Price (Expect 400 Bad Request)
+# Expected response:
+# { "error": true, "message": "hotel pricePerNight cannot be negative and must be a valid number" }
+POST {{baseUrl}}/calculate
+Content-Type: application/json
+
+{
+  "tripId": "trip-hyd-103",
+  "destId": "dest-ts-003",
+  "travellers": 2,
+  "days": 4,
+  "budget": 25000,
+  "hotel": { "pricePerNight": -500, "nights": 3, "source": "business_declared" }
+}
+
+### 4. Empty Activities Array (Expect 200 OK with activities amount: 0, source: "estimated", hasUnlabelledEstimates: true)
+# Expected response:
+# {
+#   "costBreakdown": {
+#     "transport": { "amount": 5000, "source": "provider:amadeus" },
+#     "hotel": { "amount": 4500, "source": "business_declared" },
+#     "food": { "amount": 0, "source": "estimated" },
+#     "activities": { "amount": 0, "source": "estimated" },
+#     "localTransport": { "amount": 0, "source": "estimated" }
+#   },
+#   "totalCost": 9500,
+#   "budget": 25000,
+#   "remaining": 15500,
+#   "utilizationPercent": 38,
+#   "isOverBudget": false,
+#   "largestCategory": "transport",
+#   "tripId": "trip-hyd-104",
+#   "destId": "dest-ts-004",
+#   "hasUnlabelledEstimates": true
+# }
+POST {{baseUrl}}/calculate
+Content-Type: application/json
+
+{
+  "tripId": "trip-hyd-104",
+  "destId": "dest-ts-004",
+  "travellers": 2,
+  "days": 4,
+  "budget": 25000,
+  "transport": { "mode": "flight", "totalCost": 5000, "source": "provider:amadeus" },
+  "hotel": { "pricePerNight": 1500, "nights": 3, "source": "business_declared" },
+  "activities": []
+}
+
+### 5. Over-Budget Scenario (Expect 200 OK with isOverBudget: true)
+# Expected response:
+# {
+#   "costBreakdown": {
+#     "transport": { "amount": 4000, "source": "provider:railradar" },
+#     "hotel": { "amount": 10000, "source": "business_declared" },
+#     "food": { "amount": 0, "source": "estimated" },
+#     "activities": { "amount": 0, "source": "estimated" },
+#     "localTransport": { "amount": 0, "source": "estimated" }
+#   },
+#   "totalCost": 14000,
+#   "budget": 10000,
+#   "remaining": -4000,
+#   "utilizationPercent": 140,
+#   "isOverBudget": true,
+#   "largestCategory": "hotel",
+#   "tripId": "trip-hyd-105",
+#   "destId": "dest-ts-005",
+#   "hasUnlabelledEstimates": true
+# }
+POST {{baseUrl}}/calculate
+Content-Type: application/json
+
+{
+  "tripId": "trip-hyd-105",
+  "destId": "dest-ts-005",
+  "travellers": 2,
+  "days": 5,
+  "budget": 10000,
+  "hotel": { "pricePerNight": 2500, "nights": 4, "source": "business_declared" },
+  "transport": { "totalCost": 4000, "source": "provider:railradar" }
+}
+
+### 6. Omitted Sources Scenario (Expect 200 OK with hasUnlabelledEstimates: true from omitted sources)
+# Expected response:
+# {
+#   "costBreakdown": {
+#     "transport": { "amount": 3000, "source": "estimated" },
+#     "hotel": { "amount": 6000, "source": "estimated" },
+#     "food": { "amount": 2800, "source": "estimated" },
+#     "activities": { "amount": 150, "source": "estimated" },
+#     "localTransport": { "amount": 1200, "source": "estimated" }
+#   },
+#   "totalCost": 13150,
+#   "budget": 25000,
+#   "remaining": 11850,
+#   "utilizationPercent": 52.6,
+#   "isOverBudget": false,
+#   "largestCategory": "hotel",
+#   "tripId": null,
+#   "destId": null,
+#   "hasUnlabelledEstimates": true
+# }
 POST {{baseUrl}}/calculate
 Content-Type: application/json
 
@@ -17,52 +173,4 @@ Content-Type: application/json
     { "name": "Salar Jung Museum", "pricePerPerson": 50 }
   ],
   "localTransport": { "estimatedCost": 1200 }
-}
-
-### 2. Missing Budget (Expect 400 Bad Request)
-POST {{baseUrl}}/calculate
-Content-Type: application/json
-
-{
-  "travellers": 2,
-  "days": 4,
-  "transport": { "mode": "train", "totalCost": 3000 },
-  "hotel": { "pricePerNight": 2000, "nights": 3 },
-  "food": { "pricePerPersonPerDay": 350 }
-}
-
-### 3. Negative Hotel Price (Expect 400 Bad Request)
-POST {{baseUrl}}/calculate
-Content-Type: application/json
-
-{
-  "travellers": 2,
-  "days": 4,
-  "budget": 25000,
-  "hotel": { "pricePerNight": -500, "nights": 3 }
-}
-
-### 4. Empty Activities Array (Expect 200 OK with activities: 0)
-POST {{baseUrl}}/calculate
-Content-Type: application/json
-
-{
-  "travellers": 2,
-  "days": 4,
-  "budget": 25000,
-  "transport": { "mode": "flight", "totalCost": 5000 },
-  "hotel": { "pricePerNight": 1500, "nights": 3 },
-  "activities": []
-}
-
-### 5. Over-Budget Scenario (Expect 200 OK with isOverBudget: true)
-POST {{baseUrl}}/calculate
-Content-Type: application/json
-
-{
-  "travellers": 2,
-  "days": 5,
-  "budget": 10000,
-  "hotel": { "pricePerNight": 2500, "nights": 4 },
-  "transport": { "totalCost": 4000 }
 }

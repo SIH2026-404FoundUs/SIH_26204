@@ -2,30 +2,32 @@ import { describe, test, expect } from "@jest/globals";
 import { calculateBudget } from "./budgetService.js";
 
 describe("budgetService - calculateBudget", () => {
-  test("1. Normal calculation matching prompt specification", () => {
+  test("1. Request with every source explicitly provided (hasUnlabelledEstimates: false)", () => {
     const payload = {
+      tripId: "trip-xyz-101",
+      destId: "dest-hyd-202",
       travellers: 2,
       days: 4,
       budget: 25000,
-      transport: { mode: "train", totalCost: 3000 },
-      hotel: { pricePerNight: 2000, nights: 3 },
-      food: { pricePerPersonPerDay: 350 },
+      transport: { mode: "train", totalCost: 3000, source: "provider:railradar" },
+      hotel: { pricePerNight: 2000, nights: 3, source: "business_declared" },
+      food: { pricePerPersonPerDay: 350, source: "manual" },
       activities: [
-        { name: "Golconda Fort", pricePerPerson: 25 },
-        { name: "Salar Jung Museum", pricePerPerson: 50 },
+        { name: "Golconda Fort", pricePerPerson: 25, source: "provider:google_places" },
+        { name: "Salar Jung Museum", pricePerPerson: 50, source: "provider:google_places" },
       ],
-      localTransport: { estimatedCost: 1200 },
+      localTransport: { estimatedCost: 1200, source: "seeded" },
     };
 
     const result = calculateBudget(payload);
 
     expect(result).toEqual({
-      breakdown: {
-        transport: 3000,
-        hotel: 6000,
-        food: 2800,
-        activities: 150,
-        localTransport: 1200,
+      costBreakdown: {
+        transport: { amount: 3000, source: "provider:railradar" },
+        hotel: { amount: 6000, source: "business_declared" },
+        food: { amount: 2800, source: "manual" },
+        activities: { amount: 150, source: "provider:google_places" },
+        localTransport: { amount: 1200, source: "seeded" },
       },
       totalCost: 13150,
       budget: 25000,
@@ -33,54 +35,160 @@ describe("budgetService - calculateBudget", () => {
       utilizationPercent: 52.6,
       isOverBudget: false,
       largestCategory: "hotel",
+      tripId: "trip-xyz-101",
+      destId: "dest-hyd-202",
+      hasUnlabelledEstimates: false,
     });
   });
 
-  test("2. Missing optional categories should default to 0", () => {
+  test("2. Request with sources omitted entirely (hasUnlabelledEstimates: true, all defaulted to 'estimated')", () => {
     const payload = {
       travellers: 2,
-      days: 3,
-      budget: 10000,
-      hotel: { pricePerNight: 1500, nights: 2 },
+      days: 4,
+      budget: 25000,
+      transport: { totalCost: 3000 },
+      hotel: { pricePerNight: 2000, nights: 3 },
+      food: { pricePerPersonPerDay: 350 },
+      activities: [
+        { name: "Fort", pricePerPerson: 25 },
+      ],
+      localTransport: { estimatedCost: 1200 },
     };
 
     const result = calculateBudget(payload);
 
-    expect(result.breakdown).toEqual({
-      transport: 0,
-      hotel: 3000,
-      food: 0,
-      activities: 0,
-      localTransport: 0,
+    expect(result.costBreakdown).toEqual({
+      transport: { amount: 3000, source: "estimated" },
+      hotel: { amount: 6000, source: "estimated" },
+      food: { amount: 2800, source: "estimated" },
+      activities: { amount: 50, source: "estimated" },
+      localTransport: { amount: 1200, source: "estimated" },
+    });
+    expect(result.tripId).toBeNull();
+    expect(result.destId).toBeNull();
+    expect(result.hasUnlabelledEstimates).toBe(true);
+  });
+
+  test("3. Unrecognised source string defaults to 'estimated' and is flagged", () => {
+    const payload = {
+      travellers: 2,
+      days: 4,
+      budget: 25000,
+      transport: { totalCost: 3000, source: "unrecognised_source_xyz" },
+      hotel: { pricePerNight: 2000, nights: 3, source: "business_declared" },
+      food: { pricePerPersonPerDay: 350, source: "manual" },
+      activities: [
+        { name: "Fort", pricePerPerson: 25, source: "provider:google_places" },
+      ],
+      localTransport: { estimatedCost: 1200, source: "seeded" },
+    };
+
+    const result = calculateBudget(payload);
+
+    expect(result.costBreakdown.transport).toEqual({
+      amount: 3000,
+      source: "estimated",
+    });
+    expect(result.hasUnlabelledEstimates).toBe(true);
+  });
+
+  test("4. tripId/destId echoed correctly when provided and null when omitted", () => {
+    const withIds = calculateBudget({
+      tripId: "trip-999",
+      destId: "dest-888",
+      travellers: 1,
+      days: 1,
+      budget: 1000,
+    });
+    expect(withIds.tripId).toBe("trip-999");
+    expect(withIds.destId).toBe("dest-888");
+
+    const withoutIds = calculateBudget({
+      travellers: 1,
+      days: 1,
+      budget: 1000,
+    });
+    expect(withoutIds.tripId).toBeNull();
+    expect(withoutIds.destId).toBeNull();
+  });
+
+  test("5. Activities with different sources resolve to 'mixed'", () => {
+    const payload = {
+      travellers: 2,
+      days: 2,
+      budget: 10000,
+      transport: { totalCost: 1000, source: "manual" },
+      hotel: { pricePerNight: 1000, nights: 1, source: "manual" },
+      food: { pricePerPersonPerDay: 100, source: "manual" },
+      activities: [
+        { name: "Fort", pricePerPerson: 25, source: "provider:google_places" },
+        { name: "Museum", pricePerPerson: 50, source: "manual" },
+      ],
+      localTransport: { estimatedCost: 200, source: "manual" },
+    };
+
+    const result = calculateBudget(payload);
+
+    expect(result.costBreakdown.activities).toEqual({
+      amount: 150,
+      source: "mixed",
+    });
+    expect(result.hasUnlabelledEstimates).toBe(false);
+  });
+
+  test("6. Missing optional categories should default to 0 and 'estimated'", () => {
+    const payload = {
+      travellers: 2,
+      days: 3,
+      budget: 10000,
+      hotel: { pricePerNight: 1500, nights: 2, source: "business_declared" },
+    };
+
+    const result = calculateBudget(payload);
+
+    expect(result.costBreakdown).toEqual({
+      transport: { amount: 0, source: "estimated" },
+      hotel: { amount: 3000, source: "business_declared" },
+      food: { amount: 0, source: "estimated" },
+      activities: { amount: 0, source: "estimated" },
+      localTransport: { amount: 0, source: "estimated" },
     });
     expect(result.totalCost).toBe(3000);
     expect(result.remaining).toBe(7000);
     expect(result.utilizationPercent).toBe(30);
     expect(result.isOverBudget).toBe(false);
     expect(result.largestCategory).toBe("hotel");
+    expect(result.hasUnlabelledEstimates).toBe(true);
   });
 
-  test("3. Empty activities array should yield 0 for activities cost", () => {
+  test("7. Empty activities array should yield 0 for activities cost with source 'estimated'", () => {
     const payload = {
       travellers: 3,
       days: 2,
       budget: 10000,
-      transport: { totalCost: 1500 },
+      transport: { totalCost: 1500, source: "manual" },
       activities: [],
     };
 
     const result = calculateBudget(payload);
 
-    expect(result.breakdown.activities).toBe(0);
-    expect(result.breakdown.transport).toBe(1500);
+    expect(result.costBreakdown.activities).toEqual({
+      amount: 0,
+      source: "estimated",
+    });
+    expect(result.costBreakdown.transport).toEqual({
+      amount: 1500,
+      source: "manual",
+    });
     expect(result.totalCost).toBe(1500);
     expect(result.remaining).toBe(8500);
     expect(result.utilizationPercent).toBe(15);
     expect(result.isOverBudget).toBe(false);
     expect(result.largestCategory).toBe("transport");
+    expect(result.hasUnlabelledEstimates).toBe(true);
   });
 
-  test("4. Over-budget case when totalCost exceeds budget", () => {
+  test("8. Over-budget case when totalCost exceeds budget", () => {
     const payload = {
       travellers: 2,
       days: 5,
@@ -99,7 +207,7 @@ describe("budgetService - calculateBudget", () => {
     expect(result.largestCategory).toBe("hotel");
   });
 
-  test("5. Zero utilization case when no expenses are provided", () => {
+  test("9. Zero utilization case when no expenses are provided", () => {
     const payload = {
       travellers: 2,
       days: 3,
@@ -108,12 +216,12 @@ describe("budgetService - calculateBudget", () => {
 
     const result = calculateBudget(payload);
 
-    expect(result.breakdown).toEqual({
-      transport: 0,
-      hotel: 0,
-      food: 0,
-      activities: 0,
-      localTransport: 0,
+    expect(result.costBreakdown).toEqual({
+      transport: { amount: 0, source: "estimated" },
+      hotel: { amount: 0, source: "estimated" },
+      food: { amount: 0, source: "estimated" },
+      activities: { amount: 0, source: "estimated" },
+      localTransport: { amount: 0, source: "estimated" },
     });
     expect(result.totalCost).toBe(0);
     expect(result.budget).toBe(15000);
@@ -123,7 +231,7 @@ describe("budgetService - calculateBudget", () => {
     expect(result.largestCategory).toBeNull();
   });
 
-  test("6. Decimal precision rounding to 2 decimal places", () => {
+  test("10. Decimal precision rounding to 2 decimal places", () => {
     const payload = {
       travellers: 3,
       days: 3,
@@ -134,10 +242,32 @@ describe("budgetService - calculateBudget", () => {
 
     const result = calculateBudget(payload);
 
-    expect(result.breakdown.transport).toBe(123.46);
-    expect(result.breakdown.food).toBe(3000);
+    expect(result.costBreakdown.transport.amount).toBe(123.46);
+    expect(result.costBreakdown.food.amount).toBe(3000);
     expect(result.totalCost).toBe(3123.46);
     expect(result.remaining).toBe(6876.54);
     expect(result.utilizationPercent).toBe(31.23);
   });
+
+  test("11. Any provider: pattern string is accepted as valid source", () => {
+    const payload = {
+      travellers: 1,
+      days: 1,
+      budget: 5000,
+      transport: { totalCost: 1000, source: "provider:custom_flight_api" },
+      hotel: { pricePerNight: 1000, nights: 1, source: "provider:any_hotel_feed" },
+      food: { pricePerPersonPerDay: 200, source: "provider:food_service" },
+      activities: [
+        { name: "Tower", pricePerPerson: 100, source: "provider:ticket_master" },
+      ],
+      localTransport: { estimatedCost: 50, source: "provider:uber_api" },
+    };
+
+    const result = calculateBudget(payload);
+
+    expect(result.costBreakdown.transport.source).toBe("provider:custom_flight_api");
+    expect(result.costBreakdown.hotel.source).toBe("provider:any_hotel_feed");
+    expect(result.hasUnlabelledEstimates).toBe(false);
+  });
 });
+
