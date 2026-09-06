@@ -1,0 +1,46 @@
+{
+  "_id": "mcleodganj",
+  "name": "McLeod Ganj",
+  "displayName": "McLeod Ganj, Himachal Pradesh",
+  "state": "HP",
+  "district": "Kangra",
+  "googlePlaceId": "ChIJc86YV4s3DzkRW8u2kU_9999",
+  "location": {
+    "lat": 32.2426,
+    "lng": 76.3247,
+    "type": "Point",
+    "coordinates": [
+      76.3247,
+      32.2426
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.7,
+    "trek": 0.9,
+    "riverside": 0.3,
+    "heritage": 0.8,
+    "nightlife": 0.7,
+    "food": 0.9,
+    "wildlife": 0.4,
+    "spiritual": 1.0
+  },
+  "nearestRailhead": "PTKC",
+  "railheadDistanceKm": 90,
+  "railSignalConfidence": 0.35,
+  "roadAccess": {
+    "operators": [
+      "HRTC"
+    ],
+    "corridor": "Dharamshala-McLeodganj",
+    "boardingPoint": "Dharamshala ISBT"
+  },
+  "nearestAirport": "DHM",
+  "capacityPrior": 0.8,
+  "baseline": {
+    "railWL": 32,
+    "roadSeatsAvail": 35,
+    "hotelMedianINR": 2600
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

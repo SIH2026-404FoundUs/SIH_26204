@@ -1,0 +1,46 @@
+{
+  "_id": "bogatha-waterfalls",
+  "name": "Bogatha Waterfalls",
+  "displayName": "Bogatha Waterfalls, Telangana",
+  "state": "TG",
+  "district": "Jayshankar Bhupalpally",
+  "googlePlaceId": "ChIJ778899001122TGBogatha",
+  "location": {
+    "lat": 18.5667,
+    "lng": 80.45,
+    "type": "Point",
+    "coordinates": [
+      80.45,
+      18.5667
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.0,
+    "trek": 0.6,
+    "riverside": 1.0,
+    "heritage": 0.1,
+    "nightlife": 0.1,
+    "food": 0.4,
+    "wildlife": 0.8,
+    "spiritual": 0.2
+  },
+  "nearestRailhead": "BDCR",
+  "railheadDistanceKm": 120,
+  "railSignalConfidence": 0.2,
+  "roadAccess": {
+    "operators": [
+      "TSRTC"
+    ],
+    "corridor": "Eturnagaram-Wazeedu",
+    "boardingPoint": "Eturnagaram"
+  },
+  "nearestAirport": "HYD",
+  "capacityPrior": 0.75,
+  "baseline": {
+    "railWL": 10,
+    "roadSeatsAvail": 30,
+    "hotelMedianINR": 1300
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

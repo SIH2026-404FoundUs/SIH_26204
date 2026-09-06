@@ -1,0 +1,46 @@
+{
+  "_id": "mandi",
+  "name": "Mandi",
+  "displayName": "Mandi, Himachal Pradesh",
+  "state": "HP",
+  "district": "Mandi",
+  "googlePlaceId": "ChIJ334455667788DzkR88990011",
+  "location": {
+    "lat": 31.7084,
+    "lng": 76.932,
+    "type": "Point",
+    "coordinates": [
+      76.932,
+      31.7084
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.2,
+    "trek": 0.5,
+    "riverside": 0.8,
+    "heritage": 0.8,
+    "nightlife": 0.3,
+    "food": 0.6,
+    "wildlife": 0.4,
+    "spiritual": 0.9
+  },
+  "railheadDistanceKm": 110,
+  "nearestRailhead": "Kiratpur Sahib",
+  "railSignalConfidence": 0.35,
+  "roadAccess": {
+    "operators": [
+      "HRTC"
+    ],
+    "corridor": "Chandigarh-Mandi",
+    "boardingPoint": "Mandi ISBT"
+  },
+  "nearestAirport": "KUU",
+  "capacityPrior": 0.35,
+  "baseline": {
+    "railWL": 20,
+    "roadSeatsAvail": 70,
+    "hotelMedianINR": 1800
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

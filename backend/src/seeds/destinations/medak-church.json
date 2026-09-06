@@ -1,0 +1,46 @@
+{
+  "_id": "medak-church",
+  "name": "Medak Cathedral & Fort",
+  "displayName": "Medak Cathedral, Medak, Telangana",
+  "state": "TG",
+  "district": "Medak",
+  "googlePlaceId": "ChIJ998877665544TGMedak",
+  "location": {
+    "lat": 18.05,
+    "lng": 78.2667,
+    "type": "Point",
+    "coordinates": [
+      78.2667,
+      18.05
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.0,
+    "trek": 0.2,
+    "riverside": 0.2,
+    "heritage": 0.9,
+    "nightlife": 0.1,
+    "food": 0.6,
+    "wildlife": 0.3,
+    "spiritual": 0.8
+  },
+  "nearestRailhead": "MZL",
+  "railheadDistanceKm": 20,
+  "railSignalConfidence": 0.75,
+  "roadAccess": {
+    "operators": [
+      "TSRTC"
+    ],
+    "corridor": "Hyderabad-Medak",
+    "boardingPoint": "Jubilee Bus Station"
+  },
+  "nearestAirport": "HYD",
+  "capacityPrior": 0.5,
+  "baseline": {
+    "railWL": 20,
+    "roadSeatsAvail": 55,
+    "hotelMedianINR": 1500
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

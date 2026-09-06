@@ -1,0 +1,46 @@
+{
+  "_id": "ananthagiri-hills",
+  "name": "Ananthagiri Hills (Vikarabad)",
+  "displayName": "Ananthagiri Hills, Vikarabad, Telangana",
+  "state": "TG",
+  "district": "Vikarabad",
+  "googlePlaceId": "ChIJ889900112233TGAnanthagiri",
+  "location": {
+    "lat": 17.3117,
+    "lng": 77.8647,
+    "type": "Point",
+    "coordinates": [
+      77.8647,
+      17.3117
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.0,
+    "trek": 0.8,
+    "riverside": 0.4,
+    "heritage": 0.4,
+    "nightlife": 0.3,
+    "food": 0.6,
+    "wildlife": 0.7,
+    "spiritual": 0.6
+  },
+  "nearestRailhead": "VKB",
+  "railheadDistanceKm": 6,
+  "railSignalConfidence": 0.85,
+  "roadAccess": {
+    "operators": [
+      "TSRTC"
+    ],
+    "corridor": "Hyderabad-Vikarabad",
+    "boardingPoint": "Mehdipatnam"
+  },
+  "nearestAirport": "HYD",
+  "capacityPrior": 0.7,
+  "baseline": {
+    "railWL": 30,
+    "roadSeatsAvail": 45,
+    "hotelMedianINR": 2400
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}
