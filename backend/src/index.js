@@ -12,6 +12,8 @@ import placesRoutes from "./routes/places.route.js";
 import routesRoutes from "./routes/routes.route.js";
 import fareRoutes from "./routes/fare.route.js";
 import roadRoutes from "./routes/road.route.js";
+import geocodeRoutes from "./routes/geocode.route.js";
+import alternativesRoutes from "./routes/alternatives.route.js";
 
 dotenv.config();
 
@@ -37,6 +39,8 @@ app.use("/api/places", placesRoutes);
 app.use("/api/routes", routesRoutes);
 app.use("/api/fare", fareRoutes);
 app.use("/api/road", roadRoutes);
+app.use("/api/geocode", geocodeRoutes);
+app.use("/api/alternatives", alternativesRoutes);
 
 app.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);
