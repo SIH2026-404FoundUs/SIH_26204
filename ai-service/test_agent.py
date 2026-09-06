@@ -27,8 +27,12 @@ async def main():
             role="user",
             parts=[
                 types.Part(
-                    text="What's the weather in Manali on 2026-12-26, and how far is it from Delhi by road? Origin is lat 28.6139, lng 77.2090, Manali is lat 32.2432, lng 77.1892."
-                )
+# ai-service/test_agent.py — update the message
+text = (
+    "I'm traveling from Delhi to Manali on train number 12952 from NDLS to MMCT "
+    "on 2026-09-12 in 3A class. Also tell me the auto fare for a 6.4 km ride in "
+    "Hyderabad, and check road transport options for destination ID manali."
+)             )
             ],
         ),
     ):
