@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Loader2, LockKeyhole, LogOut, Mail, MapPin, UserRound } from 'lucide-react'
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from './store/useAuthStore'
+import PressureHeatmap from './components/pressure/PressureHeatmap'
 
 function Header() {
   const location = useLocation()
@@ -18,6 +19,9 @@ function Header() {
           Tourist
         </Link>
         <nav className="flex items-center gap-2 text-sm font-medium">
+          <Link to="/pressure" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/pressure' ? 'text-indigo-600' : 'text-slate-600'}`}>
+            Pressure
+          </Link>
           {authUser ? (
             <>
               <span className="px-2 text-slate-600">{authUser.fullName}</span>
@@ -146,6 +150,18 @@ function App() {
         <Header />
         <Routes>
           <Route path="/" element={authUser ? <Home /> : <Navigate to="/login" replace />} />
+          {/* Open — no auth, it only reads the public pressure endpoints */}
+          <Route
+            path="/pressure"
+            element={
+              <main className="flex-1 bg-slate-50 px-6 py-12">
+                <div className="mx-auto max-w-6xl">
+                  <h1 className="mb-6 text-2xl font-semibold tracking-tight text-slate-900">Destination Pressure</h1>
+                  <PressureHeatmap />
+                </div>
+              </main>
+            }
+          />
           <Route path="/login" element={authUser ? <Navigate to="/" replace /> : <AuthCard mode="login" />} />
           <Route path="/signup" element={authUser ? <Navigate to="/" replace /> : <AuthCard mode="signup" />} />
           <Route path="*" element={<Navigate to="/" replace />} />

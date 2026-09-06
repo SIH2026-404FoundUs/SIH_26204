@@ -1,0 +1,101 @@
+{
+  "hyderabad": {
+    "auto": {
+      "base": 30,
+      "perKm": 11,
+      "minFare": 30
+    },
+    "cab": {
+      "base": 50,
+      "perKm": 16,
+      "minFare": 80
+    },
+    "metro": {
+      "slabs": [
+        [
+          2,
+          10
+        ],
+        [
+          5,
+          20
+        ],
+        [
+          12,
+          30
+        ],
+        [
+          21,
+          40
+        ],
+        [
+          32,
+          50
+        ]
+      ]
+    },
+    "bus": {
+      "flat": 25
+    }
+  },
+  "warangal": {
+    "auto": {
+      "base": 25,
+      "perKm": 10,
+      "minFare": 25
+    },
+    "cab": {
+      "base": 45,
+      "perKm": 14,
+      "minFare": 70
+    },
+    "bus": {
+      "flat": 15
+    }
+  },
+  "shimla": {
+    "auto": {
+      "base": 40,
+      "perKm": 14,
+      "minFare": 40
+    },
+    "cab": {
+      "base": 60,
+      "perKm": 20,
+      "minFare": 100
+    },
+    "bus": {
+      "flat": 10
+    }
+  },
+  "manali": {
+    "auto": {
+      "base": 50,
+      "perKm": 15,
+      "minFare": 50
+    },
+    "cab": {
+      "base": 70,
+      "perKm": 22,
+      "minFare": 120
+    },
+    "bus": {
+      "flat": 15
+    }
+  },
+  "dharamshala": {
+    "auto": {
+      "base": 35,
+      "perKm": 12,
+      "minFare": 35
+    },
+    "cab": {
+      "base": 55,
+      "perKm": 18,
+      "minFare": 90
+    },
+    "bus": {
+      "flat": 12
+    }
+  }
+}
