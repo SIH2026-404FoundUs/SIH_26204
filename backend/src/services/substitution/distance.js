@@ -1,5 +1,4 @@
-import { Destination } from '../../models/destination.model.js';
-import { getStats, zScore } from './standardize.js';
+import { getStats, zScore, getTrackedDestinations } from './standardize.js';
 
 const ATTR_LIST = [
   'snow',
@@ -133,26 +132,45 @@ function shouldUseMahalanobis(destinations) {
  * Computes 8x8 covariance matrix across tracked destinations using mu values from getStats().
  */
 async function computeCovarianceMatrix(destinations) {
-  const stats = await getStats();
   const n = destinations.length;
   const divisor = n > 1 ? n - 1 : 1;
+
+  // Convert ALL destinations to z-scores FIRST
+  const zDests = [];
+  for (const dest of destinations) {
+    const z = await zScore(dest);
+    zDests.push(z);
+  }
+
+  // Calculate sample means of z-scores for each attribute
+  const zMeans = {};
+  for (const attr of ATTR_LIST) {
+    const sum = zDests.reduce((acc, z) => acc + (z[attr] ?? 0), 0);
+    zMeans[attr] = sum / n;
+  }
+
   const matrix = Array(ATTR_LIST.length).fill(0).map(() => Array(ATTR_LIST.length).fill(0));
 
   for (let i = 0; i < ATTR_LIST.length; i++) {
     for (let j = 0; j < ATTR_LIST.length; j++) {
       const attrI = ATTR_LIST[i];
       const attrJ = ATTR_LIST[j];
-      const muI = stats.mu[attrI] ?? 0;
-      const muJ = stats.mu[attrJ] ?? 0;
+      const meanI = zMeans[attrI];
+      const meanJ = zMeans[attrJ];
 
       let sum = 0;
-      for (const dest of destinations) {
-        const valI = dest.attrs?.[attrI] ?? 0;
-        const valJ = dest.attrs?.[attrJ] ?? 0;
-        sum += (valI - muI) * (valJ - muJ);
+      for (const z of zDests) {
+        const valI = z[attrI] ?? 0;
+        const valJ = z[attrJ] ?? 0;
+        sum += (valI - meanI) * (valJ - meanJ);
       }
 
-      matrix[i][j] = sum / divisor;
+      let covVal = sum / divisor;
+      // Add slight regularization on diagonal for numerical stability of inverse
+      if (i === j) {
+        covVal += 1e-6;
+      }
+      matrix[i][j] = covVal;
     }
   }
 
@@ -286,7 +304,8 @@ function mahalanobis(zA, zB, invCov) {
   const resultMatrix = matrixMultiply(diffRow, temp);
 
   const val = resultMatrix[0][0];
-  return Math.sqrt(Math.max(0, val));
+  const numAttrs = ATTR_LIST.length;
+  return Math.sqrt(Math.max(0, val / numAttrs));
 }
 
 /**
@@ -299,7 +318,7 @@ async function calculateDistance(destA, destB, interests) {
   const zB = await zScore(destB);
   const weights = computeWeights(interests);
 
-  const destinations = await Destination.find({ trackingTier: 'tracked' });
+  const destinations = getTrackedDestinations();
   const useMahalanobis = shouldUseMahalanobis(destinations);
 
   if (useMahalanobis) {

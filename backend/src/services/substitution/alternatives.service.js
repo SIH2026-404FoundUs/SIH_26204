@@ -1,25 +1,58 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { applyAllFilters } from './filters.js';
 import { rankCandidates } from './ranking.js';
 import { findDateAlternatives } from './dateSubstitution.js';
-import { Destination } from '../../models/destination.model.js';
+import { getTrackedDestinations, getDestinationById } from './standardize.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const HISTOGRAM_PATH = path.join(__dirname, '../../../../build/distance-histogram.json');
+
+let DEFAULT_DSTAR = 0.78;
+try {
+  if (fs.existsSync(HISTOGRAM_PATH)) {
+    const data = JSON.parse(fs.readFileSync(HISTOGRAM_PATH, 'utf8'));
+    if (typeof data.calibratedDStar === 'number') {
+      DEFAULT_DSTAR = data.calibratedDStar;
+    }
+  }
+} catch (e) {
+  DEFAULT_DSTAR = 0.78;
+}
 
 /**
  * Retrieves details, pressure score, and breakdown for the requested destination.
  */
 async function getRequestedInfo(destId, date, pressureFn) {
-  const dest = await Destination.findById(destId);
-  const pressure = typeof pressureFn === 'function' ? await pressureFn(destId, date) : 0;
+  const dest = getDestinationById(destId);
+  const result = typeof pressureFn === 'function' ? await pressureFn(destId, date) : null;
 
-  const breakdown = {
-    access: 0.85,
-    stay: 0.92,
-    calendar: 0.95,
-    weather: 0.80,
-    capacity: 0.90
-  };
+  const pressure = typeof result === 'number' ? result : (result?.score ?? 0.5);
+
+  let breakdown = null;
+  if (result && typeof result === 'object' && result.components) {
+    const comps = result.components;
+    breakdown = {
+      access: comps.access?.value ?? 0.5,
+      stay: comps.stay?.value ?? 0.5,
+      calendar: comps.calendar?.value ?? 0.5,
+      weather: comps.weather?.value ?? 0.5,
+      capacity: comps.capacity?.value ?? 0.5
+    };
+  } else {
+    breakdown = {
+      access: 0.5,
+      stay: 0.5,
+      calendar: 0.5,
+      weather: 0.5,
+      capacity: 0.5
+    };
+  }
 
   return {
-    destId: dest?._id || destId,
+    destId: dest?._id || dest?.id || destId,
     displayName: dest?.displayName || destId,
     pressure,
     breakdown
@@ -30,10 +63,9 @@ async function getRequestedInfo(destId, date, pressureFn) {
  * Fetches all tracked candidate destinations excluding the requested destination.
  */
 async function getCandidateDests(requestedDestId) {
-  return await Destination.find({
-    trackingTier: 'tracked',
-    _id: { $ne: requestedDestId }
-  });
+  return getTrackedDestinations().filter(
+    (d) => (d._id || d.id) !== requestedDestId
+  );
 }
 
 /**
@@ -72,14 +104,14 @@ function buildDateResponse(dateResult) {
  * Main Orchestrator: Receives substitution request, fetches requested info and candidates,
  * applies filters, ranks places, calculates date alternatives, and formats response.
  */
-async function getAlternatives(request, pressureFn, travelTimeFn, budgetFn, dStar = 0.65) {
+async function getAlternatives(request, pressureFn, travelTimeFn, budgetFn, dStar = DEFAULT_DSTAR) {
   const { destId, startDate, origin, interests } = request;
 
   // Step 1: Get requested destination info
   const requested = await getRequestedInfo(destId, startDate, pressureFn);
 
   // Step 2: Fetch full requested destination document for distance calculation
-  const requestedDestDoc = await Destination.findById(destId);
+  const requestedDestDoc = getDestinationById(destId);
   const requestedDestObj = requestedDestDoc || { _id: destId, displayName: requested.displayName };
 
   // Step 3: Get candidate destinations
