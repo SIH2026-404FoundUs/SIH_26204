@@ -7,13 +7,12 @@ import { getDestination } from "../../seeds/index.js";
 import { calendarRow } from "../../seeds/calendar.js";
 import { collect } from "./collectors.js";
 import { assembleRow } from "./engine.js";
-// Until Nishith's provider layer lands, live compute uses the mock adapters.
-import { mockProviders } from "./mockProviders.js";
+import { realProviders } from "./realProviders.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const LIVE_TIMEOUT_MS = 4000; // spec §7: short budget, never sit on the demo path
 
-const providers = mockProviders; // swap for the real provider module when it exists
+const providers = realProviders;
 const seed = { calendarRow };
 
 const isFresh = (row) => Date.now() - new Date(row.computedAt).getTime() < DAY_MS;

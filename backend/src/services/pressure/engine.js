@@ -47,6 +47,17 @@ export function roadDemand(services, baseline) {
   return { value: clamp01(raw / (baseRatio || 1)), occupancy: raw };
 }
 
+// Road provider returned schedule frequency only, no seats (spec §5). road_demand
+// no longer varies by date — fall back to the destination's static demand prior
+// (capacityPrior: "what crowded looks like historically for it", §2). The caller
+// sets degraded:["road"] and makes the whole access component static.
+export function roadFrequencyProxy(dest) {
+  const prior = dest?.capacityPrior
+    ?? (dest?.baseline?.roadSeatsAvail != null ? 1 - dest.baseline.roadSeatsAvail : null);
+  if (prior == null) return null;
+  return { value: clamp01(prior), frequencyOnly: true };
+}
+
 // access is ONE component: c-blend of rail and road (§2). Handles partial failure
 // per §4: if only one side fails, lean fully on the survivor; if both fail -> null.
 export function accessDemand(rail, road, c) {
@@ -59,16 +70,13 @@ export function accessDemand(rail, road, c) {
   return null;
 }
 
-export function stayScarcity(hotels, baseline) {
-  if (!hotels?.length || baseline?.hotelMedianINR == null) return null;
-  const unavailFrac =
-    hotels.filter((h) => h.available === 0).length / hotels.length;
-  const prices = hotels.map((h) => h.priceINR).filter((p) => p > 0).sort((a, b) => a - b);
-  const median = prices.length
-    ? prices[Math.floor(prices.length / 2)]
-    : baseline.hotelMedianINR;
-  const priceRatio = median / baseline.hotelMedianINR;
-  const value = 0.5 * unavailFrac + 0.5 * clamp01(median / (1.5 * baseline.hotelMedianINR));
+// spec §3: 0.5*unavailFrac + 0.5*min(medianPriceINR / (1.5*baseline.hotelMedianINR), 1).
+// Takes the already-reduced signal { unavailFrac, medianPriceINR } — the stay
+// provider (Amadeus adapter, or the seed estimator) does the property sampling.
+export function stayScarcity({ unavailFrac, medianPriceINR } = {}, baseline) {
+  if (unavailFrac == null || medianPriceINR == null || baseline?.hotelMedianINR == null) return null;
+  const priceRatio = medianPriceINR / baseline.hotelMedianINR;
+  const value = 0.5 * unavailFrac + 0.5 * clamp01(medianPriceINR / (1.5 * baseline.hotelMedianINR));
   return { value, unavailFrac, priceRatio };
 }
 

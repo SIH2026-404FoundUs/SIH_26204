@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   composite, assembleRow, weatherPull, WEIGHTS,
   emergingHotspot, normalizedCapacityGap, expectedSupplyFor,
+  stayScarcity, roadFrequencyProxy,
 } from "./engine.js";
 import { spearman, linearRegression } from "./stats.js";
 
@@ -41,6 +42,24 @@ const dropped = assembleRow({
 assert.ok(dropped.dropped.includes("access"));
 assert.equal(dropped.lowConfidence, true);
 assert.ok(Math.abs(dropped.dateVaryingSubtotal + dropped.staticSubtotal - 1) < 1e-9);
+
+// stay_scarcity: §3 formula on the reduced { unavailFrac, medianPriceINR } signal
+const stay = stayScarcity({ unavailFrac: 0.8, medianPriceINR: 4800 }, { hotelMedianINR: 3200 });
+assert.ok(Math.abs(stay.value - (0.5 * 0.8 + 0.5 * 1)) < 1e-9, "stay = 0.5*unavail + 0.5*min(price/1.5base,1)");
+assert.equal(stayScarcity({ unavailFrac: 0.5 }, { hotelMedianINR: 3200 }), null, "missing price -> null");
+
+// degraded-road proxy: frequency-only -> destination's static demand prior, flagged
+assert.deepEqual(roadFrequencyProxy({ capacityPrior: 0.8 }), { value: 0.8, frequencyOnly: true });
+assert.deepEqual(roadFrequencyProxy({ baseline: { roadSeatsAvail: 0.5 } }), { value: 0.5, frequencyOnly: true });
+assert.equal(roadFrequencyProxy({}), null);
+// access survives on the road proxy alone, and the row is marked static
+const roadOnly = assembleRow(
+  { access: { value: 0.5 }, stay: { value: 0.6 }, calendar: { value: 0.4 },
+    weather: { value: 0.7 }, capacity: { value: 0.5 } },
+  { degradedRoad: true }
+);
+assert.ok(!roadOnly.dropped.includes("access"), "road proxy keeps access alive");
+assert.equal(roadOnly.dateVaryingSubtotal, 0.45);
 
 // weather band: pleasant = high, cold+wet = low
 assert.equal(weatherPull({ maxTempC: 22, precipProb: 5 }).value, 1);

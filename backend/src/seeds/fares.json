@@ -1,0 +1,19 @@
+{
+  "_provenance": "placeholder-sathvik — Ananya owns the real fare table. Added so fareEstimator.provider.js (and the server) can boot.",
+  "hyderabad": {
+    "auto": { "minFare": 30, "base": 20, "perKm": 15 },
+    "cab": { "minFare": 100, "base": 50, "perKm": 18 },
+    "metro": { "slabs": [[2, 10], [4, 15], [6, 25], [10, 35], [20, 45], [100, 60]] },
+    "bus": { "flat": 20 }
+  },
+  "shimla": {
+    "auto": { "minFare": 40, "base": 30, "perKm": 20 },
+    "cab": { "minFare": 150, "base": 80, "perKm": 22 },
+    "bus": { "flat": 25 }
+  },
+  "manali": {
+    "auto": { "minFare": 50, "base": 40, "perKm": 22 },
+    "cab": { "minFare": 200, "base": 100, "perKm": 25 },
+    "bus": { "flat": 30 }
+  }
+}

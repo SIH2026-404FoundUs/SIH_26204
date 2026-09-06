@@ -21,5 +21,6 @@
   "trackingTier": "tracked",
   "demoCorridor": false,
   "provenance": "placeholder-sathvik (Ananya owns final seed)",
-  "demandPrior": 0.22
+  "demandPrior": 0.22,
+  "trains": []
 }

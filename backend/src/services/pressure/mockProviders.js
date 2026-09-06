@@ -75,15 +75,20 @@ export const mockProviders = {
     },
   },
   amadeus: {
+    // reduced signal { unavailFrac, medianPriceINR } — same shape as Nishith's
+    // stayEstimate.provider.js
     hotels: async ({ destId, date }) => {
       const d = await getDestination(destId);
       if (!d) return { ok: false, meta: { reason: "unknown dest" } };
       const demand = demandFor(d, date);
-      const hotels = Array.from({ length: 12 }, (_, i) => ({
-        available: rand01(destId, date, i) < demand ? 0 : 1 + Math.floor(rand01(destId, i) * 4),
-        priceINR: Math.round(d.baseline.hotelMedianINR * (0.8 + demand * 1.2)),
-      }));
-      return { ok: true, data: hotels, meta: { source: "mock:amadeus" } };
+      return {
+        ok: true,
+        data: {
+          unavailFrac: Math.min(0.95, demand * 0.9),
+          medianPriceINR: Math.round(d.baseline.hotelMedianINR * (0.8 + demand * 1.2)),
+        },
+        meta: { source: "mock:amadeus" },
+      };
     },
   },
   openmeteo: {
