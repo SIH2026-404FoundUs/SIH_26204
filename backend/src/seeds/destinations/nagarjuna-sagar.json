@@ -1,0 +1,26 @@
+{
+  "_id": "nagarjuna-sagar",
+  "displayName": "Nagarjuna Sagar",
+  "state": "TG",
+  "location": {
+    "lat": 16.575,
+    "lng": 79.311
+  },
+  "nearestRailhead": "macherla",
+  "railSignalConfidence": 0.5,
+  "roadAccess": {
+    "corridor": "hyderabad-nagarjunasagar"
+  },
+  "capacityPrior": 0.55,
+  "baseline": {
+    "railWL": 15,
+    "roadSeatsAvail": 0.5,
+    "hotelMedianINR": 1900
+  },
+  "expectedSupply": 300,
+  "trackingTier": "tracked",
+  "demoCorridor": true,
+  "provenance": "placeholder-sathvik (Ananya owns final seed)",
+  "demandPrior": 0.4,
+  "trains": []
+}

@@ -1,0 +1,26 @@
+{
+  "_id": "tirthan-valley",
+  "displayName": "Tirthan Valley",
+  "state": "HP",
+  "location": {
+    "lat": 31.628,
+    "lng": 77.36
+  },
+  "nearestRailhead": "aut",
+  "railSignalConfidence": 0.15,
+  "roadAccess": {
+    "corridor": "aut-banjar"
+  },
+  "capacityPrior": 0.25,
+  "baseline": {
+    "railWL": 8,
+    "roadSeatsAvail": 0.5,
+    "hotelMedianINR": 2300
+  },
+  "expectedSupply": 70,
+  "trackingTier": "tracked",
+  "demoCorridor": false,
+  "provenance": "placeholder-sathvik (Ananya owns final seed)",
+  "demandPrior": 0.22,
+  "trains": []
+}

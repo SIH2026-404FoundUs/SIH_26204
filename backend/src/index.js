@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { connectDB } from "./lib/db.js";
 import authRoutes from "./routes/auth.route.js";
+import pressureRoutes from "./routes/pressure.route.js";
 import weatherRoutes from "./routes/weather.route.js";
 import trainsRoutes from "./routes/trains.route.js";
 import placesRoutes from "./routes/places.route.js";
@@ -27,6 +28,7 @@ app.use(
 );
 
 app.use("/api/auth", authRoutes);
+app.use("/api/v1/pressure", pressureRoutes);
 app.use("/api/weather", weatherRoutes);
 app.use("/api/trains", trainsRoutes);
 app.use("/api/places", placesRoutes);

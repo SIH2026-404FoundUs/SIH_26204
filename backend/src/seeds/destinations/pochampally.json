@@ -1,0 +1,26 @@
+{
+  "_id": "pochampally",
+  "displayName": "Pochampally",
+  "state": "TG",
+  "location": {
+    "lat": 17.35,
+    "lng": 78.82
+  },
+  "nearestRailhead": "bhongir",
+  "railSignalConfidence": 0.55,
+  "roadAccess": {
+    "corridor": "hyderabad-pochampally"
+  },
+  "capacityPrior": 0.3,
+  "baseline": {
+    "railWL": 12,
+    "roadSeatsAvail": 0.5,
+    "hotelMedianINR": 1500
+  },
+  "expectedSupply": 90,
+  "trackingTier": "tracked",
+  "demoCorridor": false,
+  "provenance": "placeholder-sathvik (Ananya owns final seed)",
+  "demandPrior": 0.15,
+  "trains": []
+}

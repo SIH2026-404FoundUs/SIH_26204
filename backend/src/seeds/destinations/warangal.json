@@ -1,0 +1,26 @@
+{
+  "_id": "warangal",
+  "displayName": "Warangal",
+  "state": "TG",
+  "location": {
+    "lat": 17.978,
+    "lng": 79.594
+  },
+  "nearestRailhead": "warangal",
+  "railSignalConfidence": 0.8,
+  "roadAccess": {
+    "corridor": "hyderabad-warangal"
+  },
+  "capacityPrior": 0.6,
+  "baseline": {
+    "railWL": 30,
+    "roadSeatsAvail": 0.5,
+    "hotelMedianINR": 2000
+  },
+  "expectedSupply": 600,
+  "trackingTier": "tracked",
+  "demoCorridor": true,
+  "provenance": "placeholder-sathvik (Ananya owns final seed)",
+  "demandPrior": 0.45,
+  "trains": []
+}

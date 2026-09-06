@@ -1,0 +1,26 @@
+{
+  "_id": "mcleodganj",
+  "displayName": "McLeod Ganj",
+  "state": "HP",
+  "location": {
+    "lat": 32.241,
+    "lng": 76.319
+  },
+  "nearestRailhead": "pathankot",
+  "railSignalConfidence": 0.45,
+  "roadAccess": {
+    "corridor": "pathankot-dharamshala"
+  },
+  "capacityPrior": 0.6,
+  "baseline": {
+    "railWL": 25,
+    "roadSeatsAvail": 0.5,
+    "hotelMedianINR": 2800
+  },
+  "expectedSupply": 500,
+  "trackingTier": "tracked",
+  "demoCorridor": false,
+  "provenance": "placeholder-sathvik (Ananya owns final seed)",
+  "demandPrior": 0.6,
+  "trains": []
+}
