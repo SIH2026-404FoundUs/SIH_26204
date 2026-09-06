@@ -3,8 +3,7 @@
 //
 // This file is pure: it turns already-fetched provider data into a stored row.
 // Fetching lives in collectors.js (calls Nishith's provider adapters).
-// Nothing here does I/O, so the maths is testable today, before the adapters
-// and Ananya's seed exist.
+// Nothing here does I/O, so the maths is testable standalone (engine.selfcheck.mjs).
 
 import { linearRegression } from "./stats.js";
 
@@ -32,6 +31,9 @@ export function railDemand(services, baseline) {
   return { value: clamp01(raw / (2 * baseline.railWL)), meanTop3WL: raw };
 }
 
+// spec §3 road_demand — for a real seat-data provider. Currently unreachable:
+// both the mock and Nishith's adapter are frequency-only, so collect() takes
+// the roadFrequencyProxy path (§5). Kept for when a seat-data source exists.
 export function roadDemand(services, baseline) {
   // occupancy across corridor services on the date
   if (!services?.length || baseline?.roadSeatsAvail == null) return null;
@@ -39,11 +41,9 @@ export function roadDemand(services, baseline) {
   const total = services.reduce((s, x) => s + x.totalSeats, 0);
   if (total === 0) return null;
   const raw = 1 - free / total;
-  // ponytail: baseline.roadSeatsAvail treated as the baseline *ratio*. Confirm
-  // its unit with Ananya once the seed lands; that's the calibration knob here.
-  const baseRatio = baseline.roadSeatsAvail > 1
-    ? 1 - baseline.roadSeatsAvail / total // count -> ratio fallback
-    : baseline.roadSeatsAvail;
+  // Ananya's baseline.roadSeatsAvail is a seat count -> baseline occupancy ratio.
+  const baseRatio =
+    baseline.roadSeatsAvail > 1 ? 1 - baseline.roadSeatsAvail / total : baseline.roadSeatsAvail;
   return { value: clamp01(raw / (baseRatio || 1)), occupancy: raw };
 }
 
@@ -52,10 +52,8 @@ export function roadDemand(services, baseline) {
 // (capacityPrior: "what crowded looks like historically for it", §2). The caller
 // sets degraded:["road"] and makes the whole access component static.
 export function roadFrequencyProxy(dest) {
-  const prior = dest?.capacityPrior
-    ?? (dest?.baseline?.roadSeatsAvail != null ? 1 - dest.baseline.roadSeatsAvail : null);
-  if (prior == null) return null;
-  return { value: clamp01(prior), frequencyOnly: true };
+  if (dest?.capacityPrior == null) return null;
+  return { value: clamp01(dest.capacityPrior), frequencyOnly: true };
 }
 
 // access is ONE component: c-blend of rail and road (§2). Handles partial failure
@@ -80,12 +78,9 @@ export function stayScarcity({ unavailFrac, medianPriceINR } = {}, baseline) {
   return { value, unavailFrac, priceRatio };
 }
 
-// calendar: row from Ananya's seeds/calendar.json, keyed by date+state (§3).
-export function calendar(row) {
-  const table = { national: 1.0, state: 0.7, weekend: 0.4, weekday: 0.1 };
-  const kind = row?.kind ?? "weekday"; // default when no row matches
-  return { value: table[kind] ?? 0.1, label: row?.label ?? kind };
-}
+// calendar (§3): Ananya's seeds/calendar.json rows carry the 0..1 `impact`
+// directly, so the lookup + weekday default live in seed.calendarRow(), which
+// hands collect() the finished { value, label }. No normaliser needed here.
 
 // weather_pull: pleasantness raises intent to travel, so it raises pressure (§3).
 export function weatherPull(wx) {
@@ -162,8 +157,8 @@ export function assembleRow(values, { degradedRoad = false } = {}) {
 
 const round2 = (x) => Math.round(x * 100) / 100;
 
-// --- §8 Emerging hotspot + normalised capacity gap. Both need history, which
-// only exists once the precompute job has run for ~14 days (or Ananya's backfill).
+// --- §8 Emerging hotspot + normalised capacity gap. Both read >=14 days of
+// history from destination_pressure (Ananya's seed + the precompute backfill).
 
 /**
  * A destination trending up but not yet saturated, with real capacity behind it.
@@ -181,7 +176,7 @@ export function emergingHotspot(last14Scores, dest) {
 }
 
 // expected bookable units for a destination — spec §8 `expectedSupplyFor(dest)`.
-// Authored in Ananya's seed as `expectedSupply`.
+// seed.js attaches `expectedSupply` (sum of seeded business capacity) on load.
 export const expectedSupplyFor = (dest) => dest?.expectedSupply ?? null;
 
 /**
