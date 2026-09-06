@@ -1,5 +1,5 @@
 /**
- * Real-Time Tourism Alerts & Safety Advisory Unit Test Suite
+ * Jest Unit Test Suite for Real-Time Tourism Alerts & Safety Advisory
  *
  * Verifies:
  * 1. Mandatory Provenance (Rejects alert if sourceUrl or sourceName is missing)
@@ -11,7 +11,6 @@
  * 7. Verification that ZERO crime-based safety scoring fields exist
  */
 
-import assert from "assert";
 import {
   ingestAlert,
   getVerifiedAlerts,
@@ -23,241 +22,214 @@ import {
   submitTouristComplaint,
 } from "./index.js";
 
-async function runTests() {
-  console.log("🧪 Starting Real-Time Tourism Alerts Unit Tests...\n");
-
+describe("Real-Time Tourism Alerts & Safety Advisory", () => {
   const destId = "shimla";
 
-  // Test 1: Mandatory Attribution Enforcement (Rejects missing sourceUrl or sourceName)
-  console.log("Test 1: Mandatory Attribution Enforcement");
-
-  // Missing sourceUrl test
-  const missingUrlResult = await ingestAlert({
-    destId,
-    kind: "weather",
-    body: "Heavy snowfall alert on Kalka-Shimla highway",
-    sourceName: "IMD Shimla",
-    // sourceUrl missing
-    validTo: new Date(Date.now() + 24 * 3600000),
-  });
-  assert.strictEqual(missingUrlResult.success, false);
-  assert.strictEqual(missingUrlResult.status, 400);
-  assert.strictEqual(missingUrlResult.error, "ALERT_ATTRIBUTION_REQUIRED");
-
-  // Missing sourceName test
-  const missingNameResult = await ingestAlert({
-    destId,
-    kind: "weather",
-    body: "Heavy snowfall alert on Kalka-Shimla highway",
-    sourceUrl: "https://mausam.imd.gov.in",
-    sourceName: "   ", // empty string
-    validTo: new Date(Date.now() + 24 * 3600000),
-  });
-  assert.strictEqual(missingNameResult.success, false);
-  assert.strictEqual(missingNameResult.status, 400);
-  assert.strictEqual(missingNameResult.error, "ALERT_ATTRIBUTION_REQUIRED");
-
-  console.log("  ✅ Correctly rejected alerts missing sourceUrl or sourceName attribution with 400 ALERT_ATTRIBUTION_REQUIRED");
-
-  // Test 2: Idempotent Ingestion & SHA256 Hash Deduplication
-  console.log("\nTest 2: Idempotent Ingestion & SHA256 Hash Deduplication");
-  const alertBody = "Heavy snowfall expected between Kalka and Shimla corridor.";
-  const expectedHash = calculateAlertHash(destId, "weather", alertBody);
-
-  const inMemoryAlerts = new Map();
-  const mockAlertModel = {
-    findOneAndUpdate: async (query, update) => {
-      const hashKey = query.hash;
-      const existing = inMemoryAlerts.get(hashKey);
-      if (existing) {
-        // Upsert update
-        const updatedDoc = { ...existing, ...update.$set };
-        inMemoryAlerts.set(hashKey, updatedDoc);
-        return updatedDoc;
-      }
-      const newDoc = { _id: "alert_" + hashKey.substring(0, 8), ...update.$set };
-      inMemoryAlerts.set(hashKey, newDoc);
-      return newDoc;
-    },
-  };
-
-  const models = { AlertModel: mockAlertModel };
-
-  // First ingestion
-  const ingest1 = await ingestAlert(
-    {
+  test("Mandatory Attribution Enforcement", async () => {
+    const missingUrlResult = await ingestAlert({
       destId,
       kind: "weather",
-      severity: "warning",
-      body: alertBody,
-      sourceUrl: "https://mausam.imd.gov.in/shimla",
-      sourceName: "IMD Shimla Center",
-      validFrom: new Date(Date.now() - 3600000),
-      validTo: new Date(Date.now() + 24 * 3600000),
-    },
-    models
-  );
-
-  assert.strictEqual(ingest1.success, true);
-  assert.strictEqual(ingest1.alert.hash, expectedHash);
-  assert.strictEqual(inMemoryAlerts.size, 1);
-
-  // Duplicate ingestion (same destId, kind, body) -> Should update, NOT create duplicate
-  const ingest2 = await ingestAlert(
-    {
-      destId,
-      kind: "weather",
-      severity: "warning",
-      body: alertBody,
-      sourceUrl: "https://mausam.imd.gov.in/shimla",
-      sourceName: "IMD Shimla Center",
-      validFrom: new Date(Date.now() - 3600000),
-      validTo: new Date(Date.now() + 24 * 3600000),
-    },
-    models
-  );
-
-  assert.strictEqual(ingest2.success, true);
-  assert.strictEqual(inMemoryAlerts.size, 1); // Size remains 1 due to sha256 hash deduplication
-  console.log(`  ✅ SHA256 hash deduplication verified (${expectedHash.substring(0, 12)}...); 0 duplicate records created.`);
-
-  // Test 3: Active Advisory Time Filtering (getVerifiedAlerts)
-  console.log("\nTest 3: Active Advisory Time Filtering (getVerifiedAlerts)");
-
-  const mockActiveAlerts = [
-    {
-      _id: "a1",
-      destId: "shimla",
-      kind: "weather",
-      severity: "warning",
-      body: "Active weather warning",
-      sourceUrl: "https://mausam.imd.gov.in",
+      body: "Heavy snowfall alert on Kalka-Shimla highway",
       sourceName: "IMD Shimla",
-      validFrom: new Date(Date.now() - 3600000),
-      validTo: new Date(Date.now() + 86400000), // Valid for 24h
-    },
-    {
-      _id: "a2",
-      destId: "shimla",
-      kind: "road",
-      severity: "info",
-      body: "Expired road advisory",
-      sourceUrl: "https://hppwd.hp.gov.in",
-      sourceName: "HP PWD Status",
-      validFrom: new Date(Date.now() - 86400000),
-      validTo: new Date(Date.now() - 3600000), // Expired 1 hour ago
-    },
-  ];
+      validTo: new Date(Date.now() + 24 * 3600000),
+    });
+    expect(missingUrlResult.success).toBe(false);
+    expect(missingUrlResult.status).toBe(400);
+    expect(missingUrlResult.error).toBe("ALERT_ATTRIBUTION_REQUIRED");
 
-  const mockAlertModelFilter = {
-    find: async (query) => {
-      const now = new Date();
-      return mockActiveAlerts.filter((a) => {
-        if (a.destId !== query.destId) return false;
-        if (query.validTo && query.validTo.$gte && a.validTo < now) return false;
-        if (query.validFrom && query.validFrom.$lte && a.validFrom > now) return false;
-        if (query.kind && a.kind !== query.kind) return false;
-        return true;
-      });
-    },
-  };
+    const missingNameResult = await ingestAlert({
+      destId,
+      kind: "weather",
+      body: "Heavy snowfall alert on Kalka-Shimla highway",
+      sourceUrl: "https://mausam.imd.gov.in",
+      sourceName: "   ",
+      validTo: new Date(Date.now() + 24 * 3600000),
+    });
+    expect(missingNameResult.success).toBe(false);
+    expect(missingNameResult.status).toBe(400);
+    expect(missingNameResult.error).toBe("ALERT_ATTRIBUTION_REQUIRED");
+  });
 
-  const activeAlerts = await getVerifiedAlerts(
-    { destId: "shimla" },
-    { AlertModel: mockAlertModelFilter }
-  );
+  test("Idempotent Ingestion & SHA256 Hash Deduplication", async () => {
+    const alertBody = "Heavy snowfall expected between Kalka and Shimla corridor.";
+    const expectedHash = calculateAlertHash(destId, "weather", alertBody);
 
-  assert.strictEqual(activeAlerts.length, 1);
-  assert.strictEqual(activeAlerts[0]._id, "a1");
-  assert.strictEqual(activeAlerts[0].sourceName, "IMD Shimla");
-  assert.strictEqual(activeAlerts[0].crimeScore, undefined); // ZERO crime score check!
-  console.log("  ✅ Filtered out expired alerts; active advisory returned with source provenance and zero crime scoring.");
+    const inMemoryAlerts = new Map();
+    const mockAlertModel = {
+      findOneAndUpdate: async (query, update) => {
+        const hashKey = query.hash;
+        const existing = inMemoryAlerts.get(hashKey);
+        if (existing) {
+          const updatedDoc = { ...existing, ...update.$set };
+          inMemoryAlerts.set(hashKey, updatedDoc);
+          return updatedDoc;
+        }
+        const newDoc = { _id: "alert_" + hashKey.substring(0, 8), ...update.$set };
+        inMemoryAlerts.set(hashKey, newDoc);
+        return newDoc;
+      },
+    };
 
-  // Test 4: District Emergency Contacts Lookup
-  console.log("\nTest 4: District Emergency Contacts Registry");
-  const shimlaContacts = getEmergencyContacts("shimla");
-  assert.strictEqual(shimlaContacts.district, "Shimla");
-  assert.strictEqual(shimlaContacts.police, "0177-2656530");
-  assert.strictEqual(shimlaContacts.defaults.nationalEmergency, "112");
-  console.log(`  ✅ Shimla district emergency contacts retrieved (Police: ${shimlaContacts.police}, National: 112)`);
+    const models = { AlertModel: mockAlertModel };
 
-  // Test 5: Shareable Trip Record Token & Revocation
-  console.log("\nTest 5: Shareable Trip Record Token & Revocation");
-  const shareTokenStore = new Map();
-  const mockShareableTripModel = {
-    create: async (doc) => {
-      shareTokenStore.set(doc.shareToken, { ...doc });
-      return doc;
-    },
-    findOne: async (query) => shareTokenStore.get(query.shareToken) || null,
-    findOneAndUpdate: async (query, update) => {
-      const existing = shareTokenStore.get(query.shareToken);
-      if (existing && existing.userId === query.userId) {
-        const updated = { ...existing, ...update.$set };
-        shareTokenStore.set(query.shareToken, updated);
-        return updated;
-      }
-      return null;
-    },
-  };
+    const ingest1 = await ingestAlert(
+      {
+        destId,
+        kind: "weather",
+        severity: "warning",
+        body: alertBody,
+        sourceUrl: "https://mausam.imd.gov.in/shimla",
+        sourceName: "IMD Shimla Center",
+        validFrom: new Date(Date.now() - 3600000),
+        validTo: new Date(Date.now() + 24 * 3600000),
+      },
+      models
+    );
 
-  const shareModels = { ShareableTripModel: mockShareableTripModel };
+    expect(ingest1.success).toBe(true);
+    expect(ingest1.alert.hash).toBe(expectedHash);
+    expect(inMemoryAlerts.size).toBe(1);
 
-  const shareCreated = await createShareableTripRecord(
-    {
-      tripId: "trip_777",
-      userId: "usr_tourist_100",
-      title: "Shimla Snow Trip",
-      destId: "shimla",
-      stops: [{ name: "Mall Road", dayIndex: 1 }],
-    },
-    shareModels
-  );
+    const ingest2 = await ingestAlert(
+      {
+        destId,
+        kind: "weather",
+        severity: "warning",
+        body: alertBody,
+        sourceUrl: "https://mausam.imd.gov.in/shimla",
+        sourceName: "IMD Shimla Center",
+        validFrom: new Date(Date.now() - 3600000),
+        validTo: new Date(Date.now() + 24 * 3600000),
+      },
+      models
+    );
 
-  assert.strictEqual(shareCreated.success, true);
-  assert.strictEqual(typeof shareCreated.shareToken, "string");
-  assert.strictEqual(shareCreated.shareToken.length, 32);
+    expect(ingest2.success).toBe(true);
+    expect(inMemoryAlerts.size).toBe(1);
+  });
 
-  // Fetch projection via token
-  const shareResolved = await getShareableTripRecord(shareCreated.shareToken, shareModels);
-  assert.strictEqual(shareResolved.success, true);
-  assert.strictEqual(shareResolved.tripProjection.title, "Shimla Snow Trip");
+  test("Active Advisory Time Filtering (getVerifiedAlerts)", async () => {
+    const mockActiveAlerts = [
+      {
+        _id: "a1",
+        destId: "shimla",
+        kind: "weather",
+        severity: "warning",
+        body: "Active weather warning",
+        sourceUrl: "https://mausam.imd.gov.in",
+        sourceName: "IMD Shimla",
+        validFrom: new Date(Date.now() - 3600000),
+        validTo: new Date(Date.now() + 86400000),
+      },
+      {
+        _id: "a2",
+        destId: "shimla",
+        kind: "road",
+        severity: "info",
+        body: "Expired road advisory",
+        sourceUrl: "https://hppwd.hp.gov.in",
+        sourceName: "HP PWD Status",
+        validFrom: new Date(Date.now() - 86400000),
+        validTo: new Date(Date.now() - 3600000),
+      },
+    ];
 
-  // Revoke token
-  await revokeShareableTripRecord(shareCreated.shareToken, "usr_tourist_100", shareModels);
-  const shareRevokedResolved = await getShareableTripRecord(shareCreated.shareToken, shareModels);
-  assert.strictEqual(shareRevokedResolved.success, false);
-  assert.strictEqual(shareRevokedResolved.status, 410);
-  assert.strictEqual(shareRevokedResolved.error, "SHARE_TOKEN_EXPIRED_OR_REVOKED");
+    const mockAlertModelFilter = {
+      find: async (query) => {
+        const now = new Date();
+        return mockActiveAlerts.filter((a) => {
+          if (a.destId !== query.destId) return false;
+          if (query.validTo && query.validTo.$gte && a.validTo < now) return false;
+          if (query.validFrom && query.validFrom.$lte && a.validFrom > now) return false;
+          if (query.kind && a.kind !== query.kind) return false;
+          return true;
+        });
+      },
+    };
 
-  console.log("  ✅ Generated 32-char token, fetched read-only trip projection, and revoked successfully.");
+    const activeAlerts = await getVerifiedAlerts(
+      { destId: "shimla" },
+      { AlertModel: mockAlertModelFilter }
+    );
 
-  // Test 6: Tourist Complaint Intake
-  console.log("\nTest 6: Tourist Complaint Intake Logging");
-  const mockComplaintModel = {
-    create: async (doc) => ({ _id: "comp_999", ...doc }),
-  };
+    expect(activeAlerts.length).toBe(1);
+    expect(activeAlerts[0]._id).toBe("a1");
+    expect(activeAlerts[0].sourceName).toBe("IMD Shimla");
+    expect(activeAlerts[0].crimeScore).toBeUndefined();
+  });
 
-  const complaintResult = await submitTouristComplaint(
-    {
-      userId: "usr_tourist_100",
-      destId: "shimla",
-      category: "overcharging_pricing",
-      text: "Local taxi charged double the standard rate.",
-    },
-    { ComplaintModel: mockComplaintModel }
-  );
+  test("District Emergency Contacts Registry", () => {
+    const shimlaContacts = getEmergencyContacts("shimla");
+    expect(shimlaContacts.district).toBe("Shimla");
+    expect(shimlaContacts.police).toBe("0177-2656530");
+    expect(shimlaContacts.defaults.nationalEmergency).toBe("112");
+  });
 
-  assert.strictEqual(complaintResult.success, true);
-  assert.strictEqual(complaintResult.status, 201);
-  assert.strictEqual(complaintResult.complaint.category, "overcharging_pricing");
-  assert.strictEqual(complaintResult.complaint.status, "logged");
-  console.log("  ✅ Tourist complaint logged for platform moderation with disclaimer.");
+  test("Shareable Trip Record Token & Revocation", async () => {
+    const shareTokenStore = new Map();
+    const mockShareableTripModel = {
+      create: async (doc) => {
+        shareTokenStore.set(doc.shareToken, { ...doc });
+        return doc;
+      },
+      findOne: async (query) => shareTokenStore.get(query.shareToken) || null,
+      findOneAndUpdate: async (query, update) => {
+        const existing = shareTokenStore.get(query.shareToken);
+        if (existing && existing.userId === query.userId) {
+          const updated = { ...existing, ...update.$set };
+          shareTokenStore.set(query.shareToken, updated);
+          return updated;
+        }
+        return null;
+      },
+    };
 
-  console.log("\n🎉 ALL 6 REAL-TIME TOURISM ALERTS UNIT TESTS PASSED SUCCESSFULLY!");
-}
+    const shareModels = { ShareableTripModel: mockShareableTripModel };
 
-runTests().catch((err) => {
-  console.error("❌ Test failed:", err);
-  process.exit(1);
+    const shareCreated = await createShareableTripRecord(
+      {
+        tripId: "trip_777",
+        userId: "usr_tourist_100",
+        title: "Shimla Snow Trip",
+        destId: "shimla",
+        stops: [{ name: "Mall Road", dayIndex: 1 }],
+      },
+      shareModels
+    );
+
+    expect(shareCreated.success).toBe(true);
+    expect(typeof shareCreated.shareToken).toBe("string");
+    expect(shareCreated.shareToken.length).toBe(32);
+
+    const shareResolved = await getShareableTripRecord(shareCreated.shareToken, shareModels);
+    expect(shareResolved.success).toBe(true);
+    expect(shareResolved.tripProjection.title).toBe("Shimla Snow Trip");
+
+    await revokeShareableTripRecord(shareCreated.shareToken, "usr_tourist_100", shareModels);
+    const shareRevokedResolved = await getShareableTripRecord(shareCreated.shareToken, shareModels);
+    expect(shareRevokedResolved.success).toBe(false);
+    expect(shareRevokedResolved.status).toBe(410);
+    expect(shareRevokedResolved.error).toBe("SHARE_TOKEN_EXPIRED_OR_REVOKED");
+  });
+
+  test("Tourist Complaint Intake Logging", async () => {
+    const mockComplaintModel = {
+      create: async (doc) => ({ _id: "comp_999", ...doc }),
+    };
+
+    const complaintResult = await submitTouristComplaint(
+      {
+        userId: "usr_tourist_100",
+        destId: "shimla",
+        category: "overcharging_pricing",
+        text: "Local taxi charged double the standard rate.",
+      },
+      { ComplaintModel: mockComplaintModel }
+    );
+
+    expect(complaintResult.success).toBe(true);
+    expect(complaintResult.status).toBe(201);
+    expect(complaintResult.complaint.category).toBe("overcharging_pricing");
+    expect(complaintResult.complaint.status).toBe("logged");
+  });
 });
