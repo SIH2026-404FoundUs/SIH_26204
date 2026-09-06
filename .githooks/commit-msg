@@ -16,7 +16,7 @@ fi
 COMMIT_MSG=$(grep -v '^#' "$COMMIT_MSG_FILE" | grep -v '^[[:space:]]*$')
 
 # Allow automated git messages (e.g. merge commits, fixup!, squash!)
-if echo "$COMMIT_MSG" | grep -qE '^(Merge branch|Merge pull request|Merge tag|Fixup!|Squash!)'; then
+if echo "$COMMIT_MSG" | grep -qE '^(Merge branch|Merge pull request|Merge tag|fixup!|squash!)'; then
   exit 0
 fi
 

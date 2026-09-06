@@ -1,0 +1,46 @@
+{
+  "_id": "kasauli",
+  "name": "Kasauli",
+  "displayName": "Kasauli, Himachal Pradesh",
+  "state": "HP",
+  "district": "Solan",
+  "googlePlaceId": "ChIJ556677889900DzkR44332211",
+  "location": {
+    "lat": 30.9013,
+    "lng": 76.9649,
+    "type": "Point",
+    "coordinates": [
+      76.9649,
+      30.9013
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.3,
+    "trek": 0.5,
+    "riverside": 0.1,
+    "heritage": 0.8,
+    "nightlife": 0.4,
+    "food": 0.7,
+    "wildlife": 0.3,
+    "spiritual": 0.4
+  },
+  "nearestRailhead": "KLK",
+  "railheadDistanceKm": 25,
+  "railSignalConfidence": 0.8,
+  "roadAccess": {
+    "operators": [
+      "HRTC"
+    ],
+    "corridor": "Kalka-Dharampur-Kasauli",
+    "boardingPoint": "Dharampur"
+  },
+  "nearestAirport": "IXC",
+  "capacityPrior": 0.75,
+  "baseline": {
+    "railWL": 35,
+    "roadSeatsAvail": 40,
+    "hotelMedianINR": 3800
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

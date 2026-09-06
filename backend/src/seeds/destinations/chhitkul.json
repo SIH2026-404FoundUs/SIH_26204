@@ -1,0 +1,46 @@
+{
+  "_id": "chhitkul",
+  "name": "Chhitkul",
+  "displayName": "Chhitkul, Kinnaur, Himachal Pradesh",
+  "state": "HP",
+  "district": "Kinnaur",
+  "googlePlaceId": "ChIJ_A1B24OADzkRsM998877665",
+  "location": {
+    "lat": 31.3533,
+    "lng": 78.4367,
+    "type": "Point",
+    "coordinates": [
+      78.4367,
+      31.3533
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.9,
+    "trek": 0.8,
+    "riverside": 1.0,
+    "heritage": 0.4,
+    "nightlife": 0.0,
+    "food": 0.4,
+    "wildlife": 0.7,
+    "spiritual": 0.5
+  },
+  "nearestRailhead": "SML",
+  "railheadDistanceKm": 260,
+  "railSignalConfidence": 0.05,
+  "roadAccess": {
+    "operators": [
+      "HRTC"
+    ],
+    "corridor": "Sangla-Chhitkul",
+    "boardingPoint": "Sangla"
+  },
+  "nearestAirport": "SLV",
+  "capacityPrior": 0.7,
+  "baseline": {
+    "railWL": 5,
+    "roadSeatsAvail": 25,
+    "hotelMedianINR": 1900
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}
