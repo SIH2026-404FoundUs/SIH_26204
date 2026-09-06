@@ -8,6 +8,7 @@ from app.tools.places import search_places
 from app.tools.routes import calculate_route
 from app.tools.fare import estimate_local_transport
 from app.tools.road import search_road_services
+from app.tools.pressure import get_pressure
 
 
 class WeatherInfo(BaseModel):
@@ -35,6 +36,16 @@ class RoadInfo(BaseModel):
     corridor: Optional[str] = None
     frequencyPerDay: Optional[int] = None
 
+class PressureInfo(BaseModel):
+    # None means every component failed to compute -> crowding unknown.
+    # Not the same as zero crowding; leave it None rather than guessing.
+    score: Optional[float] = None
+    components: List[str] = Field(default_factory=list)
+    dropped: List[str] = Field(default_factory=list)
+    degraded: List[str] = Field(default_factory=list)
+    lowConfidence: Optional[bool] = None
+    stale: Optional[bool] = None
+
 class TripSummary(BaseModel):
     weather: Optional[WeatherInfo] = None
     route: Optional[RouteInfo] = None
@@ -42,6 +53,7 @@ class TripSummary(BaseModel):
     train: Optional[TrainInfo] = None
     fare: Optional[FareInfo] = None
     road: Optional[RoadInfo] = None
+    pressure: Optional[PressureInfo] = None
     summary: str = Field(description="One or two sentence plain-language summary")
 
 
@@ -52,6 +64,6 @@ travel_agent = Agent(
     get real data. Never invent prices, distances, availability, or waitlist
     numbers. Only fill in the schema fields you have real tool data for —
     leave others as null rather than guessing.""",
-    tools=[get_weather, get_train_availability, search_places, calculate_route, estimate_local_transport, search_road_services],
+    tools=[get_weather, get_train_availability, search_places, calculate_route, estimate_local_transport, search_road_services, get_pressure],
     output_schema=TripSummary,
 )
