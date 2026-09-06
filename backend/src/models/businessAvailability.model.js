@@ -16,7 +16,7 @@ const businessAvailabilitySchema = new mongoose.Schema({
   },
   resourceType: {
     type: String,
-    enum: ["room", "table", "slot", "seat"],
+    enum: ["room", "table", "slot", "seat", "service"],
     required: true,
   },
   units: {
