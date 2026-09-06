@@ -72,7 +72,14 @@ function validate() {
     console.error(`❌ Expected at least 300 availability rows, found ${availability.length}`);
     process.exit(1);
   }
-  console.log(`✅ ${availability.length} Availability rows validated across dates.`);
+  const validResourceTypes = ["room", "table", "slot", "seat"];
+  for (const a of availability) {
+    if (!validResourceTypes.includes(a.resourceType)) {
+      console.error(`❌ Invalid resourceType "${a.resourceType}" in availability record ${a._id}. Must be one of: ${validResourceTypes.join(", ")}`);
+      process.exit(1);
+    }
+  }
+  console.log(`✅ ${availability.length} Availability rows validated across dates (valid resourceTypes: room/table/slot/seat).`);
 
   // Pressure History Validation
   const pressureHistory = JSON.parse(fs.readFileSync(path.join(__dirname, "pressure_history.json"), "utf-8"));

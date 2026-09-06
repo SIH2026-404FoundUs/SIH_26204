@@ -395,7 +395,7 @@
     "_id": "avail_biz_kasol_guide_03_20261220",
     "businessId": "biz_kasol_guide_03",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 5
@@ -409,7 +409,7 @@
     "_id": "avail_biz_kasol_guide_03_20261221",
     "businessId": "biz_kasol_guide_03",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 4
@@ -423,7 +423,7 @@
     "_id": "avail_biz_kasol_guide_03_20261222",
     "businessId": "biz_kasol_guide_03",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 3
@@ -437,7 +437,7 @@
     "_id": "avail_biz_kasol_guide_03_20261223",
     "businessId": "biz_kasol_guide_03",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 5
@@ -451,7 +451,7 @@
     "_id": "avail_biz_kasol_guide_03_20261224",
     "businessId": "biz_kasol_guide_03",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 4
@@ -465,7 +465,7 @@
     "_id": "avail_biz_kasol_guide_03_20261225",
     "businessId": "biz_kasol_guide_03",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 3
@@ -479,7 +479,7 @@
     "_id": "avail_biz_kasol_guide_03_20261226",
     "businessId": "biz_kasol_guide_03",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 5
@@ -493,7 +493,7 @@
     "_id": "avail_biz_kasol_guide_03_20261227",
     "businessId": "biz_kasol_guide_03",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 4
@@ -507,7 +507,7 @@
     "_id": "avail_biz_kasol_guide_03_20261228",
     "businessId": "biz_kasol_guide_03",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 3
@@ -521,7 +521,7 @@
     "_id": "avail_biz_kasol_guide_03_20261229",
     "businessId": "biz_kasol_guide_03",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 5
@@ -535,7 +535,7 @@
     "_id": "avail_biz_kasol_guide_03_20261230",
     "businessId": "biz_kasol_guide_03",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 4
@@ -549,7 +549,7 @@
     "_id": "avail_biz_kasol_guide_03_20261231",
     "businessId": "biz_kasol_guide_03",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 3
@@ -563,7 +563,7 @@
     "_id": "avail_biz_kasol_guide_03_20270101",
     "businessId": "biz_kasol_guide_03",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 5
@@ -577,7 +577,7 @@
     "_id": "avail_biz_kasol_guide_03_20270102",
     "businessId": "biz_kasol_guide_03",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 5,
       "available": 4
@@ -591,7 +591,7 @@
     "_id": "avail_biz_jibhi_driver_04_20261220",
     "businessId": "biz_jibhi_driver_04",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 6
@@ -605,7 +605,7 @@
     "_id": "avail_biz_jibhi_driver_04_20261221",
     "businessId": "biz_jibhi_driver_04",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 5
@@ -619,7 +619,7 @@
     "_id": "avail_biz_jibhi_driver_04_20261222",
     "businessId": "biz_jibhi_driver_04",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 4
@@ -633,7 +633,7 @@
     "_id": "avail_biz_jibhi_driver_04_20261223",
     "businessId": "biz_jibhi_driver_04",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 6
@@ -647,7 +647,7 @@
     "_id": "avail_biz_jibhi_driver_04_20261224",
     "businessId": "biz_jibhi_driver_04",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 5
@@ -661,7 +661,7 @@
     "_id": "avail_biz_jibhi_driver_04_20261225",
     "businessId": "biz_jibhi_driver_04",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 4
@@ -675,7 +675,7 @@
     "_id": "avail_biz_jibhi_driver_04_20261226",
     "businessId": "biz_jibhi_driver_04",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 6
@@ -689,7 +689,7 @@
     "_id": "avail_biz_jibhi_driver_04_20261227",
     "businessId": "biz_jibhi_driver_04",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 5
@@ -703,7 +703,7 @@
     "_id": "avail_biz_jibhi_driver_04_20261228",
     "businessId": "biz_jibhi_driver_04",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 4
@@ -717,7 +717,7 @@
     "_id": "avail_biz_jibhi_driver_04_20261229",
     "businessId": "biz_jibhi_driver_04",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 6
@@ -731,7 +731,7 @@
     "_id": "avail_biz_jibhi_driver_04_20261230",
     "businessId": "biz_jibhi_driver_04",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 5
@@ -745,7 +745,7 @@
     "_id": "avail_biz_jibhi_driver_04_20261231",
     "businessId": "biz_jibhi_driver_04",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 4
@@ -759,7 +759,7 @@
     "_id": "avail_biz_jibhi_driver_04_20270101",
     "businessId": "biz_jibhi_driver_04",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 6
@@ -773,7 +773,7 @@
     "_id": "avail_biz_jibhi_driver_04_20270102",
     "businessId": "biz_jibhi_driver_04",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 6,
       "available": 5
@@ -787,7 +787,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20261220",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 7
@@ -801,7 +801,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20261221",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 6
@@ -815,7 +815,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20261222",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 5
@@ -829,7 +829,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20261223",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 7
@@ -843,7 +843,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20261224",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 6
@@ -857,7 +857,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20261225",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 5
@@ -871,7 +871,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20261226",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 7
@@ -885,7 +885,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20261227",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 6
@@ -899,7 +899,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20261228",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 5
@@ -913,7 +913,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20261229",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 7
@@ -927,7 +927,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20261230",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 6
@@ -941,7 +941,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20261231",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 5
@@ -955,7 +955,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20270101",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 7
@@ -969,7 +969,7 @@
     "_id": "avail_biz_tirthan-valley_cook_05_20270102",
     "businessId": "biz_tirthan-valley_cook_05",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 7,
       "available": 6
@@ -1375,7 +1375,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20261220",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 4
@@ -1389,7 +1389,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20261221",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 3
@@ -1403,7 +1403,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20261222",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 2
@@ -1417,7 +1417,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20261223",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 4
@@ -1431,7 +1431,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20261224",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 3
@@ -1445,7 +1445,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20261225",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 2
@@ -1459,7 +1459,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20261226",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 4
@@ -1473,7 +1473,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20261227",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 3
@@ -1487,7 +1487,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20261228",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 2
@@ -1501,7 +1501,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20261229",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 4
@@ -1515,7 +1515,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20261230",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 3
@@ -1529,7 +1529,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20261231",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 2
@@ -1543,7 +1543,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20270101",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 4
@@ -1557,7 +1557,7 @@
     "_id": "avail_biz_dalhousie_guide_08_20270102",
     "businessId": "biz_dalhousie_guide_08",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 4,
       "available": 3
@@ -1571,7 +1571,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20261220",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 5
@@ -1585,7 +1585,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20261221",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 4
@@ -1599,7 +1599,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20261222",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 3
@@ -1613,7 +1613,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20261223",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 5
@@ -1627,7 +1627,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20261224",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 4
@@ -1641,7 +1641,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20261225",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 3
@@ -1655,7 +1655,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20261226",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 5
@@ -1669,7 +1669,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20261227",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 4
@@ -1683,7 +1683,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20261228",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 3
@@ -1697,7 +1697,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20261229",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 5
@@ -1711,7 +1711,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20261230",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 4
@@ -1725,7 +1725,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20261231",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 3
@@ -1739,7 +1739,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20270101",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 5
@@ -1753,7 +1753,7 @@
     "_id": "avail_biz_spiti-kaza_driver_09_20270102",
     "businessId": "biz_spiti-kaza_driver_09",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 5,
       "available": 4
@@ -1767,7 +1767,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20261220",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 6
@@ -1781,7 +1781,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20261221",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 5
@@ -1795,7 +1795,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20261222",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 4
@@ -1809,7 +1809,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20261223",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 6
@@ -1823,7 +1823,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20261224",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 5
@@ -1837,7 +1837,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20261225",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 4
@@ -1851,7 +1851,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20261226",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 6
@@ -1865,7 +1865,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20261227",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 5
@@ -1879,7 +1879,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20261228",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 4
@@ -1893,7 +1893,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20261229",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 6
@@ -1907,7 +1907,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20261230",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 5
@@ -1921,7 +1921,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20261231",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 4
@@ -1935,7 +1935,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20270101",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 6
@@ -1949,7 +1949,7 @@
     "_id": "avail_biz_bir-billing_cook_10_20270102",
     "businessId": "biz_bir-billing_cook_10",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 6,
       "available": 5
@@ -2355,7 +2355,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20261220",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 3
@@ -2369,7 +2369,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20261221",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 2
@@ -2383,7 +2383,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20261222",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 1
@@ -2397,7 +2397,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20261223",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 3
@@ -2411,7 +2411,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20261224",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 2
@@ -2425,7 +2425,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20261225",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 1
@@ -2439,7 +2439,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20261226",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 3
@@ -2453,7 +2453,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20261227",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 2
@@ -2467,7 +2467,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20261228",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 1
@@ -2481,7 +2481,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20261229",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 3
@@ -2495,7 +2495,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20261230",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 2
@@ -2509,7 +2509,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20261231",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 1
@@ -2523,7 +2523,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20270101",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 3
@@ -2537,7 +2537,7 @@
     "_id": "avail_biz_charminar-hyderabad_guide_13_20270102",
     "businessId": "biz_charminar-hyderabad_guide_13",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 3,
       "available": 2
@@ -2551,7 +2551,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20261220",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 4
@@ -2565,7 +2565,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20261221",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 3
@@ -2579,7 +2579,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20261222",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 2
@@ -2593,7 +2593,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20261223",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 4
@@ -2607,7 +2607,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20261224",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 3
@@ -2621,7 +2621,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20261225",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 2
@@ -2635,7 +2635,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20261226",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 4
@@ -2649,7 +2649,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20261227",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 3
@@ -2663,7 +2663,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20261228",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 2
@@ -2677,7 +2677,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20261229",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 4
@@ -2691,7 +2691,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20261230",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 3
@@ -2705,7 +2705,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20261231",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 2
@@ -2719,7 +2719,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20270101",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 4
@@ -2733,7 +2733,7 @@
     "_id": "avail_biz_golconda-hyderabad_driver_14_20270102",
     "businessId": "biz_golconda-hyderabad_driver_14",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 4,
       "available": 3
@@ -2747,7 +2747,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20261220",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 5
@@ -2761,7 +2761,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20261221",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 4
@@ -2775,7 +2775,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20261222",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 3
@@ -2789,7 +2789,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20261223",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 5
@@ -2803,7 +2803,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20261224",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 4
@@ -2817,7 +2817,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20261225",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 3
@@ -2831,7 +2831,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20261226",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 5
@@ -2845,7 +2845,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20261227",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 4
@@ -2859,7 +2859,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20261228",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 3
@@ -2873,7 +2873,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20261229",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 5
@@ -2887,7 +2887,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20261230",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 4
@@ -2901,7 +2901,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20261231",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 3
@@ -2915,7 +2915,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20270101",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 5
@@ -2929,7 +2929,7 @@
     "_id": "avail_biz_warangal-fort_cook_15_20270102",
     "businessId": "biz_warangal-fort_cook_15",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 5,
       "available": 4
@@ -3335,7 +3335,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20261220",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 2
@@ -3349,7 +3349,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20261221",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 1
@@ -3363,7 +3363,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20261222",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 1
@@ -3377,7 +3377,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20261223",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 2
@@ -3391,7 +3391,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20261224",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 1
@@ -3405,7 +3405,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20261225",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 1
@@ -3419,7 +3419,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20261226",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 2
@@ -3433,7 +3433,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20261227",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 1
@@ -3447,7 +3447,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20261228",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 1
@@ -3461,7 +3461,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20261229",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 2
@@ -3475,7 +3475,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20261230",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 1
@@ -3489,7 +3489,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20261231",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 1
@@ -3503,7 +3503,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20270101",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 2
@@ -3517,7 +3517,7 @@
     "_id": "avail_biz_nagarjuna-sagar_guide_18_20270102",
     "businessId": "biz_nagarjuna-sagar_guide_18",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 2,
       "available": 1
@@ -3531,7 +3531,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20261220",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 3
@@ -3545,7 +3545,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20261221",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 2
@@ -3559,7 +3559,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20261222",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 1
@@ -3573,7 +3573,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20261223",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 3
@@ -3587,7 +3587,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20261224",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 2
@@ -3601,7 +3601,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20261225",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 1
@@ -3615,7 +3615,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20261226",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 3
@@ -3629,7 +3629,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20261227",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 2
@@ -3643,7 +3643,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20261228",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 1
@@ -3657,7 +3657,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20261229",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 3
@@ -3671,7 +3671,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20261230",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 2
@@ -3685,7 +3685,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20261231",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 1
@@ -3699,7 +3699,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20270101",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 3
@@ -3713,7 +3713,7 @@
     "_id": "avail_biz_kuntala-waterfalls_driver_19_20270102",
     "businessId": "biz_kuntala-waterfalls_driver_19",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 3,
       "available": 2
@@ -3727,7 +3727,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20261220",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 4
@@ -3741,7 +3741,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20261221",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 3
@@ -3755,7 +3755,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20261222",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 2
@@ -3769,7 +3769,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20261223",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 4
@@ -3783,7 +3783,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20261224",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 3
@@ -3797,7 +3797,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20261225",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 2
@@ -3811,7 +3811,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20261226",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 4
@@ -3825,7 +3825,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20261227",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 3
@@ -3839,7 +3839,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20261228",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 2
@@ -3853,7 +3853,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20261229",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 4
@@ -3867,7 +3867,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20261230",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 3
@@ -3881,7 +3881,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20261231",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 2
@@ -3895,7 +3895,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20270101",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 4
@@ -3909,7 +3909,7 @@
     "_id": "avail_biz_bhadrachalam_cook_20_20270102",
     "businessId": "biz_bhadrachalam_cook_20",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 4,
       "available": 3
@@ -4315,7 +4315,7 @@
     "_id": "avail_biz_shimla_guide_23_20261220",
     "businessId": "biz_shimla_guide_23",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 7
@@ -4329,7 +4329,7 @@
     "_id": "avail_biz_shimla_guide_23_20261221",
     "businessId": "biz_shimla_guide_23",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 6
@@ -4343,7 +4343,7 @@
     "_id": "avail_biz_shimla_guide_23_20261222",
     "businessId": "biz_shimla_guide_23",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 5
@@ -4357,7 +4357,7 @@
     "_id": "avail_biz_shimla_guide_23_20261223",
     "businessId": "biz_shimla_guide_23",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 7
@@ -4371,7 +4371,7 @@
     "_id": "avail_biz_shimla_guide_23_20261224",
     "businessId": "biz_shimla_guide_23",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 6
@@ -4385,7 +4385,7 @@
     "_id": "avail_biz_shimla_guide_23_20261225",
     "businessId": "biz_shimla_guide_23",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 5
@@ -4399,7 +4399,7 @@
     "_id": "avail_biz_shimla_guide_23_20261226",
     "businessId": "biz_shimla_guide_23",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 7
@@ -4413,7 +4413,7 @@
     "_id": "avail_biz_shimla_guide_23_20261227",
     "businessId": "biz_shimla_guide_23",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 6
@@ -4427,7 +4427,7 @@
     "_id": "avail_biz_shimla_guide_23_20261228",
     "businessId": "biz_shimla_guide_23",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 5
@@ -4441,7 +4441,7 @@
     "_id": "avail_biz_shimla_guide_23_20261229",
     "businessId": "biz_shimla_guide_23",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 7
@@ -4455,7 +4455,7 @@
     "_id": "avail_biz_shimla_guide_23_20261230",
     "businessId": "biz_shimla_guide_23",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 6
@@ -4469,7 +4469,7 @@
     "_id": "avail_biz_shimla_guide_23_20261231",
     "businessId": "biz_shimla_guide_23",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 5
@@ -4483,7 +4483,7 @@
     "_id": "avail_biz_shimla_guide_23_20270101",
     "businessId": "biz_shimla_guide_23",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 7
@@ -4497,7 +4497,7 @@
     "_id": "avail_biz_shimla_guide_23_20270102",
     "businessId": "biz_shimla_guide_23",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 7,
       "available": 6
@@ -4511,7 +4511,7 @@
     "_id": "avail_biz_manali_driver_24_20261220",
     "businessId": "biz_manali_driver_24",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 2
@@ -4525,7 +4525,7 @@
     "_id": "avail_biz_manali_driver_24_20261221",
     "businessId": "biz_manali_driver_24",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 1
@@ -4539,7 +4539,7 @@
     "_id": "avail_biz_manali_driver_24_20261222",
     "businessId": "biz_manali_driver_24",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 1
@@ -4553,7 +4553,7 @@
     "_id": "avail_biz_manali_driver_24_20261223",
     "businessId": "biz_manali_driver_24",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 2
@@ -4567,7 +4567,7 @@
     "_id": "avail_biz_manali_driver_24_20261224",
     "businessId": "biz_manali_driver_24",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 1
@@ -4581,7 +4581,7 @@
     "_id": "avail_biz_manali_driver_24_20261225",
     "businessId": "biz_manali_driver_24",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 1
@@ -4595,7 +4595,7 @@
     "_id": "avail_biz_manali_driver_24_20261226",
     "businessId": "biz_manali_driver_24",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 2
@@ -4609,7 +4609,7 @@
     "_id": "avail_biz_manali_driver_24_20261227",
     "businessId": "biz_manali_driver_24",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 1
@@ -4623,7 +4623,7 @@
     "_id": "avail_biz_manali_driver_24_20261228",
     "businessId": "biz_manali_driver_24",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 1
@@ -4637,7 +4637,7 @@
     "_id": "avail_biz_manali_driver_24_20261229",
     "businessId": "biz_manali_driver_24",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 2
@@ -4651,7 +4651,7 @@
     "_id": "avail_biz_manali_driver_24_20261230",
     "businessId": "biz_manali_driver_24",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 1
@@ -4665,7 +4665,7 @@
     "_id": "avail_biz_manali_driver_24_20261231",
     "businessId": "biz_manali_driver_24",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 1
@@ -4679,7 +4679,7 @@
     "_id": "avail_biz_manali_driver_24_20270101",
     "businessId": "biz_manali_driver_24",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 2
@@ -4693,7 +4693,7 @@
     "_id": "avail_biz_manali_driver_24_20270102",
     "businessId": "biz_manali_driver_24",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 2,
       "available": 1
@@ -4707,7 +4707,7 @@
     "_id": "avail_biz_kasol_cook_25_20261220",
     "businessId": "biz_kasol_cook_25",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 3
@@ -4721,7 +4721,7 @@
     "_id": "avail_biz_kasol_cook_25_20261221",
     "businessId": "biz_kasol_cook_25",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 2
@@ -4735,7 +4735,7 @@
     "_id": "avail_biz_kasol_cook_25_20261222",
     "businessId": "biz_kasol_cook_25",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 1
@@ -4749,7 +4749,7 @@
     "_id": "avail_biz_kasol_cook_25_20261223",
     "businessId": "biz_kasol_cook_25",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 3
@@ -4763,7 +4763,7 @@
     "_id": "avail_biz_kasol_cook_25_20261224",
     "businessId": "biz_kasol_cook_25",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 2
@@ -4777,7 +4777,7 @@
     "_id": "avail_biz_kasol_cook_25_20261225",
     "businessId": "biz_kasol_cook_25",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 1
@@ -4791,7 +4791,7 @@
     "_id": "avail_biz_kasol_cook_25_20261226",
     "businessId": "biz_kasol_cook_25",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 3
@@ -4805,7 +4805,7 @@
     "_id": "avail_biz_kasol_cook_25_20261227",
     "businessId": "biz_kasol_cook_25",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 2
@@ -4819,7 +4819,7 @@
     "_id": "avail_biz_kasol_cook_25_20261228",
     "businessId": "biz_kasol_cook_25",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 1
@@ -4833,7 +4833,7 @@
     "_id": "avail_biz_kasol_cook_25_20261229",
     "businessId": "biz_kasol_cook_25",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 3
@@ -4847,7 +4847,7 @@
     "_id": "avail_biz_kasol_cook_25_20261230",
     "businessId": "biz_kasol_cook_25",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 2
@@ -4861,7 +4861,7 @@
     "_id": "avail_biz_kasol_cook_25_20261231",
     "businessId": "biz_kasol_cook_25",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 1
@@ -4875,7 +4875,7 @@
     "_id": "avail_biz_kasol_cook_25_20270101",
     "businessId": "biz_kasol_cook_25",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 3
@@ -4889,7 +4889,7 @@
     "_id": "avail_biz_kasol_cook_25_20270102",
     "businessId": "biz_kasol_cook_25",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 3,
       "available": 2
@@ -5295,7 +5295,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20261220",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 6
@@ -5309,7 +5309,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20261221",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 5
@@ -5323,7 +5323,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20261222",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 4
@@ -5337,7 +5337,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20261223",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 6
@@ -5351,7 +5351,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20261224",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 5
@@ -5365,7 +5365,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20261225",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 4
@@ -5379,7 +5379,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20261226",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 6
@@ -5393,7 +5393,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20261227",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 5
@@ -5407,7 +5407,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20261228",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 4
@@ -5421,7 +5421,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20261229",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 6
@@ -5435,7 +5435,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20261230",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 5
@@ -5449,7 +5449,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20261231",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 4
@@ -5463,7 +5463,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20270101",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 6
@@ -5477,7 +5477,7 @@
     "_id": "avail_biz_dharamshala_guide_28_20270102",
     "businessId": "biz_dharamshala_guide_28",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "slot",
     "units": {
       "total": 6,
       "available": 5
@@ -5491,7 +5491,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20261220",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 7
@@ -5505,7 +5505,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20261221",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 6
@@ -5519,7 +5519,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20261222",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 5
@@ -5533,7 +5533,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20261223",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 7
@@ -5547,7 +5547,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20261224",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 6
@@ -5561,7 +5561,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20261225",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 5
@@ -5575,7 +5575,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20261226",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 7
@@ -5589,7 +5589,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20261227",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 6
@@ -5603,7 +5603,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20261228",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 5
@@ -5617,7 +5617,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20261229",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 7
@@ -5631,7 +5631,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20261230",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 6
@@ -5645,7 +5645,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20261231",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 5
@@ -5659,7 +5659,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20270101",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 7
@@ -5673,7 +5673,7 @@
     "_id": "avail_biz_mcleodganj_driver_29_20270102",
     "businessId": "biz_mcleodganj_driver_29",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "seat",
     "units": {
       "total": 7,
       "available": 6
@@ -5687,7 +5687,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20261220",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2026-12-20",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 2
@@ -5701,7 +5701,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20261221",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2026-12-21",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 1
@@ -5715,7 +5715,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20261222",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2026-12-22",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 1
@@ -5729,7 +5729,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20261223",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2026-12-23",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 2
@@ -5743,7 +5743,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20261224",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2026-12-24",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 1
@@ -5757,7 +5757,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20261225",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2026-12-25",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 1
@@ -5771,7 +5771,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20261226",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2026-12-26",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 2
@@ -5785,7 +5785,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20261227",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2026-12-27",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 1
@@ -5799,7 +5799,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20261228",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2026-12-28",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 1
@@ -5813,7 +5813,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20261229",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2026-12-29",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 2
@@ -5827,7 +5827,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20261230",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2026-12-30",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 1
@@ -5841,7 +5841,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20261231",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2026-12-31",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 1
@@ -5855,7 +5855,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20270101",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2027-01-01",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 2
@@ -5869,7 +5869,7 @@
     "_id": "avail_biz_dalhousie_cook_30_20270102",
     "businessId": "biz_dalhousie_cook_30",
     "date": "2027-01-02",
-    "resourceType": "service",
+    "resourceType": "table",
     "units": {
       "total": 2,
       "available": 1
