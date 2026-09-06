@@ -21,7 +21,7 @@ afterEach(async () => {
   await BusinessAvailability.deleteMany({});
 });
 
-const businessId = new mongoose.Types.ObjectId();
+const businessId = "biz_test_shimla_01";
 const destId = "shimla";
 const date = "2026-09-10";
 
@@ -44,6 +44,7 @@ describe("eligibleForDiscount", () => {
       businessId,
       date,
       resourceType: "room",
+      units: { total: 3, available: 2 },
       isOpen: true,
       discountPct: 20,
     });
@@ -60,6 +61,7 @@ describe("eligibleForDiscount", () => {
       businessId,
       date,
       resourceType: "room",
+      units: { total: 3, available: 2 },
       isOpen: false,
       discountPct: 20,
     });
@@ -80,6 +82,7 @@ describe("eligibleForDiscount", () => {
       businessId,
       date,
       resourceType: "room",
+      units: { total: 3, available: 2 },
       isOpen: true,
       discountPct: 20,
     });
@@ -94,6 +97,7 @@ describe("eligibleForDiscount", () => {
       businessId,
       date,
       resourceType: "room",
+      units: { total: 3, available: 2 },
       isOpen: true,
       discountPct: 20,
     });
@@ -108,6 +112,7 @@ describe("eligibleForDiscount", () => {
       businessId,
       date,
       resourceType: "room",
+      units: { total: 3, available: 2 },
       isOpen: true,
       discountPct: 20,
     });
@@ -122,6 +127,7 @@ describe("eligibleForDiscount", () => {
       businessId,
       date: new Date(date),
       resourceType: "room",
+      units: { total: 3, available: 2 },
       isOpen: true,
       discountPct: 75, // bypasses Mongoose's own max:40 validator via a raw driver insert
       source: "business_declared",
@@ -140,6 +146,7 @@ describe("eligibleForDiscount", () => {
       businessId,
       date,
       resourceType: "room",
+      units: { total: 3, available: 2 },
       isOpen: true,
       discountPct: 15,
     });

@@ -33,6 +33,7 @@ let ownerPhoneCounter = 0;
 async function makeBusiness(destIdForBusiness = destId) {
   ownerPhoneCounter += 1;
   return Business.create({
+    _id: `biz_test_${String(ownerPhoneCounter).padStart(2, "0")}`,
     destId: destIdForBusiness,
     name: `Test Homestay ${ownerPhoneCounter}`,
     type: "homestay",

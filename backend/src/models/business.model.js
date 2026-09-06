@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const businessSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true,
+  },
   destId: {
     type: String,
     required: true,

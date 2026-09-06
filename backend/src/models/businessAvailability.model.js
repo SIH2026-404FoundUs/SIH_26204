@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const businessAvailabilitySchema = new mongoose.Schema({
   businessId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "Business",
     required: true,
   },
@@ -16,8 +16,8 @@ const businessAvailabilitySchema = new mongoose.Schema({
     required: true,
   },
   units: {
-    total: { type: Number },
-    available: { type: Number },
+    total: { type: Number, required: true },
+    available: { type: Number, required: true },
   },
   pricePerNight: {
     type: Number,

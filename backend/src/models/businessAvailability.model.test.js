@@ -22,9 +22,10 @@ afterEach(async () => {
 });
 
 const validAvailability = () => ({
-  businessId: new mongoose.Types.ObjectId(),
+  businessId: "biz_test_homestay_01",
   date: new Date("2026-09-10"),
   resourceType: "room",
+  units: { total: 3, available: 2 },
 });
 
 describe("BusinessAvailability model", () => {
@@ -69,23 +70,25 @@ describe("BusinessAvailability model", () => {
   });
 
   test("throws on duplicate (businessId, date, resourceType)", async () => {
-    const businessId = new mongoose.Types.ObjectId();
+    const businessId = "biz_test_homestay_02";
     const date = new Date("2026-09-10");
+    const units = { total: 3, available: 2 };
 
-    await new BusinessAvailability({ businessId, date, resourceType: "room" }).save();
+    await new BusinessAvailability({ businessId, date, resourceType: "room", units }).save();
 
     await expect(
-      new BusinessAvailability({ businessId, date, resourceType: "room" }).save()
+      new BusinessAvailability({ businessId, date, resourceType: "room", units }).save()
     ).rejects.toThrow(/E11000/);
   });
 
   test("allows the same (businessId, date) with a different resourceType", async () => {
-    const businessId = new mongoose.Types.ObjectId();
+    const businessId = "biz_test_homestay_03";
     const date = new Date("2026-09-10");
+    const units = { total: 3, available: 2 };
 
-    await new BusinessAvailability({ businessId, date, resourceType: "room" }).save();
+    await new BusinessAvailability({ businessId, date, resourceType: "room", units }).save();
 
-    const differentResourceType = new BusinessAvailability({ businessId, date, resourceType: "seat" });
+    const differentResourceType = new BusinessAvailability({ businessId, date, resourceType: "seat", units });
     await expect(differentResourceType.save()).resolves.toBeDefined();
   });
 });
