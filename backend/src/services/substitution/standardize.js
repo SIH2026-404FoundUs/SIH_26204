@@ -1,4 +1,4 @@
-import { Destination } from '../../models/destination.model.js';
+import { loadDestinations } from '../pressure/seed.js';
 
 const ATTR_LIST = [
   'snow',
@@ -26,7 +26,7 @@ async function initializeStats() {
     attempts++;
     try {
       console.log(`Fetching tracked destinations for substitution stats (attempt ${attempts}/${maxAttempts})...`);
-      destinations = await Destination.find({ trackingTier: 'tracked' });
+      destinations = loadDestinations().filter((d) => d.trackingTier === 'tracked');
       break;
     } catch (err) {
       console.log(`Attempt ${attempts} failed to fetch destinations: ${err.message}`);
