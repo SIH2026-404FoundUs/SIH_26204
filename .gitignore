@@ -8,6 +8,10 @@ pnpm-debug.log*
 lerna-debug.log*
 CONVENTIONAL_COMMITS.md
 node_modules
+venv/
+.venv/
+__pycache__/
+*.py[cod]
 dist
 dist-ssr
 *.local
