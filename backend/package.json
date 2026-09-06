@@ -17,6 +17,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/index.js",
+    "seed": "node src/seeds/seedDatabase.js",
     "prepare-hooks": "git config core.hooksPath ../.githooks",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },

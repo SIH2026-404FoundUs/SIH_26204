@@ -1,0 +1,47 @@
+{
+  "_id": "dharamshala",
+  "name": "Dharamshala",
+  "displayName": "Dharamshala, Himachal Pradesh",
+  "state": "HP",
+  "district": "Kangra",
+  "googlePlaceId": "ChIJy4vX_y81DzkRQW8n6Q3w4vU",
+  "location": {
+    "lat": 32.219,
+    "lng": 76.3233,
+    "type": "Point",
+    "coordinates": [
+      76.3233,
+      32.219
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.6,
+    "trek": 0.7,
+    "riverside": 0.4,
+    "heritage": 0.7,
+    "nightlife": 0.5,
+    "food": 0.8,
+    "wildlife": 0.5,
+    "spiritual": 0.9
+  },
+  "nearestRailhead": "PTKC",
+  "railheadDistanceKm": 85,
+  "railSignalConfidence": 0.4,
+  "roadAccess": {
+    "operators": [
+      "HRTC",
+      "Bedi Travels"
+    ],
+    "corridor": "Delhi-Pathankot-Dharamshala",
+    "boardingPoint": "Pathankot Junction"
+  },
+  "nearestAirport": "DHM",
+  "capacityPrior": 0.6,
+  "baseline": {
+    "railWL": 30,
+    "roadSeatsAvail": 45,
+    "hotelMedianINR": 2800
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

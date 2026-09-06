@@ -1,0 +1,11 @@
+{
+  "id": "shimla",
+  "name": "Shimla",
+  "roadAccess": {
+    "corridor": "Chandigarh - Shimla (NH5)",
+    "operators": ["HRTC", "Private Volvo operators"]
+  },
+  "baseline": {
+    "roadSeatsAvail": 55
+  }
+}

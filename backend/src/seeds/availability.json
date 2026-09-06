@@ -1,0 +1,5882 @@
+[
+  {
+    "_id": "avail_biz_shimla_homestay_01_20261220",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2026-12-20",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 850,
+    "discountPct": 6,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20261221",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2026-12-21",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 850,
+    "discountPct": 13,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20261222",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2026-12-22",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 850,
+    "discountPct": 20,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20261223",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2026-12-23",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 850,
+    "discountPct": 27,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20261224",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2026-12-24",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 850,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20261225",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2026-12-25",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 850,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20261226",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2026-12-26",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 850,
+    "discountPct": 13,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20261227",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2026-12-27",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 850,
+    "discountPct": 20,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20261228",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2026-12-28",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 850,
+    "discountPct": 27,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20261229",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2026-12-29",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 850,
+    "discountPct": 34,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20261230",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2026-12-30",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 850,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20261231",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2026-12-31",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 850,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20270101",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2027-01-01",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 850,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_homestay_01_20270102",
+    "businessId": "biz_shimla_homestay_01",
+    "date": "2027-01-02",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 850,
+    "discountPct": 27,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20261220",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2026-12-20",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 900,
+    "discountPct": 7,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20261221",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2026-12-21",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 900,
+    "discountPct": 14,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20261222",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2026-12-22",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 900,
+    "discountPct": 21,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20261223",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2026-12-23",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 900,
+    "discountPct": 28,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20261224",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2026-12-24",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 900,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20261225",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2026-12-25",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 900,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20261226",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2026-12-26",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 900,
+    "discountPct": 14,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20261227",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2026-12-27",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 900,
+    "discountPct": 21,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20261228",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2026-12-28",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 900,
+    "discountPct": 28,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20261229",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2026-12-29",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 900,
+    "discountPct": 35,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20261230",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2026-12-30",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 900,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20261231",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2026-12-31",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 900,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20270101",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2027-01-01",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 900,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_guesthouse_02_20270102",
+    "businessId": "biz_manali_guesthouse_02",
+    "date": "2027-01-02",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 900,
+    "discountPct": 28,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20261220",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 950,
+    "discountPct": 8,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20261221",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 950,
+    "discountPct": 15,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20261222",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 950,
+    "discountPct": 22,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20261223",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 950,
+    "discountPct": 29,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20261224",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 950,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20261225",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 950,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20261226",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 950,
+    "discountPct": 15,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20261227",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 950,
+    "discountPct": 22,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20261228",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 950,
+    "discountPct": 29,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20261229",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 950,
+    "discountPct": 36,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20261230",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 950,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20261231",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 950,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20270101",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 950,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_guide_03_20270102",
+    "businessId": "biz_kasol_guide_03",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 950,
+    "discountPct": 29,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20261220",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1000,
+    "discountPct": 9,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20261221",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1000,
+    "discountPct": 16,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20261222",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1000,
+    "discountPct": 23,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20261223",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1000,
+    "discountPct": 30,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20261224",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1000,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20261225",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1000,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20261226",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1000,
+    "discountPct": 16,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20261227",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1000,
+    "discountPct": 23,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20261228",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1000,
+    "discountPct": 30,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20261229",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1000,
+    "discountPct": 37,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20261230",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1000,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20261231",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1000,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20270101",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1000,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_driver_04_20270102",
+    "businessId": "biz_jibhi_driver_04",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1000,
+    "discountPct": 30,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20261220",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1050,
+    "discountPct": 10,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20261221",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1050,
+    "discountPct": 17,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20261222",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1050,
+    "discountPct": 24,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20261223",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1050,
+    "discountPct": 31,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20261224",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1050,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20261225",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1050,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20261226",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1050,
+    "discountPct": 17,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20261227",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1050,
+    "discountPct": 24,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20261228",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1050,
+    "discountPct": 31,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20261229",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1050,
+    "discountPct": 38,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20261230",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1050,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20261231",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1050,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20270101",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1050,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_cook_05_20270102",
+    "businessId": "biz_tirthan-valley_cook_05",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1050,
+    "discountPct": 31,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20261220",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2026-12-20",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1100,
+    "discountPct": 11,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20261221",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2026-12-21",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1100,
+    "discountPct": 18,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20261222",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2026-12-22",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1100,
+    "discountPct": 25,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20261223",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2026-12-23",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1100,
+    "discountPct": 32,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20261224",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2026-12-24",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1100,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20261225",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2026-12-25",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1100,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20261226",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2026-12-26",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1100,
+    "discountPct": 18,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20261227",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2026-12-27",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1100,
+    "discountPct": 25,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20261228",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2026-12-28",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1100,
+    "discountPct": 32,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20261229",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2026-12-29",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1100,
+    "discountPct": 39,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20261230",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2026-12-30",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1100,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20261231",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2026-12-31",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1100,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20270101",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2027-01-01",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1100,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_homestay_06_20270102",
+    "businessId": "biz_dharamshala_homestay_06",
+    "date": "2027-01-02",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1100,
+    "discountPct": 32,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20261220",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2026-12-20",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1150,
+    "discountPct": 12,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20261221",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2026-12-21",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1150,
+    "discountPct": 19,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20261222",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2026-12-22",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 1150,
+    "discountPct": 26,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20261223",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2026-12-23",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1150,
+    "discountPct": 33,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20261224",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2026-12-24",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1150,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20261225",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2026-12-25",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 1150,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20261226",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2026-12-26",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1150,
+    "discountPct": 19,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20261227",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2026-12-27",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1150,
+    "discountPct": 26,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20261228",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2026-12-28",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 1150,
+    "discountPct": 33,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20261229",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2026-12-29",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1150,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20261230",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2026-12-30",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1150,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20261231",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2026-12-31",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 1150,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20270101",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2027-01-01",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1150,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_guesthouse_07_20270102",
+    "businessId": "biz_mcleodganj_guesthouse_07",
+    "date": "2027-01-02",
+    "resourceType": "room",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1150,
+    "discountPct": 33,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20261220",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1200,
+    "discountPct": 13,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20261221",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1200,
+    "discountPct": 20,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20261222",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 1200,
+    "discountPct": 27,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20261223",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1200,
+    "discountPct": 34,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20261224",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1200,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20261225",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 1200,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20261226",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1200,
+    "discountPct": 20,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20261227",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1200,
+    "discountPct": 27,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20261228",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 1200,
+    "discountPct": 34,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20261229",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1200,
+    "discountPct": 6,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20261230",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1200,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20261231",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 1200,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20270101",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1200,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_guide_08_20270102",
+    "businessId": "biz_dalhousie_guide_08",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1200,
+    "discountPct": 34,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20261220",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1250,
+    "discountPct": 14,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20261221",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1250,
+    "discountPct": 21,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20261222",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 1250,
+    "discountPct": 28,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20261223",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1250,
+    "discountPct": 35,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20261224",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1250,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20261225",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 1250,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20261226",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1250,
+    "discountPct": 21,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20261227",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1250,
+    "discountPct": 28,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20261228",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 1250,
+    "discountPct": 35,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20261229",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1250,
+    "discountPct": 7,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20261230",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1250,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20261231",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 1250,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20270101",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1250,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_spiti-kaza_driver_09_20270102",
+    "businessId": "biz_spiti-kaza_driver_09",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1250,
+    "discountPct": 35,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20261220",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1300,
+    "discountPct": 15,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20261221",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1300,
+    "discountPct": 22,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20261222",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1300,
+    "discountPct": 29,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20261223",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1300,
+    "discountPct": 36,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20261224",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1300,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20261225",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1300,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20261226",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1300,
+    "discountPct": 22,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20261227",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1300,
+    "discountPct": 29,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20261228",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1300,
+    "discountPct": 36,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20261229",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1300,
+    "discountPct": 8,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20261230",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1300,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20261231",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1300,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20270101",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1300,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bir-billing_cook_10_20270102",
+    "businessId": "biz_bir-billing_cook_10",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1300,
+    "discountPct": 36,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20261220",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2026-12-20",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1350,
+    "discountPct": 16,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20261221",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2026-12-21",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1350,
+    "discountPct": 23,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20261222",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2026-12-22",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1350,
+    "discountPct": 30,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20261223",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2026-12-23",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1350,
+    "discountPct": 37,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20261224",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2026-12-24",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1350,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20261225",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2026-12-25",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1350,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20261226",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2026-12-26",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1350,
+    "discountPct": 23,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20261227",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2026-12-27",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1350,
+    "discountPct": 30,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20261228",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2026-12-28",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1350,
+    "discountPct": 37,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20261229",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2026-12-29",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1350,
+    "discountPct": 9,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20261230",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2026-12-30",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1350,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20261231",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2026-12-31",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1350,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20270101",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2027-01-01",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1350,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasauli_homestay_11_20270102",
+    "businessId": "biz_kasauli_homestay_11",
+    "date": "2027-01-02",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1350,
+    "discountPct": 37,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20261220",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2026-12-20",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1400,
+    "discountPct": 17,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20261221",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2026-12-21",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1400,
+    "discountPct": 24,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20261222",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2026-12-22",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1400,
+    "discountPct": 31,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20261223",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2026-12-23",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1400,
+    "discountPct": 38,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20261224",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2026-12-24",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1400,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20261225",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2026-12-25",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1400,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20261226",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2026-12-26",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1400,
+    "discountPct": 24,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20261227",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2026-12-27",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1400,
+    "discountPct": 31,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20261228",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2026-12-28",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1400,
+    "discountPct": 38,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20261229",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2026-12-29",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1400,
+    "discountPct": 10,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20261230",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2026-12-30",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1400,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20261231",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2026-12-31",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1400,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20270101",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2027-01-01",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1400,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_chail_guesthouse_12_20270102",
+    "businessId": "biz_chail_guesthouse_12",
+    "date": "2027-01-02",
+    "resourceType": "room",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1400,
+    "discountPct": 38,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20261220",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1450,
+    "discountPct": 18,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20261221",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1450,
+    "discountPct": 25,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20261222",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 1450,
+    "discountPct": 32,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20261223",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1450,
+    "discountPct": 39,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20261224",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1450,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20261225",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 1450,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20261226",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1450,
+    "discountPct": 25,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20261227",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1450,
+    "discountPct": 32,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20261228",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 1450,
+    "discountPct": 39,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20261229",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1450,
+    "discountPct": 11,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20261230",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1450,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20261231",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 1450,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20270101",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1450,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_charminar-hyderabad_guide_13_20270102",
+    "businessId": "biz_charminar-hyderabad_guide_13",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1450,
+    "discountPct": 39,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20261220",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1500,
+    "discountPct": 19,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20261221",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1500,
+    "discountPct": 26,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20261222",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 1500,
+    "discountPct": 33,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20261223",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1500,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20261224",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1500,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20261225",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 1500,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20261226",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1500,
+    "discountPct": 26,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20261227",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1500,
+    "discountPct": 33,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20261228",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 1500,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20261229",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1500,
+    "discountPct": 12,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20261230",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1500,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20261231",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 1500,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20270101",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1500,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_golconda-hyderabad_driver_14_20270102",
+    "businessId": "biz_golconda-hyderabad_driver_14",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1500,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20261220",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1550,
+    "discountPct": 20,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20261221",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1550,
+    "discountPct": 27,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20261222",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 1550,
+    "discountPct": 34,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20261223",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1550,
+    "discountPct": 6,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20261224",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1550,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20261225",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 1550,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20261226",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1550,
+    "discountPct": 27,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20261227",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1550,
+    "discountPct": 34,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20261228",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 1550,
+    "discountPct": 6,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20261229",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1550,
+    "discountPct": 13,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20261230",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1550,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20261231",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 1550,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20270101",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1550,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_warangal-fort_cook_15_20270102",
+    "businessId": "biz_warangal-fort_cook_15",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1550,
+    "discountPct": 6,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20261220",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2026-12-20",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1600,
+    "discountPct": 21,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20261221",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2026-12-21",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1600,
+    "discountPct": 28,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20261222",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2026-12-22",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1600,
+    "discountPct": 35,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20261223",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2026-12-23",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1600,
+    "discountPct": 7,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20261224",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2026-12-24",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1600,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20261225",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2026-12-25",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1600,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20261226",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2026-12-26",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1600,
+    "discountPct": 28,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20261227",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2026-12-27",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1600,
+    "discountPct": 35,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20261228",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2026-12-28",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1600,
+    "discountPct": 7,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20261229",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2026-12-29",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1600,
+    "discountPct": 14,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20261230",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2026-12-30",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1600,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20261231",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2026-12-31",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1600,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20270101",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2027-01-01",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1600,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ramappa-temple_homestay_16_20270102",
+    "businessId": "biz_ramappa-temple_homestay_16",
+    "date": "2027-01-02",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1600,
+    "discountPct": 7,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20261220",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2026-12-20",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1650,
+    "discountPct": 22,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20261221",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2026-12-21",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1650,
+    "discountPct": 29,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20261222",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2026-12-22",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1650,
+    "discountPct": 36,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20261223",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2026-12-23",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1650,
+    "discountPct": 8,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20261224",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2026-12-24",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1650,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20261225",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2026-12-25",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1650,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20261226",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2026-12-26",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1650,
+    "discountPct": 29,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20261227",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2026-12-27",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1650,
+    "discountPct": 36,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20261228",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2026-12-28",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1650,
+    "discountPct": 8,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20261229",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2026-12-29",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1650,
+    "discountPct": 15,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20261230",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2026-12-30",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1650,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20261231",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2026-12-31",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1650,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20270101",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2027-01-01",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1650,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_laknavaram-lake_guesthouse_17_20270102",
+    "businessId": "biz_laknavaram-lake_guesthouse_17",
+    "date": "2027-01-02",
+    "resourceType": "room",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1650,
+    "discountPct": 8,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20261220",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1700,
+    "discountPct": 23,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20261221",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1700,
+    "discountPct": 30,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20261222",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1700,
+    "discountPct": 37,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20261223",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1700,
+    "discountPct": 9,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20261224",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1700,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20261225",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1700,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20261226",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1700,
+    "discountPct": 30,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20261227",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1700,
+    "discountPct": 37,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20261228",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1700,
+    "discountPct": 9,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20261229",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1700,
+    "discountPct": 16,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20261230",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1700,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20261231",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1700,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20270101",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 1700,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_nagarjuna-sagar_guide_18_20270102",
+    "businessId": "biz_nagarjuna-sagar_guide_18",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 1700,
+    "discountPct": 9,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20261220",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1750,
+    "discountPct": 24,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20261221",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1750,
+    "discountPct": 31,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20261222",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 1750,
+    "discountPct": 38,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20261223",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1750,
+    "discountPct": 10,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20261224",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1750,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20261225",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 1750,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20261226",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1750,
+    "discountPct": 31,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20261227",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1750,
+    "discountPct": 38,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20261228",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 1750,
+    "discountPct": 10,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20261229",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1750,
+    "discountPct": 17,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20261230",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1750,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20261231",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 1750,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20270101",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 1750,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kuntala-waterfalls_driver_19_20270102",
+    "businessId": "biz_kuntala-waterfalls_driver_19",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 1750,
+    "discountPct": 10,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20261220",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1800,
+    "discountPct": 25,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20261221",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1800,
+    "discountPct": 32,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20261222",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 1800,
+    "discountPct": 39,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20261223",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1800,
+    "discountPct": 11,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20261224",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1800,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20261225",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 1800,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20261226",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1800,
+    "discountPct": 32,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20261227",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1800,
+    "discountPct": 39,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20261228",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 1800,
+    "discountPct": 11,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20261229",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1800,
+    "discountPct": 18,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20261230",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1800,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20261231",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 1800,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20270101",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 1800,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_bhadrachalam_cook_20_20270102",
+    "businessId": "biz_bhadrachalam_cook_20",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 1800,
+    "discountPct": 11,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20261220",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2026-12-20",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1850,
+    "discountPct": 26,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20261221",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2026-12-21",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1850,
+    "discountPct": 33,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20261222",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2026-12-22",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 1850,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20261223",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2026-12-23",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1850,
+    "discountPct": 12,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20261224",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2026-12-24",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1850,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20261225",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2026-12-25",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 1850,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20261226",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2026-12-26",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1850,
+    "discountPct": 33,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20261227",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2026-12-27",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1850,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20261228",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2026-12-28",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 1850,
+    "discountPct": 12,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20261229",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2026-12-29",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1850,
+    "discountPct": 19,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20261230",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2026-12-30",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1850,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20261231",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2026-12-31",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 1850,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20270101",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2027-01-01",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 1850,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_yadapalli-yadadri_homestay_21_20270102",
+    "businessId": "biz_yadapalli-yadadri_homestay_21",
+    "date": "2027-01-02",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 1850,
+    "discountPct": 12,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20261220",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2026-12-20",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1900,
+    "discountPct": 27,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20261221",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2026-12-21",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1900,
+    "discountPct": 34,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20261222",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2026-12-22",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1900,
+    "discountPct": 6,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20261223",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2026-12-23",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1900,
+    "discountPct": 13,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20261224",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2026-12-24",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1900,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20261225",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2026-12-25",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1900,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20261226",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2026-12-26",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1900,
+    "discountPct": 34,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20261227",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2026-12-27",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1900,
+    "discountPct": 6,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20261228",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2026-12-28",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1900,
+    "discountPct": 13,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20261229",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2026-12-29",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1900,
+    "discountPct": 20,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20261230",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2026-12-30",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1900,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20261231",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2026-12-31",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 1900,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20270101",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2027-01-01",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 1900,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_ananthagiri-hills_guesthouse_22_20270102",
+    "businessId": "biz_ananthagiri-hills_guesthouse_22",
+    "date": "2027-01-02",
+    "resourceType": "room",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 1900,
+    "discountPct": 13,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20261220",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1950,
+    "discountPct": 28,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20261221",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1950,
+    "discountPct": 35,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20261222",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1950,
+    "discountPct": 7,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20261223",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1950,
+    "discountPct": 14,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20261224",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1950,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20261225",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1950,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20261226",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1950,
+    "discountPct": 35,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20261227",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1950,
+    "discountPct": 7,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20261228",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1950,
+    "discountPct": 14,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20261229",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1950,
+    "discountPct": 21,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20261230",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1950,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20261231",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 1950,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20270101",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 1950,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_shimla_guide_23_20270102",
+    "businessId": "biz_shimla_guide_23",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 1950,
+    "discountPct": 14,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20261220",
+    "businessId": "biz_manali_driver_24",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 2000,
+    "discountPct": 29,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20261221",
+    "businessId": "biz_manali_driver_24",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2000,
+    "discountPct": 36,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20261222",
+    "businessId": "biz_manali_driver_24",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2000,
+    "discountPct": 8,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20261223",
+    "businessId": "biz_manali_driver_24",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 2000,
+    "discountPct": 15,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20261224",
+    "businessId": "biz_manali_driver_24",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2000,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20261225",
+    "businessId": "biz_manali_driver_24",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2000,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20261226",
+    "businessId": "biz_manali_driver_24",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 2000,
+    "discountPct": 36,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20261227",
+    "businessId": "biz_manali_driver_24",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2000,
+    "discountPct": 8,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20261228",
+    "businessId": "biz_manali_driver_24",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2000,
+    "discountPct": 15,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20261229",
+    "businessId": "biz_manali_driver_24",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 2000,
+    "discountPct": 22,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20261230",
+    "businessId": "biz_manali_driver_24",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2000,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20261231",
+    "businessId": "biz_manali_driver_24",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2000,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20270101",
+    "businessId": "biz_manali_driver_24",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 2000,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_manali_driver_24_20270102",
+    "businessId": "biz_manali_driver_24",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2000,
+    "discountPct": 15,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20261220",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 2050,
+    "discountPct": 30,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20261221",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 2050,
+    "discountPct": 37,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20261222",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 2050,
+    "discountPct": 9,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20261223",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 2050,
+    "discountPct": 16,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20261224",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 2050,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20261225",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 2050,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20261226",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 2050,
+    "discountPct": 37,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20261227",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 2050,
+    "discountPct": 9,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20261228",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 2050,
+    "discountPct": 16,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20261229",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 2050,
+    "discountPct": 23,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20261230",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 2050,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20261231",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 1
+    },
+    "pricePerNight": 2050,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20270101",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 3
+    },
+    "pricePerNight": 2050,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_kasol_cook_25_20270102",
+    "businessId": "biz_kasol_cook_25",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 3,
+      "available": 2
+    },
+    "pricePerNight": 2050,
+    "discountPct": 16,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20261220",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2026-12-20",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 2100,
+    "discountPct": 31,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20261221",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2026-12-21",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 2100,
+    "discountPct": 38,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20261222",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2026-12-22",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 2100,
+    "discountPct": 10,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20261223",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2026-12-23",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 2100,
+    "discountPct": 17,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20261224",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2026-12-24",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 2100,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20261225",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2026-12-25",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 2100,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20261226",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2026-12-26",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 2100,
+    "discountPct": 38,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20261227",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2026-12-27",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 2100,
+    "discountPct": 10,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20261228",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2026-12-28",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 2100,
+    "discountPct": 17,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20261229",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2026-12-29",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 2100,
+    "discountPct": 24,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20261230",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2026-12-30",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 2100,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20261231",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2026-12-31",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 2
+    },
+    "pricePerNight": 2100,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20270101",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2027-01-01",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 4
+    },
+    "pricePerNight": 2100,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_jibhi_homestay_26_20270102",
+    "businessId": "biz_jibhi_homestay_26",
+    "date": "2027-01-02",
+    "resourceType": "room",
+    "units": {
+      "total": 4,
+      "available": 3
+    },
+    "pricePerNight": 2100,
+    "discountPct": 17,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20261220",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2026-12-20",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 2150,
+    "discountPct": 32,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20261221",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2026-12-21",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 2150,
+    "discountPct": 39,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20261222",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2026-12-22",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 2150,
+    "discountPct": 11,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20261223",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2026-12-23",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 2150,
+    "discountPct": 18,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20261224",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2026-12-24",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 2150,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20261225",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2026-12-25",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 2150,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20261226",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2026-12-26",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 2150,
+    "discountPct": 39,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20261227",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2026-12-27",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 2150,
+    "discountPct": 11,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20261228",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2026-12-28",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 2150,
+    "discountPct": 18,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20261229",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2026-12-29",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 2150,
+    "discountPct": 25,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20261230",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2026-12-30",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 2150,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20261231",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2026-12-31",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 3
+    },
+    "pricePerNight": 2150,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20270101",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2027-01-01",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 5
+    },
+    "pricePerNight": 2150,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_tirthan-valley_guesthouse_27_20270102",
+    "businessId": "biz_tirthan-valley_guesthouse_27",
+    "date": "2027-01-02",
+    "resourceType": "room",
+    "units": {
+      "total": 5,
+      "available": 4
+    },
+    "pricePerNight": 2150,
+    "discountPct": 18,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20261220",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 2200,
+    "discountPct": 33,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20261221",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 2200,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20261222",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 2200,
+    "discountPct": 12,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20261223",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 2200,
+    "discountPct": 19,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20261224",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 2200,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20261225",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 2200,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20261226",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 2200,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20261227",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 2200,
+    "discountPct": 12,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20261228",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 2200,
+    "discountPct": 19,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20261229",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 2200,
+    "discountPct": 26,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20261230",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 2200,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20261231",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 4
+    },
+    "pricePerNight": 2200,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20270101",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 6
+    },
+    "pricePerNight": 2200,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dharamshala_guide_28_20270102",
+    "businessId": "biz_dharamshala_guide_28",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 6,
+      "available": 5
+    },
+    "pricePerNight": 2200,
+    "discountPct": 19,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20261220",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 2250,
+    "discountPct": 34,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20261221",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 2250,
+    "discountPct": 6,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20261222",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 2250,
+    "discountPct": 13,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20261223",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 2250,
+    "discountPct": 20,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20261224",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 2250,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20261225",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 2250,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20261226",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 2250,
+    "discountPct": 6,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20261227",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 2250,
+    "discountPct": 13,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20261228",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 2250,
+    "discountPct": 20,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20261229",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 2250,
+    "discountPct": 27,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20261230",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 2250,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20261231",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 5
+    },
+    "pricePerNight": 2250,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20270101",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 7
+    },
+    "pricePerNight": 2250,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_mcleodganj_driver_29_20270102",
+    "businessId": "biz_mcleodganj_driver_29",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 7,
+      "available": 6
+    },
+    "pricePerNight": 2250,
+    "discountPct": 20,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20261220",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2026-12-20",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 2300,
+    "discountPct": 35,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20261221",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2026-12-21",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2300,
+    "discountPct": 7,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20261222",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2026-12-22",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2300,
+    "discountPct": 14,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20261223",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2026-12-23",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 2300,
+    "discountPct": 21,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20261224",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2026-12-24",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2300,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20261225",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2026-12-25",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2300,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20261226",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2026-12-26",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 2300,
+    "discountPct": 7,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20261227",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2026-12-27",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2300,
+    "discountPct": 14,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20261228",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2026-12-28",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2300,
+    "discountPct": 21,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20261229",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2026-12-29",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 2300,
+    "discountPct": 28,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20261230",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2026-12-30",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2300,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20261231",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2026-12-31",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2300,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20270101",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2027-01-01",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 2
+    },
+    "pricePerNight": 2300,
+    "discountPct": 5,
+    "isOpen": true,
+    "source": "business_declared"
+  },
+  {
+    "_id": "avail_biz_dalhousie_cook_30_20270102",
+    "businessId": "biz_dalhousie_cook_30",
+    "date": "2027-01-02",
+    "resourceType": "service",
+    "units": {
+      "total": 2,
+      "available": 1
+    },
+    "pricePerNight": 2300,
+    "discountPct": 21,
+    "isOpen": true,
+    "source": "business_declared"
+  }
+]

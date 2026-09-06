@@ -1,0 +1,46 @@
+{
+  "_id": "hussain-sagar-hyderabad",
+  "name": "Hussain Sagar & Tank Bund",
+  "displayName": "Hussain Sagar, Hyderabad, Telangana",
+  "state": "TG",
+  "district": "Hyderabad",
+  "googlePlaceId": "ChIJ112233445566TG000111222",
+  "location": {
+    "lat": 17.4239,
+    "lng": 78.4744,
+    "type": "Point",
+    "coordinates": [
+      78.4744,
+      17.4239
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.0,
+    "trek": 0.1,
+    "riverside": 0.7,
+    "heritage": 0.6,
+    "nightlife": 0.9,
+    "food": 0.9,
+    "wildlife": 0.3,
+    "spiritual": 0.5
+  },
+  "nearestRailhead": "SC",
+  "railheadDistanceKm": 3,
+  "railSignalConfidence": 0.9,
+  "roadAccess": {
+    "operators": [
+      "TSRTC"
+    ],
+    "corridor": "Secunderabad-TankBund",
+    "boardingPoint": "Secunderabad Station"
+  },
+  "nearestAirport": "HYD",
+  "capacityPrior": 0.8,
+  "baseline": {
+    "railWL": 60,
+    "roadSeatsAvail": 100,
+    "hotelMedianINR": 3200
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

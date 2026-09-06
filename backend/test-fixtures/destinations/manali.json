@@ -1,0 +1,11 @@
+{
+  "id": "manali",
+  "name": "Manali",
+  "roadAccess": {
+    "corridor": "Delhi - Chandigarh - Manali (NH44/NH3)",
+    "operators": ["HRTC", "HPTDC", "Volvo private operators"]
+  },
+  "baseline": {
+    "roadSeatsAvail": 40
+  }
+}

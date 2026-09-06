@@ -1,0 +1,46 @@
+{
+  "_id": "kalpa",
+  "name": "Kalpa",
+  "displayName": "Kalpa, Kinnaur, Himachal Pradesh",
+  "state": "HP",
+  "district": "Kinnaur",
+  "googlePlaceId": "ChIJ_zX124OADzkRuN890123456",
+  "location": {
+    "lat": 31.5362,
+    "lng": 78.2562,
+    "type": "Point",
+    "coordinates": [
+      78.2562,
+      31.5362
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.9,
+    "trek": 0.7,
+    "riverside": 0.4,
+    "heritage": 0.6,
+    "nightlife": 0.1,
+    "food": 0.5,
+    "wildlife": 0.6,
+    "spiritual": 0.7
+  },
+  "nearestRailhead": "SML",
+  "railheadDistanceKm": 240,
+  "railSignalConfidence": 0.1,
+  "roadAccess": {
+    "operators": [
+      "HRTC"
+    ],
+    "corridor": "Shimla-Reckong Peo-Kalpa",
+    "boardingPoint": "Shimla"
+  },
+  "nearestAirport": "SLV",
+  "capacityPrior": 0.55,
+  "baseline": {
+    "railWL": 8,
+    "roadSeatsAvail": 30,
+    "hotelMedianINR": 2400
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

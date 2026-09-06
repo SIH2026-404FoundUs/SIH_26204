@@ -4,15 +4,12 @@ import { getRoadFrequency } from "../providers/roadtransport.provider.js";
 
 const router = express.Router();
 
-// No destinations seed with roadAccess/baseline data exists yet, so this
-// takes the destination object directly in the body rather than looking
-// one up by an id — avoids depending on seed data owned by another teammate.
 router.get("/", (req, res) => {
-  const { destination } = req.query;
+  const { destId } = req.query;
 
-  if (!destination) return res.status(400).json(fail("destination is required"));
+  if (!destId) return res.status(400).json(fail("destId is required"));
 
-  const result = getRoadFrequency(destination);
+  const result = getRoadFrequency(destId);
   res.json(result);
 });
 
