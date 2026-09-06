@@ -2,21 +2,21 @@
 // Demo-corridor destinations (seed flag `demoCorridor`) get a 45-day forward
 // window; the rest get 14 days. All get `backfillDays` of PAST dates too.
 //
-// The backfill is a TEMPORARY stand-in for Ananya's 30-day history seed
-// (spec §8 — emerging hotspot + capacity gap need history to exist). It is
-// legitimate seeding, not fabrication: the Tourism doc lists "pressure history"
-// as normal to seed, and this runs the real engine over the real estimators.
-// Drop `backfillDays` to 0 once Ananya ships the real backfill.
+// The 30-day backfill produces history for §8 (emerging hotspot + capacity gap).
+// Ananya's seeds/pressure_history.json also seeds destination_pressures, but its
+// rows use non-§2 weights (access 0.35 / weather 0.15 / capacity 0.15), so this
+// job re-computes history with the LOCKED weights and overwrites them. Drop
+// `backfillDays` to 0 once that seed is regenerated to spec.
 //
 // Providers are injected; the CLI runner uses services/pressure/realProviders.js.
-// Destination + calendar data is the real seed (../seeds).
+// Destination + calendar data comes from Ananya's seed via services/pressure/seed.js.
 
 import { argv } from "node:process";
 import { pathToFileURL } from "node:url";
 import DestinationPressure from "../models/destinationPressure.model.js";
 import { collect } from "../services/pressure/collectors.js";
 import { assembleRow } from "../services/pressure/engine.js";
-import { calendarRow } from "../seeds/calendar.js";
+import { calendarRow } from "../services/pressure/seed.js";
 
 const seed = { calendarRow };
 
@@ -68,7 +68,7 @@ if (argv[1] && import.meta.url === pathToFileURL(argv[1]).href) {
     await Promise.all([
       import("../lib/db.js"),
       import("dotenv"),
-      import("../seeds/index.js"),
+      import("../services/pressure/seed.js"),
       import("../services/pressure/realProviders.js"),
     ]);
   dotenv.default.config();

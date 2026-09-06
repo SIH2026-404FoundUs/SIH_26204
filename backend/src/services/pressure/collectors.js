@@ -11,11 +11,11 @@
 //   providers.road.services({ destId, corridor, date })          -> { seatDataAvailable, services?:[{freeSeats,totalSeats}] }
 //   providers.amadeus.hotels({ destId, date, calendarImpact })   -> { unavailFrac, medianPriceINR }
 //   providers.openmeteo.forecast({ destId, lat, lng, date })     -> { maxTempC, precipProb }
-//   seed.calendarRow({ date, state })                            -> { kind, label } | null
+//   seed.calendarRow({ date, state })                            -> { value, label } (weekday default)
 
 import {
   railDemand, roadDemand, roadFrequencyProxy, accessDemand,
-  stayScarcity, calendar, weatherPull,
+  stayScarcity, weatherPull,
 } from "./engine.js";
 
 const unwrap = async (p) => {
@@ -33,8 +33,9 @@ const unwrap = async (p) => {
 export async function collect(dest, date, { providers = {}, seed = {} } = {}) {
   const { baseline = {}, location = {} } = dest;
 
-  // calendar is a local lookup, and the stay estimator needs its value as input
-  const cal = calendar(seed.calendarRow?.({ date, state: dest.state }));
+  // calendar is a local lookup (seed.calendarRow returns the finished
+  // { value, label }); the stay estimator needs its value as input
+  const cal = seed.calendarRow?.({ date, state: dest.state }) ?? { value: 0.1, label: "weekday" };
 
   const [railRaw, roadRaw, stayRaw, wxRaw] = await Promise.all([
     unwrap(providers.railradar?.arrivals?.({
