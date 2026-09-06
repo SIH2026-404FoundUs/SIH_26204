@@ -3,8 +3,7 @@
 // controller is a thin wrapper over these.
 
 import DestinationPressure from "../../models/destinationPressure.model.js";
-import { getDestination } from "../../seeds/index.js";
-import { calendarRow } from "../../seeds/calendar.js";
+import { getDestination, calendarRow } from "./seed.js";
 import { collect } from "./collectors.js";
 import { assembleRow } from "./engine.js";
 import { realProviders } from "./realProviders.js";
@@ -42,7 +41,7 @@ export async function getPressure(destId, date) {
   const stored = await DestinationPressure.findOne({ destId, date }).lean();
   if (stored && isFresh(stored)) return { ...stored, stale: false };
 
-  const dest = await getDestination(destId);
+  const dest = getDestination(destId);
   if (!dest) return stored ? { ...stored, stale: true } : null;
 
   try {
