@@ -1,0 +1,46 @@
+{
+  "_id": "solan",
+  "name": "Solan",
+  "displayName": "Solan, Himachal Pradesh",
+  "state": "HP",
+  "district": "Solan",
+  "googlePlaceId": "ChIJ778899001122DzkR33445566",
+  "location": {
+    "lat": 30.9045,
+    "lng": 77.1089,
+    "type": "Point",
+    "coordinates": [
+      77.1089,
+      30.9045
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.3,
+    "trek": 0.4,
+    "riverside": 0.2,
+    "heritage": 0.6,
+    "nightlife": 0.4,
+    "food": 0.6,
+    "wildlife": 0.4,
+    "spiritual": 0.5
+  },
+  "nearestRailhead": "SOL",
+  "railheadDistanceKm": 0,
+  "railSignalConfidence": 0.85,
+  "roadAccess": {
+    "operators": [
+      "HRTC"
+    ],
+    "corridor": "Chandigarh-Solan",
+    "boardingPoint": "Solan Bypass"
+  },
+  "nearestAirport": "IXC",
+  "capacityPrior": 0.4,
+  "baseline": {
+    "railWL": 25,
+    "roadSeatsAvail": 60,
+    "hotelMedianINR": 2000
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

@@ -1,0 +1,46 @@
+{
+  "_id": "dalhousie",
+  "name": "Dalhousie",
+  "displayName": "Dalhousie, Himachal Pradesh",
+  "state": "HP",
+  "district": "Chamba",
+  "googlePlaceId": "ChIJW0A4yYdHDzkR6b89eW1x3v0",
+  "location": {
+    "lat": 32.53,
+    "lng": 75.98,
+    "type": "Point",
+    "coordinates": [
+      75.98,
+      32.53
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.7,
+    "trek": 0.6,
+    "riverside": 0.3,
+    "heritage": 0.8,
+    "nightlife": 0.3,
+    "food": 0.6,
+    "wildlife": 0.6,
+    "spiritual": 0.4
+  },
+  "nearestRailhead": "PTK",
+  "railheadDistanceKm": 80,
+  "railSignalConfidence": 0.5,
+  "roadAccess": {
+    "operators": [
+      "HRTC"
+    ],
+    "corridor": "Pathankot-Banikhet-Dalhousie",
+    "boardingPoint": "Pathankot"
+  },
+  "nearestAirport": "IXC",
+  "capacityPrior": 0.65,
+  "baseline": {
+    "railWL": 20,
+    "roadSeatsAvail": 40,
+    "hotelMedianINR": 3000
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

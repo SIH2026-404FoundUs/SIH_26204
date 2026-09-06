@@ -1,0 +1,46 @@
+{
+  "_id": "tosh",
+  "name": "Tosh",
+  "displayName": "Tosh, Himachal Pradesh",
+  "state": "HP",
+  "district": "Kullu",
+  "googlePlaceId": "ChIJ889900112233DzkR55667788",
+  "location": {
+    "lat": 32.0139,
+    "lng": 77.4528,
+    "type": "Point",
+    "coordinates": [
+      77.4528,
+      32.0139
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.8,
+    "trek": 1.0,
+    "riverside": 0.8,
+    "heritage": 0.1,
+    "nightlife": 0.6,
+    "food": 0.6,
+    "wildlife": 0.5,
+    "spiritual": 0.3
+  },
+  "nearestRailhead": "JUC",
+  "railheadDistanceKm": 205,
+  "railSignalConfidence": 0.1,
+  "roadAccess": {
+    "operators": [
+      "HRTC"
+    ],
+    "corridor": "Manikaran-Barshaini-Tosh",
+    "boardingPoint": "Barshaini"
+  },
+  "nearestAirport": "KUU",
+  "capacityPrior": 0.85,
+  "baseline": {
+    "railWL": 10,
+    "roadSeatsAvail": 30,
+    "hotelMedianINR": 1500
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

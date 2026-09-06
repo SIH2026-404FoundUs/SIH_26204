@@ -1,0 +1,46 @@
+{
+  "_id": "spiti-kaza",
+  "name": "Kaza (Spiti Valley)",
+  "displayName": "Kaza, Spiti Valley, Himachal Pradesh",
+  "state": "HP",
+  "district": "Lahaul and Spiti",
+  "googlePlaceId": "ChIJZ34V6_d9DzkR1_123456789",
+  "location": {
+    "lat": 32.2276,
+    "lng": 78.0772,
+    "type": "Point",
+    "coordinates": [
+      78.0772,
+      32.2276
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 1.0,
+    "trek": 1.0,
+    "riverside": 0.7,
+    "heritage": 0.6,
+    "nightlife": 0.1,
+    "food": 0.4,
+    "wildlife": 0.8,
+    "spiritual": 0.9
+  },
+  "nearestRailhead": "SML",
+  "railheadDistanceKm": 360,
+  "railSignalConfidence": 0.05,
+  "roadAccess": {
+    "operators": [
+      "HRTC"
+    ],
+    "corridor": "Shimla-Reckong Peo-Kaza",
+    "boardingPoint": "Reckong Peo"
+  },
+  "nearestAirport": "KUU",
+  "capacityPrior": 0.6,
+  "baseline": {
+    "railWL": 5,
+    "roadSeatsAvail": 20,
+    "hotelMedianINR": 2000
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

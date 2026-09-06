@@ -1,0 +1,46 @@
+{
+  "_id": "bhadrachalam",
+  "name": "Bhadrachalam Temple",
+  "displayName": "Bhadrachalam, Telangana",
+  "state": "TG",
+  "district": "Bhadradri Kothagudem",
+  "googlePlaceId": "ChIJ334455667788TGBhadrachalam",
+  "location": {
+    "lat": 17.6667,
+    "lng": 80.8833,
+    "type": "Point",
+    "coordinates": [
+      80.8833,
+      17.6667
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.0,
+    "trek": 0.1,
+    "riverside": 0.8,
+    "heritage": 0.8,
+    "nightlife": 0.2,
+    "food": 0.7,
+    "wildlife": 0.4,
+    "spiritual": 1.0
+  },
+  "nearestRailhead": "BDCR",
+  "railheadDistanceKm": 40,
+  "railSignalConfidence": 0.7,
+  "roadAccess": {
+    "operators": [
+      "TSRTC"
+    ],
+    "corridor": "Khammam-Kothagudem-Bhadrachalam",
+    "boardingPoint": "Kothagudem"
+  },
+  "nearestAirport": "RJA",
+  "capacityPrior": 0.7,
+  "baseline": {
+    "railWL": 40,
+    "roadSeatsAvail": 50,
+    "hotelMedianINR": 1600
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}
