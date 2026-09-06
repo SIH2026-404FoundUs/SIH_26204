@@ -1,0 +1,25 @@
+{
+  "_id": "kasol",
+  "displayName": "Kasol",
+  "state": "HP",
+  "location": {
+    "lat": 32.01,
+    "lng": 77.315
+  },
+  "nearestRailhead": "joginder-nagar",
+  "railSignalConfidence": 0.2,
+  "roadAccess": {
+    "corridor": "bhuntar-kasol"
+  },
+  "capacityPrior": 0.5,
+  "baseline": {
+    "railWL": 20,
+    "roadSeatsAvail": 0.5,
+    "hotelMedianINR": 2600
+  },
+  "expectedSupply": 300,
+  "trackingTier": "tracked",
+  "demoCorridor": true,
+  "provenance": "placeholder-sathvik (Ananya owns final seed)",
+  "demandPrior": 0.62
+}

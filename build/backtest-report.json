@@ -1,0 +1,104 @@
+{
+  "generatedAt": "2026-09-06T05:48:01.254Z",
+  "source": "FIXTURES — replace with historical provider values + real footfall table",
+  "metric": "spearman rank correlation, computed pressure vs independent footfall ordering",
+  "workingTarget": 0.6,
+  "medianSpearman": 0.65,
+  "perDate": [
+    {
+      "date": "2026-11-08",
+      "note": "peak — diwali",
+      "spearman": 0.524,
+      "ranking": [
+        "ramoji-film-city",
+        "nagarjuna-sagar",
+        "shimla",
+        "manali",
+        "warangal",
+        "jibhi",
+        "tirthan-valley",
+        "mcleodganj",
+        "kasol",
+        "pochampally",
+        "bhongir",
+        "narkanda"
+      ]
+    },
+    {
+      "date": "2026-11-18",
+      "note": "lean — mid-november, post-peak",
+      "spearman": 0.65,
+      "ranking": [
+        "shimla",
+        "ramoji-film-city",
+        "manali",
+        "warangal",
+        "tirthan-valley",
+        "jibhi",
+        "mcleodganj",
+        "kasol",
+        "nagarjuna-sagar",
+        "bhongir",
+        "narkanda",
+        "pochampally"
+      ]
+    },
+    {
+      "date": "2026-10-20",
+      "note": "peak — dussehra (autumn)",
+      "spearman": 0.727,
+      "ranking": [
+        "shimla",
+        "ramoji-film-city",
+        "manali",
+        "nagarjuna-sagar",
+        "mcleodganj",
+        "warangal",
+        "jibhi",
+        "tirthan-valley",
+        "kasol",
+        "pochampally",
+        "bhongir",
+        "narkanda"
+      ]
+    },
+    {
+      "date": "2026-06-17",
+      "note": "lean — summer weekday",
+      "spearman": 0.706,
+      "ranking": [
+        "shimla",
+        "ramoji-film-city",
+        "manali",
+        "warangal",
+        "nagarjuna-sagar",
+        "tirthan-valley",
+        "kasol",
+        "pochampally",
+        "bhongir",
+        "mcleodganj",
+        "narkanda",
+        "jibhi"
+      ]
+    },
+    {
+      "date": "2026-08-15",
+      "note": "peak — independence day (monsoon)",
+      "spearman": 0.476,
+      "ranking": [
+        "ramoji-film-city",
+        "shimla",
+        "tirthan-valley",
+        "manali",
+        "narkanda",
+        "nagarjuna-sagar",
+        "kasol",
+        "jibhi",
+        "bhongir",
+        "mcleodganj",
+        "warangal",
+        "pochampally"
+      ]
+    }
+  ]
+}

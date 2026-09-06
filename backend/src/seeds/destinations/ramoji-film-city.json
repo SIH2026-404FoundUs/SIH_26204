@@ -1,0 +1,25 @@
+{
+  "_id": "ramoji-film-city",
+  "displayName": "Ramoji Film City",
+  "state": "TG",
+  "location": {
+    "lat": 17.253,
+    "lng": 78.68
+  },
+  "nearestRailhead": "hyderabad-deccan",
+  "railSignalConfidence": 0.75,
+  "roadAccess": {
+    "corridor": "hyderabad-ramoji"
+  },
+  "capacityPrior": 0.78,
+  "baseline": {
+    "railWL": 28,
+    "roadSeatsAvail": 0.5,
+    "hotelMedianINR": 3500
+  },
+  "expectedSupply": 900,
+  "trackingTier": "tracked",
+  "demoCorridor": true,
+  "provenance": "placeholder-sathvik (Ananya owns final seed)",
+  "demandPrior": 0.85
+}

@@ -1,0 +1,25 @@
+{
+  "_id": "manali",
+  "displayName": "Manali",
+  "state": "HP",
+  "location": {
+    "lat": 32.24,
+    "lng": 77.189
+  },
+  "nearestRailhead": "chandigarh",
+  "railSignalConfidence": 0.4,
+  "roadAccess": {
+    "corridor": "chandigarh-manali"
+  },
+  "capacityPrior": 0.8,
+  "baseline": {
+    "railWL": 45,
+    "roadSeatsAvail": 0.5,
+    "hotelMedianINR": 3800
+  },
+  "expectedSupply": 1500,
+  "trackingTier": "tracked",
+  "demoCorridor": true,
+  "provenance": "placeholder-sathvik (Ananya owns final seed)",
+  "demandPrior": 0.9
+}

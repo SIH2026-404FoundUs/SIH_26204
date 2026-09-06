@@ -1,0 +1,25 @@
+{
+  "_id": "bhongir",
+  "displayName": "Bhongir",
+  "state": "TG",
+  "location": {
+    "lat": 17.512,
+    "lng": 78.885
+  },
+  "nearestRailhead": "bhongir",
+  "railSignalConfidence": 0.7,
+  "roadAccess": {
+    "corridor": "hyderabad-bhongir"
+  },
+  "capacityPrior": 0.35,
+  "baseline": {
+    "railWL": 18,
+    "roadSeatsAvail": 0.5,
+    "hotelMedianINR": 1600
+  },
+  "expectedSupply": 150,
+  "trackingTier": "tracked",
+  "demoCorridor": false,
+  "provenance": "placeholder-sathvik (Ananya owns final seed)",
+  "demandPrior": 0.3
+}

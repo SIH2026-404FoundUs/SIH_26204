@@ -1,0 +1,25 @@
+{
+  "_id": "jibhi",
+  "displayName": "Jibhi",
+  "state": "HP",
+  "location": {
+    "lat": 31.586,
+    "lng": 77.383
+  },
+  "nearestRailhead": "aut",
+  "railSignalConfidence": 0.15,
+  "roadAccess": {
+    "corridor": "aut-jibhi"
+  },
+  "capacityPrior": 0.3,
+  "baseline": {
+    "railWL": 10,
+    "roadSeatsAvail": 0.5,
+    "hotelMedianINR": 2200
+  },
+  "expectedSupply": 80,
+  "trackingTier": "tracked",
+  "demoCorridor": true,
+  "provenance": "placeholder-sathvik (Ananya owns final seed)",
+  "demandPrior": 0.18
+}

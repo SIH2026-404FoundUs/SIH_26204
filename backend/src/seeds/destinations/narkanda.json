@@ -1,0 +1,25 @@
+{
+  "_id": "narkanda",
+  "displayName": "Narkanda",
+  "state": "HP",
+  "location": {
+    "lat": 31.256,
+    "lng": 77.462
+  },
+  "nearestRailhead": "shimla",
+  "railSignalConfidence": 0.55,
+  "roadAccess": {
+    "corridor": "shimla-narkanda"
+  },
+  "capacityPrior": 0.45,
+  "baseline": {
+    "railWL": 15,
+    "roadSeatsAvail": 0.5,
+    "hotelMedianINR": 2400
+  },
+  "expectedSupply": 220,
+  "trackingTier": "tracked",
+  "demoCorridor": true,
+  "provenance": "placeholder-sathvik (Ananya owns final seed)",
+  "demandPrior": 0.32
+}

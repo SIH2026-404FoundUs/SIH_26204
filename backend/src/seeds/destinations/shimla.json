@@ -1,0 +1,25 @@
+{
+  "_id": "shimla",
+  "displayName": "Shimla",
+  "state": "HP",
+  "location": {
+    "lat": 31.104,
+    "lng": 77.173
+  },
+  "nearestRailhead": "kalka",
+  "railSignalConfidence": 0.9,
+  "roadAccess": {
+    "corridor": "kalka-shimla"
+  },
+  "capacityPrior": 0.85,
+  "baseline": {
+    "railWL": 60,
+    "roadSeatsAvail": 0.5,
+    "hotelMedianINR": 3200
+  },
+  "expectedSupply": 1200,
+  "trackingTier": "tracked",
+  "demoCorridor": true,
+  "provenance": "placeholder-sathvik (Ananya owns final seed)",
+  "demandPrior": 0.92
+}
