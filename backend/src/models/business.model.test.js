@@ -20,6 +20,7 @@ afterEach(async () => {
 });
 
 const validBusiness = () => ({
+  _id: "biz_test_green_valley",
   destId: "shimla",
   name: "Green Valley Homestay",
   type: "homestay",
@@ -70,6 +71,7 @@ describe("Business model", () => {
 
     const duplicate = new Business({
       ...validBusiness(),
+      _id: "biz_test_another_homestay",
       name: "Another Homestay",
     });
 

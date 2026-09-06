@@ -1,8 +1,12 @@
 import mongoose from "mongoose";
 
 const businessAvailabilitySchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true,
+  },
   businessId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "Business",
     required: true,
   },
@@ -12,12 +16,12 @@ const businessAvailabilitySchema = new mongoose.Schema({
   },
   resourceType: {
     type: String,
-    enum: ["room", "table", "slot", "seat"],
+    enum: ["room", "table", "slot", "seat", "service"],
     required: true,
   },
   units: {
-    total: { type: Number },
-    available: { type: Number },
+    total: { type: Number, required: true },
+    available: { type: Number, required: true },
   },
   pricePerNight: {
     type: Number,

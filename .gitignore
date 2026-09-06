@@ -30,4 +30,6 @@ COMMIT_CONVENTION.md
 *.sw?
 
 .env
+
+docs/
 build/
