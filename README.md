@@ -142,3 +142,56 @@ tourism-platform/
 └── docs/
 
 ```
+
+```
+ai-service/
+├── .env                          ← QWEN_BASE_URL, QWEN_MODEL, GOOGLE_ADK_CONFIG, BACKEND_URL
+├── .gitignore                    ← must include venv/, __pycache__/, .env
+├── requirements.txt              ← pinned versions once things are working
+├── venv/                         ← never commit this (in .gitignore)
+│
+└── app/
+    ├── main.py                   ← FastAPI app entrypoint, mounts the agent
+    │
+    ├── agents/
+    │   └── travel_agent.py       ← ADK agent definition, registers all tools,
+    │                                 holds the planner sequence logic
+    │
+    ├── tools/                    ← one file per capability, mirrors your
+    │   │                            six Express routes almost 1:1
+    │   ├── __init__.py
+    │   ├── weather.py            ← get_weather()      → calls /api/weather
+    │   ├── trains.py             ← search_trains(),
+    │   │                            get_train_availability(),
+    │   │                            get_train_fare()   → calls /api/trains
+    │   ├── places.py             ← search_places(),
+    │   │                            get_place_details() → calls /api/places
+    │   ├── routes.py             ← calculate_route()   → calls /api/routes
+    │   ├── fare.py               ← estimate_local_transport() → calls /api/fare
+    │   ├── road.py               ← search_road_services() → calls /api/road
+    │   │
+    │   ├── pressure.py           ← get_pressure()      → Sathvik's endpoint
+    │   ├── alternatives.py       ← find_alternatives(),
+    │   │                            find_alternative_dates() → Madhuri's endpoint
+    │   ├── alerts.py             ← get_verified_alerts() → Pranay's endpoint
+    │   ├── businesses.py         ← search_hotels(),
+    │   │                            search_businesses() → Bharani's endpoint
+    │   │
+    │   ├── cost.py               ← calculate_trip_cost()   — deterministic,
+    │   │                            no external call, pure Python math
+    │   └── itinerary.py          ← optimize_itinerary()    — deterministic
+    │
+    ├── onboarding/                ← separate concern, Bharani's territory,
+    │   │                             not yours — listed here only because
+    │   │                             it lives in the same FastAPI service
+    │   ├── transcribe.py
+    │   ├── extract.py
+    │   └── followup.py
+    │
+    └── services/
+        └── backend_client.py     ← shared helper: one function that wraps
+                                      `requests.get(...)`/`.post(...)` with
+                                      BACKEND_URL, timeout, and error handling,
+                                      so every tool file isn't repeating that
+                                      boilerplate
+```

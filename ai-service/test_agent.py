@@ -1,0 +1,44 @@
+import asyncio
+
+from dotenv import load_dotenv
+from google.adk.runners import InMemoryRunner
+from google.genai import types
+
+from app.agents.travel_agent import travel_agent
+
+load_dotenv()
+
+
+async def main():
+    runner = InMemoryRunner(
+        agent=travel_agent,
+        app_name="travel_planner",
+    )
+
+    session = await runner.session_service.create_session(
+        app_name=runner.app_name,
+        user_id="test_user",
+    )
+
+    async for event in runner.run_async(
+        user_id="test_user",
+        session_id=session.id,
+        new_message=types.Content(
+            role="user",
+            parts=[
+                types.Part(
+# ai-service/test_agent.py — update the message
+text = (
+    "I'm traveling from Delhi to Manali on train number 12952 from NDLS to MMCT "
+    "on 2026-09-12 in 3A class. Also tell me the auto fare for a 6.4 km ride in "
+    "Hyderabad, and check road transport options for destination ID manali."
+)             )
+            ],
+        ),
+    ):
+        print("---EVENT---")
+        print(event)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
