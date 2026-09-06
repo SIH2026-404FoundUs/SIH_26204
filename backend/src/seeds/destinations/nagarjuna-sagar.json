@@ -1,26 +1,46 @@
 {
   "_id": "nagarjuna-sagar",
-  "displayName": "Nagarjuna Sagar",
+  "name": "Nagarjuna Sagar Dam",
+  "displayName": "Nagarjuna Sagar, Nalgonda, Telangana",
   "state": "TG",
+  "district": "Nalgonda",
+  "googlePlaceId": "ChIJ889900112233TGNagarjuna",
   "location": {
-    "lat": 16.575,
-    "lng": 79.311
+    "lat": 16.5747,
+    "lng": 79.3125,
+    "type": "Point",
+    "coordinates": [
+      79.3125,
+      16.5747
+    ]
   },
-  "nearestRailhead": "macherla",
-  "railSignalConfidence": 0.5,
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.0,
+    "trek": 0.3,
+    "riverside": 1.0,
+    "heritage": 0.7,
+    "nightlife": 0.2,
+    "food": 0.6,
+    "wildlife": 0.6,
+    "spiritual": 0.5
+  },
+  "nearestRailhead": "MBNL",
+  "railheadDistanceKm": 85,
+  "railSignalConfidence": 0.3,
   "roadAccess": {
-    "corridor": "hyderabad-nagarjunasagar"
+    "operators": [
+      "TSRTC"
+    ],
+    "corridor": "Hyderabad-Macherla",
+    "boardingPoint": "MGBS Hyderabad"
   },
+  "nearestAirport": "HYD",
   "capacityPrior": 0.55,
   "baseline": {
-    "railWL": 15,
-    "roadSeatsAvail": 0.5,
-    "hotelMedianINR": 1900
+    "railWL": 25,
+    "roadSeatsAvail": 60,
+    "hotelMedianINR": 2000
   },
-  "expectedSupply": 300,
-  "trackingTier": "tracked",
-  "demoCorridor": true,
-  "provenance": "placeholder-sathvik (Ananya owns final seed)",
-  "demandPrior": 0.4,
-  "trains": []
+  "seededAt": "2026-09-05T16:16:25.121046Z"
 }

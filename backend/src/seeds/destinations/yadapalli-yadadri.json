@@ -1,0 +1,46 @@
+{
+  "_id": "yadapalli-yadadri",
+  "name": "Yadadri Temple",
+  "displayName": "Yadadri, Bhuvanagiri, Telangana",
+  "state": "TG",
+  "district": "Yadadri Bhuvanagiri",
+  "googlePlaceId": "ChIJ112233445566TGYadadri",
+  "location": {
+    "lat": 17.5972,
+    "lng": 78.9472,
+    "type": "Point",
+    "coordinates": [
+      78.9472,
+      17.5972
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.0,
+    "trek": 0.2,
+    "riverside": 0.1,
+    "heritage": 0.9,
+    "nightlife": 0.2,
+    "food": 0.7,
+    "wildlife": 0.2,
+    "spiritual": 1.0
+  },
+  "nearestRailhead": "BG",
+  "railheadDistanceKm": 12,
+  "railSignalConfidence": 0.8,
+  "roadAccess": {
+    "operators": [
+      "TSRTC"
+    ],
+    "corridor": "Hyderabad-Bhongir-Yadadri",
+    "boardingPoint": "Jubilee Bus Station"
+  },
+  "nearestAirport": "HYD",
+  "capacityPrior": 0.85,
+  "baseline": {
+    "railWL": 50,
+    "roadSeatsAvail": 60,
+    "hotelMedianINR": 1800
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

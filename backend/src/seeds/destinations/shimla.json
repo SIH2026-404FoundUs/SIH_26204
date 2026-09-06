@@ -1,26 +1,47 @@
 {
   "_id": "shimla",
-  "displayName": "Shimla",
+  "name": "Shimla",
+  "displayName": "Shimla, Himachal Pradesh",
   "state": "HP",
+  "district": "Shimla",
+  "googlePlaceId": "ChIJbd8h65-3DzkR_bM7kZ3v1AY",
   "location": {
-    "lat": 31.104,
-    "lng": 77.173
+    "lat": 31.1048,
+    "lng": 77.1734,
+    "type": "Point",
+    "coordinates": [
+      77.1734,
+      31.1048
+    ]
   },
-  "nearestRailhead": "kalka",
-  "railSignalConfidence": 0.9,
-  "roadAccess": {
-    "corridor": "kalka-shimla"
-  },
-  "capacityPrior": 0.85,
-  "baseline": {
-    "railWL": 60,
-    "roadSeatsAvail": 0.5,
-    "hotelMedianINR": 3200
-  },
-  "expectedSupply": 1200,
   "trackingTier": "tracked",
-  "demoCorridor": true,
-  "provenance": "placeholder-sathvik (Ananya owns final seed)",
-  "demandPrior": 0.92,
-  "trains": []
+  "attrs": {
+    "snow": 0.8,
+    "trek": 0.5,
+    "riverside": 0.2,
+    "heritage": 0.9,
+    "nightlife": 0.6,
+    "food": 0.8,
+    "wildlife": 0.4,
+    "spiritual": 0.6
+  },
+  "nearestRailhead": "KLK",
+  "railheadDistanceKm": 88,
+  "railSignalConfidence": 0.85,
+  "roadAccess": {
+    "operators": [
+      "HRTC",
+      "Northern Travels"
+    ],
+    "corridor": "Delhi-Chandigarh-Shimla",
+    "boardingPoint": "Kalka / ISBT Chandigarh"
+  },
+  "nearestAirport": "SLV",
+  "capacityPrior": 0.75,
+  "baseline": {
+    "railWL": 45,
+    "roadSeatsAvail": 30,
+    "hotelMedianINR": 3500
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
 }

@@ -1,0 +1,46 @@
+{
+  "_id": "golconda-hyderabad",
+  "name": "Golconda Fort",
+  "displayName": "Golconda Fort, Hyderabad, Telangana",
+  "state": "TG",
+  "district": "Hyderabad",
+  "googlePlaceId": "ChIJW0A4yYdHDzkR6b89eW998877",
+  "location": {
+    "lat": 17.3833,
+    "lng": 78.4018,
+    "type": "Point",
+    "coordinates": [
+      78.4018,
+      17.3833
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.0,
+    "trek": 0.3,
+    "riverside": 0.1,
+    "heritage": 1.0,
+    "nightlife": 0.5,
+    "food": 0.7,
+    "wildlife": 0.2,
+    "spiritual": 0.4
+  },
+  "nearestRailhead": "HYB",
+  "railheadDistanceKm": 10,
+  "railSignalConfidence": 0.85,
+  "roadAccess": {
+    "operators": [
+      "TSRTC"
+    ],
+    "corridor": "Mehdipatnam-Golconda",
+    "boardingPoint": "Mehdipatnam"
+  },
+  "nearestAirport": "HYD",
+  "capacityPrior": 0.75,
+  "baseline": {
+    "railWL": 55,
+    "roadSeatsAvail": 90,
+    "hotelMedianINR": 2500
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

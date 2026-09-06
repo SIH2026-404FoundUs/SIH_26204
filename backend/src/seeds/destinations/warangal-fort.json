@@ -1,0 +1,46 @@
+{
+  "_id": "warangal-fort",
+  "name": "Warangal Fort",
+  "displayName": "Warangal Fort, Telangana",
+  "state": "TG",
+  "district": "Hanamkonda",
+  "googlePlaceId": "ChIJF8y1m7RHDzkRsL66u000111222",
+  "location": {
+    "lat": 17.95,
+    "lng": 79.6167,
+    "type": "Point",
+    "coordinates": [
+      79.6167,
+      17.95
+    ]
+  },
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.0,
+    "trek": 0.2,
+    "riverside": 0.2,
+    "heritage": 1.0,
+    "nightlife": 0.2,
+    "food": 0.7,
+    "wildlife": 0.2,
+    "spiritual": 0.6
+  },
+  "nearestRailhead": "WL",
+  "railheadDistanceKm": 5,
+  "railSignalConfidence": 0.85,
+  "roadAccess": {
+    "operators": [
+      "TSRTC"
+    ],
+    "corridor": "Hyderabad-Warangal",
+    "boardingPoint": "Warangal Bus Station"
+  },
+  "nearestAirport": "HYD",
+  "capacityPrior": 0.5,
+  "baseline": {
+    "railWL": 30,
+    "roadSeatsAvail": 70,
+    "hotelMedianINR": 1800
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
+}

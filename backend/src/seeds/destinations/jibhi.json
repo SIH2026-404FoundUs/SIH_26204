@@ -1,26 +1,46 @@
 {
   "_id": "jibhi",
-  "displayName": "Jibhi",
+  "name": "Jibhi",
+  "displayName": "Jibhi, Himachal Pradesh",
   "state": "HP",
+  "district": "Kullu",
+  "googlePlaceId": "ChIJuS3V4n22DzkRuW0-496Y4A0",
   "location": {
-    "lat": 31.586,
-    "lng": 77.383
+    "lat": 31.6373,
+    "lng": 77.362,
+    "type": "Point",
+    "coordinates": [
+      77.362,
+      31.6373
+    ]
   },
-  "nearestRailhead": "aut",
+  "trackingTier": "tracked",
+  "attrs": {
+    "snow": 0.7,
+    "trek": 0.8,
+    "riverside": 0.9,
+    "heritage": 0.3,
+    "nightlife": 0.2,
+    "food": 0.6,
+    "wildlife": 0.7,
+    "spiritual": 0.4
+  },
+  "nearestRailhead": "CDG",
+  "railheadDistanceKm": 230,
   "railSignalConfidence": 0.15,
   "roadAccess": {
-    "corridor": "aut-jibhi"
+    "operators": [
+      "HRTC"
+    ],
+    "corridor": "Delhi-Aut-Jibhi",
+    "boardingPoint": "Aut Tunnel"
   },
-  "capacityPrior": 0.3,
+  "nearestAirport": "KUU",
+  "capacityPrior": 0.7,
   "baseline": {
     "railWL": 10,
-    "roadSeatsAvail": 0.5,
+    "roadSeatsAvail": 50,
     "hotelMedianINR": 2200
   },
-  "expectedSupply": 80,
-  "trackingTier": "tracked",
-  "demoCorridor": true,
-  "provenance": "placeholder-sathvik (Ananya owns final seed)",
-  "demandPrior": 0.18,
-  "trains": []
+  "seededAt": "2026-09-05T16:16:25.121046Z"
 }

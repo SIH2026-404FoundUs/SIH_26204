@@ -1,26 +1,48 @@
 {
   "_id": "manali",
-  "displayName": "Manali",
+  "name": "Manali",
+  "displayName": "Manali, Himachal Pradesh",
   "state": "HP",
+  "district": "Kullu",
+  "googlePlaceId": "ChIJc86YV4s3DzkRW8u2kU_1vCY",
   "location": {
-    "lat": 32.24,
-    "lng": 77.189
+    "lat": 32.2432,
+    "lng": 77.1887,
+    "type": "Point",
+    "coordinates": [
+      77.1887,
+      32.2432
+    ]
   },
-  "nearestRailhead": "chandigarh",
-  "railSignalConfidence": 0.4,
-  "roadAccess": {
-    "corridor": "chandigarh-manali"
-  },
-  "capacityPrior": 0.8,
-  "baseline": {
-    "railWL": 45,
-    "roadSeatsAvail": 0.5,
-    "hotelMedianINR": 3800
-  },
-  "expectedSupply": 1500,
   "trackingTier": "tracked",
-  "demoCorridor": true,
-  "provenance": "placeholder-sathvik (Ananya owns final seed)",
-  "demandPrior": 0.9,
-  "trains": []
+  "attrs": {
+    "snow": 1.0,
+    "trek": 0.9,
+    "riverside": 0.8,
+    "heritage": 0.4,
+    "nightlife": 0.8,
+    "food": 0.8,
+    "wildlife": 0.6,
+    "spiritual": 0.5
+  },
+  "nearestRailhead": "CDG",
+  "railheadDistanceKm": 280,
+  "railSignalConfidence": 0.25,
+  "roadAccess": {
+    "operators": [
+      "HRTC",
+      "Zingbus",
+      "Laxmi Travels"
+    ],
+    "corridor": "Delhi-Mandi-Manali",
+    "boardingPoint": "Kashmere Gate ISBT Delhi"
+  },
+  "nearestAirport": "KUU",
+  "capacityPrior": 0.85,
+  "baseline": {
+    "railWL": 25,
+    "roadSeatsAvail": 15,
+    "hotelMedianINR": 4200
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
 }

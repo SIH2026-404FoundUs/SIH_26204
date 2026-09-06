@@ -1,26 +1,46 @@
 {
   "_id": "kasol",
-  "displayName": "Kasol",
+  "name": "Kasol",
+  "displayName": "Kasol, Himachal Pradesh",
   "state": "HP",
+  "district": "Kullu",
+  "googlePlaceId": "ChIJbU3aX1m1DzkR0sE25N076c8",
   "location": {
     "lat": 32.01,
-    "lng": 77.315
+    "lng": 77.315,
+    "type": "Point",
+    "coordinates": [
+      77.315,
+      32.01
+    ]
   },
-  "nearestRailhead": "joginder-nagar",
-  "railSignalConfidence": 0.2,
-  "roadAccess": {
-    "corridor": "bhuntar-kasol"
-  },
-  "capacityPrior": 0.5,
-  "baseline": {
-    "railWL": 20,
-    "roadSeatsAvail": 0.5,
-    "hotelMedianINR": 2600
-  },
-  "expectedSupply": 300,
   "trackingTier": "tracked",
-  "demoCorridor": true,
-  "provenance": "placeholder-sathvik (Ananya owns final seed)",
-  "demandPrior": 0.62,
-  "trains": []
+  "attrs": {
+    "snow": 0.6,
+    "trek": 0.9,
+    "riverside": 1.0,
+    "heritage": 0.2,
+    "nightlife": 0.7,
+    "food": 0.8,
+    "wildlife": 0.5,
+    "spiritual": 0.4
+  },
+  "nearestRailhead": "JUC",
+  "railheadDistanceKm": 195,
+  "railSignalConfidence": 0.15,
+  "roadAccess": {
+    "operators": [
+      "HRTC"
+    ],
+    "corridor": "Delhi-Bhuntar-Kasol",
+    "boardingPoint": "Bhuntar"
+  },
+  "nearestAirport": "KUU",
+  "capacityPrior": 0.8,
+  "baseline": {
+    "railWL": 15,
+    "roadSeatsAvail": 40,
+    "hotelMedianINR": 1800
+  },
+  "seededAt": "2026-09-05T16:16:25.121046Z"
 }
