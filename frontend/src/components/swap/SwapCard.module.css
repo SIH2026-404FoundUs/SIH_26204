@@ -1,0 +1,464 @@
+/* SwapCard.module.css - Classic Clean White & Blue Palette */
+
+.swapContainer {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 1100px;
+  margin: 0 auto;
+  color: #0F172A;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Header Section */
+.header {
+  margin-bottom: 24px;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 18px;
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.titleIcon {
+  font-size: 1.8rem;
+  color: #2563EB;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0F172A;
+  margin: 0;
+}
+
+.badgeGroup {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.countBadge {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 12px;
+}
+
+.relaxedBadge {
+  background: #FFFBEB;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Requested Info Banner */
+.requestedBanner {
+  margin-top: 16px;
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  border-radius: 14px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.reqText {
+  font-size: 0.95rem;
+  color: #991B1B;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reqDestName {
+  font-weight: 700;
+  color: #7F1D1D;
+  font-size: 1.05rem;
+  text-transform: capitalize;
+}
+
+.reqPressureMeter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pressurePillHigh {
+  background: #DC2626;
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Content Split Grid */
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Section Titles */
+.sectionTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionSubtitle {
+  font-size: 0.8rem;
+  color: #64748B;
+  font-weight: 500;
+  margin-left: 6px;
+}
+
+/* Variants List */
+.variantsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Place Variant Card */
+.placeCard {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 20px;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.placeCard:hover {
+  transform: translateY(-2px);
+  border-color: #93C5FD;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rankTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rankBadge {
+  font-size: 1.25rem;
+}
+
+.placeName {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+
+.similarityBadge {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 1px solid #BFDBFE;
+}
+
+/* Metrics Grid */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Metric Display Component */
+.metricBox {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.2s;
+}
+
+.metricGood {
+  border-color: #93C5FD;
+  background: #EFF6FF;
+}
+
+.metricWarning {
+  border-color: #FDE68A;
+  background: #FFFBEB;
+}
+
+.metricLabel {
+  font-size: 0.7rem;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.metricValueRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.metricValue {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.metricTagGood {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #1D4ED8;
+}
+
+.metricTagWarning {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #B45309;
+}
+
+/* Highlight Indicator Banner */
+.reliefBanner {
+  background: #ECFDF5;
+  border-left: 4px solid #10B981;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #065F46;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Buttons */
+.acceptBtn {
+  width: 100%;
+  background: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.acceptBtn:hover {
+  background: #1D4ED8;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+/* Date Variant Card */
+.dateCard {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 20px;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dateCard:hover {
+  transform: translateY(-2px);
+  border-color: #93C5FD;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
+}
+
+.dateDisplay {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.levelBadge {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 10px;
+}
+
+/* Footer / Decline Section */
+.footerSection {
+  border-top: 1px solid #E2E8F0;
+  padding-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.declineBtn {
+  background: #FFFFFF;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
+  border-radius: 10px;
+  padding: 10px 26px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.declineBtn:hover {
+  background: #FEF2F2;
+  color: #991B1B;
+  border-color: #EF4444;
+}
+
+.confirmBox {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  border-radius: 14px;
+  padding: 16px 20px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.confirmText {
+  font-size: 0.95rem;
+  color: #991B1B;
+  font-weight: 700;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 12px;
+}
+
+.confirmYesBtn {
+  background: #DC2626;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirmCancelBtn {
+  background: #FFFFFF;
+  color: #475569;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Accepted / Declined State Banners */
+.stateBannerSuccess {
+  background: #EFF6FF;
+  border: 2px solid #2563EB;
+  border-radius: 20px;
+  padding: 28px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.stateBannerDeclined {
+  background: #FEF2F2;
+  border: 2px solid #FCA5A5;
+  border-radius: 20px;
+  padding: 28px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.resetBtn {
+  background: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.resetBtn:hover {
+  background: #1D4ED8;
+}
