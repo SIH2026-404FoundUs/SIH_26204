@@ -45,6 +45,7 @@ describe("roomDemandGap", () => {
   test("positive gap when demand exceeds availability", async () => {
     const business = await makeBusiness();
     await BusinessAvailability.create({
+      _id: "avail_test_01",
       businessId: business._id,
       date,
       resourceType: "room",
@@ -62,6 +63,7 @@ describe("roomDemandGap", () => {
   test("negative gap when availability exceeds demand", async () => {
     const business = await makeBusiness();
     await BusinessAvailability.create({
+      _id: "avail_test_02",
       businessId: business._id,
       date,
       resourceType: "room",
@@ -97,6 +99,7 @@ describe("roomDemandGap", () => {
     const businessB = await makeBusiness();
 
     await BusinessAvailability.create({
+      _id: "avail_test_03",
       businessId: businessA._id,
       date,
       resourceType: "room",
@@ -104,6 +107,7 @@ describe("roomDemandGap", () => {
       isOpen: true,
     });
     await BusinessAvailability.create({
+      _id: "avail_test_04",
       businessId: businessA._id,
       date,
       resourceType: "table",
@@ -111,6 +115,7 @@ describe("roomDemandGap", () => {
       isOpen: true,
     });
     await BusinessAvailability.create({
+      _id: "avail_test_05",
       businessId: businessB._id,
       date,
       resourceType: "room",
@@ -129,6 +134,7 @@ describe("roomDemandGap", () => {
     const otherBusiness = await makeBusiness(otherDestId);
 
     await BusinessAvailability.create({
+      _id: "avail_test_06",
       businessId: localBusiness._id,
       date,
       resourceType: "room",
@@ -136,6 +142,7 @@ describe("roomDemandGap", () => {
       isOpen: true,
     });
     await BusinessAvailability.create({
+      _id: "avail_test_07",
       businessId: otherBusiness._id,
       date,
       resourceType: "room",

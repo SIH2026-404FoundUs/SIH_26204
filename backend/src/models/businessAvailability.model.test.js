@@ -22,6 +22,7 @@ afterEach(async () => {
 });
 
 const validAvailability = () => ({
+  _id: "avail_test_homestay_01_20260910",
   businessId: "biz_test_homestay_01",
   date: new Date("2026-09-10"),
   resourceType: "room",
@@ -74,10 +75,10 @@ describe("BusinessAvailability model", () => {
     const date = new Date("2026-09-10");
     const units = { total: 3, available: 2 };
 
-    await new BusinessAvailability({ businessId, date, resourceType: "room", units }).save();
+    await new BusinessAvailability({ _id: "avail_test_02_a", businessId, date, resourceType: "room", units }).save();
 
     await expect(
-      new BusinessAvailability({ businessId, date, resourceType: "room", units }).save()
+      new BusinessAvailability({ _id: "avail_test_02_b", businessId, date, resourceType: "room", units }).save()
     ).rejects.toThrow(/E11000/);
   });
 
@@ -86,9 +87,15 @@ describe("BusinessAvailability model", () => {
     const date = new Date("2026-09-10");
     const units = { total: 3, available: 2 };
 
-    await new BusinessAvailability({ businessId, date, resourceType: "room", units }).save();
+    await new BusinessAvailability({ _id: "avail_test_03_a", businessId, date, resourceType: "room", units }).save();
 
-    const differentResourceType = new BusinessAvailability({ businessId, date, resourceType: "seat", units });
+    const differentResourceType = new BusinessAvailability({
+      _id: "avail_test_03_b",
+      businessId,
+      date,
+      resourceType: "seat",
+      units,
+    });
     await expect(differentResourceType.save()).resolves.toBeDefined();
   });
 });

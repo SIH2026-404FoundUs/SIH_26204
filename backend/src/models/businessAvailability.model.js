@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const businessAvailabilitySchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    required: true,
+  },
   businessId: {
     type: String,
     ref: "Business",

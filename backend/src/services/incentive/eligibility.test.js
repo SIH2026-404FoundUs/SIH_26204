@@ -22,6 +22,7 @@ afterEach(async () => {
 });
 
 const businessId = "biz_test_shimla_01";
+const availabilityId = "avail_test_shimla_01_20260910";
 const destId = "shimla";
 const date = "2026-09-10";
 
@@ -41,6 +42,7 @@ const stubPressure = (score) => async () => (score === null ? null : { score });
 describe("eligibleForDiscount", () => {
   test("eligible when open and pressure is low", async () => {
     await BusinessAvailability.create({
+      _id: availabilityId,
       businessId,
       date,
       resourceType: "room",
@@ -58,6 +60,7 @@ describe("eligibleForDiscount", () => {
 
   test("not eligible when isOpen is false", async () => {
     await BusinessAvailability.create({
+      _id: availabilityId,
       businessId,
       date,
       resourceType: "room",
@@ -79,6 +82,7 @@ describe("eligibleForDiscount", () => {
 
   test("not eligible when pressure.score is >= 0.30", async () => {
     await BusinessAvailability.create({
+      _id: availabilityId,
       businessId,
       date,
       resourceType: "room",
@@ -94,6 +98,7 @@ describe("eligibleForDiscount", () => {
 
   test("not eligible when pressureFn returns null (unscored destination)", async () => {
     await BusinessAvailability.create({
+      _id: availabilityId,
       businessId,
       date,
       resourceType: "room",
@@ -109,6 +114,7 @@ describe("eligibleForDiscount", () => {
 
   test("not eligible when pressureFn returns undefined", async () => {
     await BusinessAvailability.create({
+      _id: availabilityId,
       businessId,
       date,
       resourceType: "room",
@@ -124,6 +130,7 @@ describe("eligibleForDiscount", () => {
 
   test("discountPct is clamped at 40 even if the stored row somehow exceeds it", async () => {
     await BusinessAvailability.collection.insertOne({
+      _id: availabilityId,
       businessId,
       date: new Date(date),
       resourceType: "room",
@@ -143,6 +150,7 @@ describe("eligibleForDiscount", () => {
 
   test("effectivePrice math is priceRangeINR.min * (1 - discountPct / 100)", async () => {
     await BusinessAvailability.create({
+      _id: availabilityId,
       businessId,
       date,
       resourceType: "room",
