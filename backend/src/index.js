@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { connectDB } from "./lib/db.js";
 import authRoutes from "./routes/auth.route.js";
+import budgetRoutes from "./routes/budget.routes.js";
 import pressureRoutes from "./routes/pressure.route.js";
 import weatherRoutes from "./routes/weather.route.js";
 import trainsRoutes from "./routes/trains.route.js";
@@ -14,9 +15,9 @@ import roadRoutes from "./routes/road.route.js";
 
 dotenv.config();
 
-const app=express()
+const app = express();
 
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5000;
 
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
@@ -28,6 +29,7 @@ app.use(
 );
 
 app.use("/api/auth", authRoutes);
+app.use("/api/v1/budget", budgetRoutes);
 app.use("/api/v1/pressure", pressureRoutes);
 app.use("/api/weather", weatherRoutes);
 app.use("/api/trains", trainsRoutes);
@@ -35,8 +37,6 @@ app.use("/api/places", placesRoutes);
 app.use("/api/routes", routesRoutes);
 app.use("/api/fare", fareRoutes);
 app.use("/api/road", roadRoutes);
-
-
 
 app.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);
