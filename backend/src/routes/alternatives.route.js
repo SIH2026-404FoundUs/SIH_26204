@@ -6,7 +6,8 @@ import { fileURLToPath } from 'url';
 import { getAlternatives } from '../services/substitution/alternatives.service.js';
 import { getPressure } from '../services/pressure/service.js';
 import { travelTimeFn } from '../services/travelTime.js';
-import { tempBudgetFn } from '../services/tempBudgetFn.js';
+import { calculateBudget } from '../services/budgetService.js';
+import { getDestinationById } from '../services/substitution/standardize.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,31 +29,50 @@ const getCalibratedDStar = () => {
 
 const router = express.Router();
 
-// --- Adapters between the real services and what the substitution engine expects.
-// The engine calls these with a plain string destId and assumes a plain number
-// back. The real services don't satisfy that contract on their own, so bridge it
-// here at the composition root rather than bending either side.
-
-/** filters.js passes whole destination documents where the services want an id. */
 const destIdOf = (dest) =>
   dest && typeof dest === 'object' ? dest._id || dest.id : dest;
 
-// getPressure resolves to the full destination_pressure row, or null when the
-// destination isn't tracked at all. The engine wants just the 0..1 scalar.
-// `score` is also legitimately null when every pressure component failed to
-// compute — that means "unknown", NOT zero crowding. Both cases are treated as
-// maximum pressure so an unknown destination gets filtered out rather than
-// recommended as relief; scoring it 0 would do the opposite.
 const UNKNOWN_PRESSURE = 1;
 const pressureFn = async (dest, date) => {
   const row = await getPressure(destIdOf(dest), date);
   return row?.score ?? UNKNOWN_PRESSURE;
 };
 
-const reachabilityFn = (origin, dest) => travelTimeFn(origin, destIdOf(dest));
+/** Dynamic destination budget estimator using budgetService and seeded baselines */
+const budgetFn = async (dest, date, travellers = 2) => {
+  const id = destIdOf(dest);
+  const destDoc = getDestinationById(id);
+  const medianPrice = destDoc?.baseline?.hotelMedianINR || 3500;
+  const days = 2;
+  const pricePerPersonPerDay = 600;
+  const transportEst = destDoc?.railheadDistanceKm
+    ? Math.min(5000, Math.max(1000, Math.round(destDoc.railheadDistanceKm * 8)))
+    : 1500;
 
-const budgetFn = (dest, date, travellers) =>
-  tempBudgetFn(destIdOf(dest), date, travellers);
+  const calculated = calculateBudget({
+    destId: id,
+    travellers: travellers || 2,
+    days,
+    budgetINR: 12000,
+    hotel: { pricePerNight: medianPrice, nights: days, rooms: 1, source: 'seeded' },
+    transport: { totalCost: transportEst, source: 'estimated' },
+    food: { pricePerPersonPerDay, source: 'estimated' }
+  });
+
+  const stayCost = calculated.costBreakdown.hotel.amount;
+  const transportCost = calculated.costBreakdown.transport.amount;
+  const total = calculated.totalCost;
+
+  return { stayCost, transportCost, total, costBreakdown: calculated.costBreakdown };
+};
+
+/** Safe travel time wrapper ensuring Geocode API Key alias */
+const reachabilityFn = async (origin, dest) => {
+  if (!process.env.GOOGE_GEOCODE_API_KEY && process.env.GOOGLE_MAPS_API_KEY) {
+    process.env.GOOGE_GEOCODE_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+  }
+  return travelTimeFn(origin, destIdOf(dest));
+};
 
 router.post('/', async (req, res) => {
   const { origin, destId, startDate, endDate, travellers, budgetINR, interests } = req.body;
@@ -61,7 +81,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const pressureFn = async (id, date) => {
+    const pressureFnWrapper = async (id, date) => {
       const res = await getPressure(id, date);
       if (typeof res === 'number') return { score: res, components: null };
       if (res && typeof res === 'object') {
@@ -81,9 +101,9 @@ router.post('/', async (req, res) => {
 
     const result = await getAlternatives(
       { origin, destId, startDate, endDate, travellers, budgetINR, interests },
-      pressureFn,
-      travelTimeFn,
-      tempBudgetFn,
+      pressureFnWrapper,
+      reachabilityFn,
+      budgetFn,
       getCalibratedDStar()
     );
 
