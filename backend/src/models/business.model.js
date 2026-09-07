@@ -103,6 +103,25 @@ const businessSchema = new mongoose.Schema({
     type: String,
     enum: ["self-declared", "visit-verified", "registered"],
   },
+  // bharani-tasks.md Section 1.5 (registration assist) — collected for the
+  // state homestay registration application, not for going LIVE/discoverable
+  // (Section 1's own framing keeps those explicitly separate concerns), so
+  // none of these four are in REQUIRED_FIELDS_FOR_LIVE / hasRequiredFieldsForLive().
+  ownerName: {
+    type: String,
+  },
+  propertyAddress: {
+    village: { type: String },
+    street: { type: String },
+    district: { type: String },
+    pincode: { type: String },
+  },
+  roomsLet: {
+    type: Number,
+  },
+  ownerResidesOnPremises: {
+    type: Boolean,
+  },
   registrationNumber: {
     type: String,
   },

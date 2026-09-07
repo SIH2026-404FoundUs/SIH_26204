@@ -2,6 +2,7 @@ import { describe, test, expect, beforeAll, afterAll, afterEach } from "@jest/gl
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import Business from "./business.model.js";
+import { REQUIRED_FIELDS_FOR_LIVE } from "../services/onboarding/stateMachine.js";
 
 let mongod;
 
@@ -85,5 +86,80 @@ describe("Business model", () => {
 
     expect(found.ownerPhone).toBeUndefined();
     expect(found.povSecret).toBeUndefined();
+  });
+
+  // bharani-tasks.md Section 1.5 (registration assist) fields.
+  describe("registration-assist fields (Section 1.5)", () => {
+    test("saves and round-trips ownerName, propertyAddress, roomsLet, ownerResidesOnPremises", async () => {
+      const business = new Business({
+        ...validBusiness(),
+        ownerName: "Suresh Kumar",
+        propertyAddress: {
+          village: "Kufri",
+          street: "Near Ridge Road",
+          district: "Shimla",
+          pincode: "171012",
+        },
+        roomsLet: 3,
+        ownerResidesOnPremises: true,
+      });
+      const saved = await business.save();
+
+      expect(saved.ownerName).toBe("Suresh Kumar");
+      expect(saved.propertyAddress).toMatchObject({
+        village: "Kufri",
+        street: "Near Ridge Road",
+        district: "Shimla",
+        pincode: "171012",
+      });
+      expect(saved.roomsLet).toBe(3);
+      expect(saved.ownerResidesOnPremises).toBe(true);
+    });
+
+    test("roomsLet and capacity are independent — a business can have different values for each", async () => {
+      // The whole point of the gap analysis: rooms let (for registration)
+      // is not the same number as guest capacity.
+      const business = new Business({ ...validBusiness(), capacity: 6, roomsLet: 3 });
+      const saved = await business.save();
+
+      expect(saved.capacity).toBe(6);
+      expect(saved.roomsLet).toBe(3);
+      expect(saved.capacity).not.toBe(saved.roomsLet);
+    });
+
+    test("none of the four registration-assist fields are required — a business saves fine without them", async () => {
+      const business = new Business(validBusiness());
+      const saved = await business.save();
+
+      expect(saved.ownerName).toBeUndefined();
+      expect(saved.roomsLet).toBeUndefined();
+      expect(saved.ownerResidesOnPremises).toBeUndefined();
+      expect(saved.propertyAddress?.village).toBeUndefined();
+    });
+
+    test("none of the four registration-assist fields are in REQUIRED_FIELDS_FOR_LIVE", () => {
+      expect(REQUIRED_FIELDS_FOR_LIVE).not.toContain("ownerName");
+      expect(REQUIRED_FIELDS_FOR_LIVE).not.toContain("propertyAddress");
+      expect(REQUIRED_FIELDS_FOR_LIVE).not.toContain("roomsLet");
+      expect(REQUIRED_FIELDS_FOR_LIVE).not.toContain("ownerResidesOnPremises");
+    });
+
+    test("ownerResidesOnPremises correctly stores false, not just truthy/absent", async () => {
+      const business = new Business({ ...validBusiness(), ownerResidesOnPremises: false });
+      const saved = await business.save();
+
+      expect(saved.ownerResidesOnPremises).toBe(false);
+    });
+
+    test("propertyAddress fields are individually optional", async () => {
+      const business = new Business({
+        ...validBusiness(),
+        propertyAddress: { district: "Shimla" }, // village/street/pincode omitted
+      });
+      const saved = await business.save();
+
+      expect(saved.propertyAddress.district).toBe("Shimla");
+      expect(saved.propertyAddress.village).toBeUndefined();
+    });
   });
 });
