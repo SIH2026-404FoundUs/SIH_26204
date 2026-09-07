@@ -19,7 +19,11 @@ export default function PlaceSwapVariant({ place, requestedPressure = 0.8, onAcc
     distance,
     dStar = 1.15,
     pressure = 0.5,
-    travelTimeRatio = 1.0,
+    travelTimeRatio,
+    travelTimeHours = 0,
+    stayCost = 0,
+    transportCost = 0,
+    totalCost = 0,
     savingINR = 0,
     rank = 1
   } = place;
@@ -29,12 +33,14 @@ export default function PlaceSwapVariant({ place, requestedPressure = 0.8, onAcc
   const pressureReliefPercent = Math.round(pressureRelief * 100);
   const currentPressurePercent = Math.round(pressure * 100);
 
-  // Format travel time ratio
+  // Format travel time text
+  const hasTravelHours = typeof travelTimeHours === 'number' && travelTimeHours > 0;
+  const ratioVal = typeof travelTimeRatio === 'number' && travelTimeRatio > 0 ? travelTimeRatio : 1.0;
   const travelDeltaText =
-    travelTimeRatio < 0.98
-      ? `${Math.round((1 - travelTimeRatio) * 100)}% Faster`
-      : travelTimeRatio > 1.02
-      ? `${Math.round((travelTimeRatio - 1) * 100)}% Longer`
+    ratioVal < 0.98
+      ? `${Math.round((1 - ratioVal) * 100)}% Faster`
+      : ratioVal > 1.02
+      ? `${Math.round((ratioVal - 1) * 100)}% Longer`
       : 'Same Duration';
 
   // Similarity score out of 100 based on distance vs dStar
@@ -61,10 +67,14 @@ export default function PlaceSwapVariant({ place, requestedPressure = 0.8, onAcc
           </span>
         </div>
 
-        {savingINR > 0 && (
+        {savingINR > 0 ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 border border-amber-200/60">
             <IndianRupee size={12} />
             Save ₹{savingINR.toLocaleString('en-IN')}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+            Est. ₹{(totalCost || 7000).toLocaleString('en-IN')}
           </span>
         )}
       </div>
@@ -78,7 +88,7 @@ export default function PlaceSwapVariant({ place, requestedPressure = 0.8, onAcc
       </div>
 
       {/* Side-by-Side Metrics Grid */}
-      <div className="mb-5 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3 border border-slate-100">
+      <div className="mb-4 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3 border border-slate-100">
         {/* 1. Attribute Distance / Similarity */}
         <div className="flex flex-col items-center text-center p-1.5 rounded-lg bg-white shadow-2xs border border-slate-100">
           <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
@@ -91,17 +101,17 @@ export default function PlaceSwapVariant({ place, requestedPressure = 0.8, onAcc
           <span className="text-[10px] text-slate-400">d = {typeof distance === 'number' ? distance.toFixed(2) : distance}</span>
         </div>
 
-        {/* 2. Travel Time Delta */}
+        {/* 2. Travel Time (Actual Hours + Delta) */}
         <div className="flex flex-col items-center text-center p-1.5 rounded-lg bg-white shadow-2xs border border-slate-100">
           <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
             <Clock size={11} className="text-blue-500" />
             Travel
           </span>
           <span className="mt-0.5 text-sm font-extrabold text-slate-800">
-            {travelTimeRatio.toFixed(1)}x
+            {hasTravelHours ? `${travelTimeHours >= 1 ? travelTimeHours.toFixed(1) : Math.round(travelTimeHours * 60)} ${travelTimeHours >= 1 ? 'hrs' : 'mins'}` : `${ratioVal.toFixed(1)}x`}
           </span>
-          <span className={`text-[10px] font-semibold ${travelTimeRatio <= 1.0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-            {travelDeltaText}
+          <span className={`text-[10px] font-semibold ${ratioVal <= 1.0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+            {hasTravelHours ? `${ratioVal.toFixed(1)}x (${travelDeltaText})` : travelDeltaText}
           </span>
         </div>
 
@@ -117,6 +127,21 @@ export default function PlaceSwapVariant({ place, requestedPressure = 0.8, onAcc
           <span className="text-[10px] text-slate-400">Score {currentPressurePercent}%</span>
         </div>
       </div>
+
+      {/* Budget Breakdown Pills */}
+      {(stayCost > 0 || transportCost > 0) && (
+        <div className="mb-4 flex items-center justify-between rounded-xl bg-slate-100/60 px-3 py-2 text-xs text-slate-600 border border-slate-200/60">
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-slate-500">Stay:</span>
+            <span className="font-bold text-slate-800">₹{stayCost.toLocaleString('en-IN')}</span>
+          </div>
+          <div className="h-3 w-px bg-slate-300" />
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-slate-500">Transport:</span>
+            <span className="font-bold text-slate-800">₹{transportCost.toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+      )}
 
       {/* Accept Action Button */}
       <button
