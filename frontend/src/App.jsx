@@ -4,6 +4,13 @@ import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate 
 import { useAuthStore } from './store/useAuthStore'
 import PressureHeatmap from './components/pressure/PressureHeatmap'
 import { SwapPage, TripConfirmation } from './components/swap'
+import TripPlanner from './components/planner/TripPlanner'
+import VisitVerify from './components/trust/VisitVerify'
+import CommunitySubmit from './components/trust/CommunitySubmit'
+import OffersWaitlist from './components/trust/OffersWaitlist'
+import Alerts from './components/trust/Alerts'
+import Safety from './components/trust/Safety'
+import Businesses from './components/trust/Businesses'
 
 function Header() {
   const location = useLocation()
@@ -25,6 +32,27 @@ function Header() {
           </Link>
           <Link to="/swap" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/swap' ? 'text-indigo-600' : 'text-slate-600'}`}>
             Swap Engine
+          </Link>
+          <Link to="/planner" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/planner' ? 'text-indigo-600' : 'text-slate-600'}`}>
+            Plan a trip
+          </Link>
+          <Link to="/visits" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/visits' ? 'text-indigo-600' : 'text-slate-600'}`}>
+            Visits
+          </Link>
+          <Link to="/community" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/community' ? 'text-indigo-600' : 'text-slate-600'}`}>
+            Community
+          </Link>
+          <Link to="/offers" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/offers' ? 'text-indigo-600' : 'text-slate-600'}`}>
+            Offers
+          </Link>
+          <Link to="/alerts" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/alerts' ? 'text-indigo-600' : 'text-slate-600'}`}>
+            Alerts
+          </Link>
+          <Link to="/safety" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/safety' ? 'text-indigo-600' : 'text-slate-600'}`}>
+            Safety
+          </Link>
+          <Link to="/businesses" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/businesses' ? 'text-indigo-600' : 'text-slate-600'}`}>
+            Businesses
           </Link>
           {authUser ? (
 
@@ -169,6 +197,40 @@ function App() {
           />
           <Route path="/swap" element={<SwapPage />} />
           <Route path="/trip-confirmation" element={<TripConfirmation />} />
+          <Route
+            path="/planner"
+            element={
+              <main className="flex-1 bg-slate-50 px-6 py-12">
+                <TripPlanner />
+              </main>
+            }
+          />
+          <Route
+            path="/visits"
+            element={authUser ? <main className="flex-1 bg-slate-50 px-6 py-12"><VisitVerify /></main> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/community"
+            element={authUser ? <main className="flex-1 bg-slate-50 px-6 py-12"><CommunitySubmit /></main> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/offers"
+            element={authUser ? <main className="flex-1 bg-slate-50 px-6 py-12"><OffersWaitlist /></main> : <Navigate to="/login" replace />}
+          />
+          {/* Open — reads the public alerts endpoint, no auth required */}
+          <Route
+            path="/alerts"
+            element={<main className="flex-1 bg-slate-50 px-6 py-12"><Alerts /></main>}
+          />
+          <Route
+            path="/safety"
+            element={authUser ? <main className="flex-1 bg-slate-50 px-6 py-12"><Safety /></main> : <Navigate to="/login" replace />}
+          />
+          {/* Open — reads the public business search endpoint, no auth required */}
+          <Route
+            path="/businesses"
+            element={<main className="flex-1 bg-slate-50 px-6 py-12"><Businesses /></main>}
+          />
           <Route path="/login" element={authUser ? <Navigate to="/" replace /> : <AuthCard mode="login" />} />
           <Route path="/signup" element={authUser ? <Navigate to="/" replace /> : <AuthCard mode="signup" />} />
           <Route path="*" element={<Navigate to="/" replace />} />
