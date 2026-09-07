@@ -87,5 +87,21 @@
     "bus": {
       "flat": 12
     }
+  },
+  "generic": {
+    "auto": {
+      "base": 30,
+      "perKm": 12,
+      "minFare": 30
+    },
+    "cab": {
+      "base": 55,
+      "perKm": 18,
+      "perMin": 2,
+      "minFare": 90
+    },
+    "bus": {
+      "flat": 15
+    }
   }
 }

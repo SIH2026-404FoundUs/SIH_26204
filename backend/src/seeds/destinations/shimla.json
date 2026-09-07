@@ -27,7 +27,7 @@
   },
   "nearestRailhead": "KLK",
   "railheadDistanceKm": 88,
-  "railSignalConfidence": 0.85,
+  "railSignalConfidence": 0.3,
   "roadAccess": {
     "operators": [
       "HRTC",
@@ -43,5 +43,6 @@
     "roadSeatsAvail": 30,
     "hotelMedianINR": 3500
   },
-  "seededAt": "2026-09-05T16:16:25.121046Z"
+  "seededAt": "2026-09-05T16:16:25.121046Z",
+  "demoCorridor": true
 }

@@ -15,7 +15,9 @@ def estimate_local_transport(city: str, mode: str, distance_km: float, duration_
             auto, metro, and bus, which are not time-priced.
 
     Returns:
-        A dict with the estimated fare in INR.
+        A dict with the estimated fare in INR (always `estimate:true` — never
+        a live quoted price). An unknown city falls back to a generic
+        labelled rate (confidence:"low") rather than failing outright.
     """
     return get("/api/fare", {
         "city": city,

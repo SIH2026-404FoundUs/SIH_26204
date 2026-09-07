@@ -1,27 +1,39 @@
 [
   {
+    "date": "2026-07-19",
+    "state": "TG",
+    "label": "bonalu",
+    "impact": 0.7
+  },
+  {
     "date": "2026-10-02",
     "state": null,
     "label": "gandhi-jayanti",
-    "impact": 0.8
+    "impact": 0.7
+  },
+  {
+    "date": "2026-10-04",
+    "state": "TG",
+    "label": "bathukamma",
+    "impact": 0.7
   },
   {
     "date": "2026-10-20",
-    "state": "TG",
-    "label": "bathukamma-diwali",
-    "impact": 0.9
+    "state": null,
+    "label": "dussehra",
+    "impact": 1.0
   },
   {
-    "date": "2026-11-01",
+    "date": "2026-11-08",
     "state": null,
-    "label": "karnataka-rajyotsava-weekend",
-    "impact": 0.4
+    "label": "diwali",
+    "impact": 1.0
   },
   {
     "date": "2026-12-24",
     "state": "HP",
     "label": "christmas-eve",
-    "impact": 0.9
+    "impact": 0.7
   },
   {
     "date": "2026-12-25",
@@ -33,13 +45,13 @@
     "date": "2026-12-26",
     "state": null,
     "label": "year-end-weekend",
-    "impact": 0.9
+    "impact": 0.4
   },
   {
     "date": "2026-12-27",
     "state": null,
     "label": "year-end-weekend",
-    "impact": 0.9
+    "impact": 0.4
   },
   {
     "date": "2026-12-31",
@@ -57,12 +69,12 @@
     "date": "2027-01-14",
     "state": "TG",
     "label": "sankranti",
-    "impact": 0.95
+    "impact": 1.0
   },
   {
     "date": "2027-01-26",
     "state": null,
     "label": "republic-day",
-    "impact": 0.85
+    "impact": 1.0
   }
 ]

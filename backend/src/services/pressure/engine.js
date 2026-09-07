@@ -16,6 +16,13 @@ export const WEIGHTS = {
   weather: 0.1, // DATE-VARYING
   capacity: 0.1, // STATIC by definition
 };
+
+// Bumped only if WEIGHTS (or the renormalize/degraded-road rules) ever
+// change. A stored row's formulaVersion lets isFresh() (service.js) tell
+// "just old" apart from "computed under different weights" — a row on an
+// earlier version is always treated as stale, however recent its
+// computedAt is, so it can never silently masquerade as a current result.
+export const FORMULA_VERSION = 2;
 const STATIC_KEYS = new Set(["capacity"]);
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 
@@ -127,7 +134,8 @@ export function assembleRow(values, { degradedRoad = false } = {}) {
   const comp = composite(present.map(({ value, weight }) => ({ value, weight })));
   if (!comp) {
     return { score: null, components, dropped, degraded: degradedRoad ? ["road"] : [],
-             dateVaryingSubtotal: 0, staticSubtotal: 0, lowConfidence: true };
+             dateVaryingSubtotal: 0, staticSubtotal: 0, lowConfidence: true,
+             formulaVersion: FORMULA_VERSION };
   }
 
   // effective weight split into date-varying vs static buckets.
@@ -152,6 +160,7 @@ export function assembleRow(values, { degradedRoad = false } = {}) {
     dropped,
     degraded: degradedRoad ? ["road"] : [],
     lowConfidence,
+    formulaVersion: FORMULA_VERSION,
   };
 }
 
