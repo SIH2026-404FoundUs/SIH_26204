@@ -173,8 +173,8 @@ describe("POST /upload (onboarding internal fallback)", () => {
     }
   });
 
-  test("without an injected transcribeFn, the endpoint fails loudly rather than calling a real service", async () => {
-    const app = createTestApp(undefined); // no override — must NOT silently succeed
+  test("without an injected transcribeFn, the endpoint fails loudly rather than silently succeeding", async () => {
+    const app = createTestApp(undefined); // no override — falls through to the real HTTP backend
     const server = app.listen(0);
 
     try {
@@ -185,8 +185,12 @@ describe("POST /upload (onboarding internal fallback)", () => {
         messageId: "upload-unconfigured-1",
       });
 
+      // No ai-service running in this test environment, so the real
+      // transcribeFn correctly fails loudly rather than silently
+      // succeeding or returning garbage — it just doesn't happen to be
+      // "not implemented" anymore now that the real backend exists.
       expect(status).toBe(500);
-      expect(data.message).toMatch(/not implemented yet.*wire up faster-whisper/i);
+      expect(data.message).toMatch(/could not reach the transcription service/i);
 
       // And it must not have created/advanced a draft as a side effect.
       const saved = await Business.findOne({ ownerPhone: "+919876500005" });
