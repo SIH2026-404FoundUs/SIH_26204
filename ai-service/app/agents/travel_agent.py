@@ -10,6 +10,8 @@ from app.tools.fare import estimate_local_transport
 from app.tools.road import search_road_services
 from app.tools.pressure import get_pressure
 from app.tools.alternatives import find_alternatives
+from app.tools.trip_cost import calculate_trip_cost
+from app.tools.itinerary import optimize_itinerary
 
 
 class WeatherInfo(BaseModel):
@@ -55,6 +57,28 @@ class AlternativesInfo(BaseModel):
     dates: List[dict] = Field(default_factory=list)
     relaxedRelief: Optional[bool] = None
 
+class CostBreakdown(BaseModel):
+    # Always a computed estimate summed from earlier tool results, never a
+    # live quoted price -> `estimate` stays True whenever this is filled in.
+    intercity: Optional[float] = None
+    accommodation: Optional[float] = None
+    food: Optional[float] = None
+    activities: Optional[float] = None
+    localTransport: Optional[float] = None
+    subtotal: Optional[float] = None
+    contingency: Optional[float] = None
+    grandTotal: Optional[float] = None
+    estimate: Optional[bool] = None
+
+class ItineraryDay(BaseModel):
+    # An empty stop list for a day is a real result (more days than stops),
+    # not a gap to fill in.
+    day: Optional[int] = None
+    stops: List[dict] = Field(default_factory=list)
+
+class ItineraryInfo(BaseModel):
+    days: List[ItineraryDay] = Field(default_factory=list)
+
 class TripSummary(BaseModel):
     weather: Optional[WeatherInfo] = None
     route: Optional[RouteInfo] = None
@@ -64,6 +88,8 @@ class TripSummary(BaseModel):
     road: Optional[RoadInfo] = None
     pressure: Optional[PressureInfo] = None
     alternatives: Optional[AlternativesInfo] = None
+    costBreakdown: Optional[CostBreakdown] = None
+    itinerary: Optional[ItineraryInfo] = None
     summary: str = Field(description="One or two sentence plain-language summary")
 
 
@@ -73,7 +99,11 @@ travel_agent = Agent(
     instruction="""You help plan trips in India. Use the available tools to
     get real data. Never invent prices, distances, availability, or waitlist
     numbers. Only fill in the schema fields you have real tool data for —
-    leave others as null rather than guessing.""",
-    tools=[get_weather, get_train_availability, search_places, calculate_route, estimate_local_transport, search_road_services, get_pressure, find_alternatives],
+    leave others as null rather than guessing.
+
+    calculate_trip_cost only adds up numbers you already have. Call the fare,
+    train, hotel and other data tools FIRST, then pass their real values into
+    it — never invent a component value or a grand total yourself.""",
+    tools=[get_weather, get_train_availability, search_places, calculate_route, estimate_local_transport, search_road_services, get_pressure, find_alternatives, calculate_trip_cost, optimize_itinerary],
     output_schema=TripSummary,
 )
