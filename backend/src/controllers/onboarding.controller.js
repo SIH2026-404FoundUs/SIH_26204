@@ -73,6 +73,28 @@ function walkStates(startState, targetState, baseMessageId) {
 }
 
 /**
+ * Parses an optional request field expected to be a JSON-encoded array of
+ * strings (staff_skills / staff_serviceAreaDestIds). Returns
+ * { ok: true, value: undefined } when the field wasn't supplied at all —
+ * that's the normal case for a non-staff listing, not an error.
+ */
+function parseOptionalStringArray(rawValue, fieldName) {
+  if (rawValue === undefined) {
+    return { ok: true, value: undefined };
+  }
+  let parsed;
+  try {
+    parsed = typeof rawValue === "string" ? JSON.parse(rawValue) : rawValue;
+  } catch {
+    return { ok: false, error: `${fieldName} must be valid JSON` };
+  }
+  if (!Array.isArray(parsed) || !parsed.every((item) => typeof item === "string")) {
+    return { ok: false, error: `${fieldName} must be an array of strings` };
+  }
+  return { ok: true, value: parsed };
+}
+
+/**
  * Builds the internal onboarding-upload handler. `transcribeFn` is
  * injectable for tests, exactly like eligibility.js's pressureFn.
  * Production callers omit it, and transcribeAudio() falls back to its own
@@ -115,6 +137,30 @@ export function createOnboardingUploadHandler({ transcribeFn } = {}) {
             "extractedFields is required for now (placeholder for the real Qwen3 call, Section 1.3, " +
             "not built yet) — pass the fields you want validated directly in the request body.",
         });
+      }
+
+      // staff_skills/staff_serviceAreaDestIds collection mechanism is
+      // unspecified in bharani-tasks.md Section 1.4 -- this fallback
+      // endpoint accepts them as direct input as a placeholder; the real
+      // WhatsApp flow will need an actual follow-up-question mechanism
+      // once built, likely a FOLLOWUP-state extension gated on type. This
+      // is a documented assumption, not a silent guess. Optional and
+      // never LIVE-blocking (deliberately not in REQUIRED_FIELDS_FOR_LIVE
+      // / hasRequiredFieldsForLive() — Section 1.3's "Required for LIVE"
+      // list is unconditional and correctly excludes them), and parsed
+      // independently of extractedFields since they were never part of
+      // Section 1.3's extraction schema and must not go through
+      // validateExtractionShape.
+      const staffSkillsResult = parseOptionalStringArray(req.body.staff_skills, "staff_skills");
+      if (!staffSkillsResult.ok) {
+        return res.status(400).json({ error: true, message: staffSkillsResult.error });
+      }
+      const staffServiceAreaResult = parseOptionalStringArray(
+        req.body.staff_serviceAreaDestIds,
+        "staff_serviceAreaDestIds"
+      );
+      if (!staffServiceAreaResult.ok) {
+        return res.status(400).json({ error: true, message: staffServiceAreaResult.error });
       }
 
       const existing = await Business.findOne({ ownerPhone });
@@ -174,6 +220,16 @@ export function createOnboardingUploadHandler({ transcribeFn } = {}) {
           appliedHops = [...appliedHops, "EXTRACTING"];
           Object.assign(setOnSave, extractedFields, { onboardingState: "EXTRACTING" });
         }
+      }
+
+      // Merged independently of the extraction accept/reject outcome above
+      // — these were never part of that pipeline, so a rejected extraction
+      // must not withhold them.
+      if (staffSkillsResult.value !== undefined) {
+        setOnSave.staff_skills = staffSkillsResult.value;
+      }
+      if (staffServiceAreaResult.value !== undefined) {
+        setOnSave.staff_serviceAreaDestIds = staffServiceAreaResult.value;
       }
 
       // Schema validators run on this write (enum checks, priceRangeINR

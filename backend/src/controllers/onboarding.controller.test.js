@@ -31,7 +31,10 @@ function createTestApp(transcribeFn) {
   return app;
 }
 
-async function postUpload(server, { destId, ownerPhone, extractedFields, messageId, audioBytes = "fake audio" }) {
+async function postUpload(
+  server,
+  { destId, ownerPhone, extractedFields, messageId, audioBytes = "fake audio", staffSkills, staffServiceAreaDestIds }
+) {
   const { port } = server.address();
   const form = new FormData();
   form.append("audio", new Blob([Buffer.from(audioBytes)], { type: "audio/ogg" }), "voice.ogg");
@@ -39,11 +42,27 @@ async function postUpload(server, { destId, ownerPhone, extractedFields, message
   if (ownerPhone !== undefined) form.append("ownerPhone", ownerPhone);
   if (extractedFields !== undefined) form.append("extractedFields", JSON.stringify(extractedFields));
   if (messageId !== undefined) form.append("messageId", messageId);
+  if (staffSkills !== undefined) form.append("staff_skills", JSON.stringify(staffSkills));
+  if (staffServiceAreaDestIds !== undefined) {
+    form.append("staff_serviceAreaDestIds", JSON.stringify(staffServiceAreaDestIds));
+  }
 
   const response = await fetch(`http://127.0.0.1:${port}/upload`, { method: "POST", body: form });
   const data = await response.json();
   return { status: response.status, data };
 }
+
+const validGuideExtraction = () => ({
+  name: "Raju the Guide",
+  type: "guide",
+  capacity: 8,
+  priceRangeINR: { min: 500, max: 1000 },
+  amenities: [],
+  meals: [],
+  nearestLandmark: "Main Chowk",
+  languages: ["en"],
+  seasonalNotes: null,
+});
 
 const validExtraction = () => ({
   name: "Green Valley Homestay",
@@ -250,6 +269,115 @@ describe("POST /upload (onboarding internal fallback)", () => {
 
       expect(response.status).toBe(400);
       expect(data.message).toMatch(/audio file is required/i);
+      expect(stub).not.toHaveBeenCalled();
+    } finally {
+      server.close();
+    }
+  });
+
+  test("a guide-type business persists staff_skills/staff_serviceAreaDestIds correctly (Section 1.4)", async () => {
+    const transcript = "This is Raju the Guide, based near Main Chowk. I take groups of up to 8 people, and charge 500 to 1000 rupees.";
+    const stub = jest.fn().mockResolvedValue({ transcript, detectedLanguage: "en" });
+    const app = createTestApp(stub);
+    const server = app.listen(0);
+
+    try {
+      const { status, data } = await postUpload(server, {
+        destId: "shimla",
+        ownerPhone: "+919000000011",
+        extractedFields: validGuideExtraction(),
+        messageId: "upload-guide-1",
+        staffSkills: ["trekking", "wildlife"],
+        staffServiceAreaDestIds: ["shimla", "manali"],
+      });
+
+      expect(status).toBe(200);
+      expect(data.onboardingState).toBe("EXTRACTING");
+      expect(data.extraction.shapeValid).toBe(true);
+      expect(data.extraction.honest).toBe(true);
+
+      const saved = await Business.findOne({ _id: data.businessId });
+      expect(saved.type).toBe("guide");
+      expect(saved.name).toBe("Raju the Guide");
+      expect(saved.capacity).toBe(8);
+      expect(saved.staff_skills).toEqual(["trekking", "wildlife"]);
+      expect(saved.staff_serviceAreaDestIds).toEqual(["shimla", "manali"]);
+    } finally {
+      server.close();
+    }
+  });
+
+  test("staff_skills/staff_serviceAreaDestIds are optional — a guide-type upload without them still succeeds", async () => {
+    const transcript = "This is Raju the Guide, based near Main Chowk. I take groups of up to 8 people, and charge 500 to 1000 rupees.";
+    const stub = jest.fn().mockResolvedValue({ transcript, detectedLanguage: "en" });
+    const app = createTestApp(stub);
+    const server = app.listen(0);
+
+    try {
+      const { status, data } = await postUpload(server, {
+        destId: "shimla",
+        ownerPhone: "+919000000012",
+        extractedFields: validGuideExtraction(),
+        messageId: "upload-guide-2",
+        // no staffSkills / staffServiceAreaDestIds supplied
+      });
+
+      expect(status).toBe(200);
+      const saved = await Business.findOne({ _id: data.businessId });
+      expect(saved.staff_skills).toEqual([]); // schema default, untouched
+      expect(saved.staff_serviceAreaDestIds).toEqual([]);
+    } finally {
+      server.close();
+    }
+  });
+
+  test("staff_skills persist even when the extraction itself is rejected — they're independent of that pipeline", async () => {
+    const transcript = "This is Raju the Guide, based near Main Chowk.";
+    const stub = jest.fn().mockResolvedValue({ transcript, detectedLanguage: "en" });
+    const app = createTestApp(stub);
+    const server = app.listen(0);
+
+    try {
+      const { status, data } = await postUpload(server, {
+        destId: "shimla",
+        ownerPhone: "+919000000013",
+        extractedFields: { ...validGuideExtraction(), amenities: ["invented amenity never said"] },
+        messageId: "upload-guide-3",
+        staffSkills: ["rafting"],
+        staffServiceAreaDestIds: ["shimla"],
+      });
+
+      expect(status).toBe(422); // extraction rejected (honesty failure)
+      expect(data.onboardingState).toBe("TRANSCRIBING"); // did not advance to EXTRACTING
+
+      const saved = await Business.findOne({ _id: data.businessId });
+      expect(saved.name).toBeUndefined(); // rejected extraction fields not persisted
+      expect(saved.staff_skills).toEqual(["rafting"]); // but staff fields still are
+      expect(saved.staff_serviceAreaDestIds).toEqual(["shimla"]);
+    } finally {
+      server.close();
+    }
+  });
+
+  test("rejects with 400 when staff_skills is not a JSON array of strings", async () => {
+    const stub = jest.fn().mockResolvedValue({ transcript: "hi", detectedLanguage: "en" });
+    const app = createTestApp(stub);
+    const server = app.listen(0);
+
+    try {
+      const { port } = server.address();
+      const form = new FormData();
+      form.append("audio", new Blob([Buffer.from("audio")]), "voice.ogg");
+      form.append("destId", "shimla");
+      form.append("ownerPhone", "+919000000014");
+      form.append("extractedFields", JSON.stringify(validGuideExtraction()));
+      form.append("staff_skills", JSON.stringify({ not: "an array" }));
+
+      const response = await fetch(`http://127.0.0.1:${port}/upload`, { method: "POST", body: form });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.message).toMatch(/staff_skills must be an array of strings/i);
       expect(stub).not.toHaveBeenCalled();
     } finally {
       server.close();
