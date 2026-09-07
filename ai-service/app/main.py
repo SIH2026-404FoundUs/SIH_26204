@@ -1,340 +1,398 @@
-# app/main.py
-#
-# The orchestration entrypoint the spec describes: parse preferences -> get
-# pressure -> gate on >=0.60 -> offer alternatives and WAIT for a decision ->
-# on accept rebuild against the chosen alternative, on decline keep the
-# original destination -> run the LLM-driven planner for the rest of the
-# itinerary -> validate its output -> return.
-#
-# The pressure gate itself is deterministic Python code, not something the
-# LLM is trusted to reliably enforce from a prompt instruction alone — this
-# mirrors the same philosophy the spec already applies to calculate_trip_cost
-# (arithmetic the model must never be asked to do). The LLM is only ever
-# invoked for the parts that genuinely need language understanding and tool
-# orchestration (search/compare/summarize), never for the redirect decision.
-#
-# "WAIT for user decision" is realized as two HTTP calls against one stateless
-# endpoint: the first call (no `decision` field) returns the pressure reading
-# and alternatives and stops there; the caller resubmits with `decision` and,
-# if accepting, `selected_dest_id`/`selected_date` to continue.
-
+# ai-service/app/main.py
 import json
+import logging
 import os
-import uuid
-from typing import Optional
+from datetime import date
+from pathlib import Path
+from typing import Any, Dict, Literal, Optional, Tuple
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
-from google import genai
+from fastapi.responses import JSONResponse
 from google.adk.runners import InMemoryRunner
 from google.genai import types
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.agents.travel_agent import travel_agent, TripSummary
-from app.tools.pressure import get_pressure
+# Load the service-local .env before importing the agent. The Agent is created
+# at import time and the Google SDK reads its credentials during construction.
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+
+from app.agents.travel_agent import travel_agent
+from app.services import trip_drafts
 from app.tools.alternatives import find_alternatives
+from app.tools.pressure import get_pressure
 
-load_dotenv()
+logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Travel Planner Agent")
+APP_NAME = "travel_planner"
 
-# The frontend (Vite dev server) calls this service directly from the
-# browser, not proxied through the Express backend -- without this the
-# browser blocks every /plan request as a cross-origin failure.
+# What a traveller (or a judge watching the demo) is shown when a plan cannot be
+# produced. The technical cause still travels in "detail" so a captured response
+# is debuggable, but it is never the headline.
+PLAN_FAILED_MESSAGE = (
+    "We couldn't generate your trip plan right now. Please try again in a moment."
+)
+
+# At or above this pressure score the traveller is shown alternatives before a
+# plan is built. The gate is applied here, in Python, rather than being left to
+# the agent: an agent could reason its way out of offering alternatives, and
+# redistributing demand away from crowded destinations is the product's whole
+# point, so it has to fire on every request that crosses the line.
+PRESSURE_GATE = 0.60
+
+# The frontend dev server origin, as documented by CLIENT_URL in
+# backend/.env.example (Vite's default 5173). Overridable so a deployed
+# frontend doesn't need a code change.
+CLIENT_URL = os.environ.get("CLIENT_URL", "http://localhost:5173")
+
+app = FastAPI(title="AI Travel Service")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.environ.get("CLIENT_URL", "http://localhost:5173")],
+    allow_origins=[CLIENT_URL],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-_genai_client = None
-def _client():
-    global _genai_client
-    if _genai_client is None:
-        _genai_client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
-    return _genai_client
 
-PRESSURE_GATE = 0.60
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc: StarletteHTTPException):
+    """Let an error carry a user-facing message alongside a technical detail.
+
+    A dict detail is already the response body ({"error": ..., "detail": ...}),
+    so it is emitted as-is; every other detail keeps FastAPI's default
+    {"detail": ...} envelope.
+    """
+    body = exc.detail if isinstance(exc.detail, dict) else {"detail": exc.detail}
+    return JSONResponse(status_code=exc.status_code, content=body, headers=exc.headers)
 
 
-class PlanRequest(BaseModel):
-    user_id: str
-    dest_id: str
-    start_date: str
-    end_date: str
+# One runner for the process; sessions are per-request so concurrent plans
+# don't share conversation history.
+runner = InMemoryRunner(agent=travel_agent, app_name=APP_NAME)
+
+
+class PlanTripRequest(BaseModel):
+    userId: str
     origin: str
-    travellers: int = 1
-    budget_inr: float = 0.0
-    interests: dict = {}
-    # Second call only, after the caller has seen alternatives:
-    decision: Optional[str] = None  # "accept" | "decline"
-    selected_dest_id: Optional[str] = None
-    selected_date: Optional[str] = None
+    destId: str
+    startDate: str
+    endDate: str
+    travellers: int
+    budgetINR: float
+    interests: Dict[str, float] = Field(default_factory=dict)
 
 
-def _redistribution(kind: str, from_dest: str, to_dest: str = None, to_date: str = None) -> dict:
-    row = {"kind": kind}
-    if kind != "none":
-        row["from"] = from_dest
-        row["to"] = to_dest
-        if to_date:
-            row["toDate"] = to_date
-    return row
+class ChosenAlternative(BaseModel):
+    """The alternative the traveller picked, as identified by the client.
+
+    Only the identifying fields are read. A place option is identified by
+    destId, a date option by startDate; everything else about the offer
+    (pressure, savingINR) is taken from the stored draft rather than from here,
+    so a client cannot claim a saving or a destination that was never offered.
+    """
+
+    destId: Optional[str] = None
+    startDate: Optional[str] = None
 
 
-async def _run_agent_once(prompt: str, user_id: str, extra_message: str = None) -> tuple[Optional[dict], list]:
-    """Runs the LLM planner once and returns (parsed_json_or_None, raw_events).
-    Never raises on bad model output OR a transient upstream failure (e.g. a
-    503 from the model API) -- both are "this attempt didn't produce usable
-    output" and are handled identically by the caller's retry/fallback logic,
-    per spec section 3. A crashed attempt must not crash the whole request."""
-    runner = InMemoryRunner(agent=travel_agent, app_name="travel_planner")
-    session = await runner.session_service.create_session(
-        app_name=runner.app_name, user_id=user_id
+class ConfirmTripRequest(BaseModel):
+    tripDraftId: str
+    decision: Literal["accept", "decline"]
+    chosenAlternative: Optional[ChosenAlternative] = None
+
+
+def pressure_score(pressure: Any) -> Optional[float]:
+    """Return the comparable score from a get_pressure response, else None.
+
+    None covers every case where there is no number to test against the gate:
+    an explicitly null score (all components failed), an untracked destination
+    or bad date (a "message" body with no score key), and a transport failure
+    ({"ok": False, "error": ...}). None is never treated as low pressure — it
+    means the gate cannot be evaluated, so planning proceeds as it did before
+    gating existed rather than blocking the traveller on a reading we
+    do not have.
+    """
+    if not isinstance(pressure, dict):
+        return None
+    score = pressure.get("score")
+    # bool is an int subclass; a True here would otherwise compare as 1.0.
+    if isinstance(score, bool) or not isinstance(score, (int, float)):
+        return None
+    return float(score)
+
+
+def build_prompt(req: PlanTripRequest) -> str:
+    if req.interests:
+        interests = ", ".join(
+            f"{name} (weight {weight})" for name, weight in req.interests.items()
+        )
+    else:
+        interests = "none specified"
+
+    return (
+        f"Plan a trip from {req.origin} to destination ID {req.destId}, "
+        f"travelling from {req.startDate} to {req.endDate} for {req.travellers} "
+        f"traveller(s) with a total budget of INR {req.budgetINR}. "
+        f"Traveller interests: {interests}. "
+        "Use the tools to gather real data and fill in the trip summary."
     )
-    full_prompt = prompt if not extra_message else f"{prompt}\n\n{extra_message}"
-    events = []
-    final_text = None
-    try:
-        async for event in runner.run_async(
-            user_id=user_id,
-            session_id=session.id,
-            new_message=types.Content(role="user", parts=[types.Part(text=full_prompt)]),
-        ):
-            events.append(event)
-            if event.content and event.content.parts:
-                for part in event.content.parts:
-                    if getattr(part, "text", None):
-                        final_text = part.text
-    except Exception as e:
-        print(f"[agent] attempt failed: {type(e).__name__}: {e}")
-        return None, events
-
-    if final_text is None:
-        return None, events
-    try:
-        parsed = json.loads(final_text)
-    except (json.JSONDecodeError, TypeError):
-        return None, events
-    return parsed, events
 
 
-def _validate(parsed: Optional[dict]) -> tuple[Optional[TripSummary], Optional[str]]:
-    """Returns (TripSummary, None) on success or (None, error_message) on failure."""
-    if parsed is None:
-        return None, "model did not return valid JSON"
-    try:
-        return TripSummary.model_validate(parsed), None
-    except ValidationError as e:
-        return None, str(e)
+def extract_structured_output(event: Any) -> Optional[dict]:
+    """Return the TripSummary payload carried by a final response event.
 
+    The agent has an output_schema, so its final event carries the summary as
+    a JSON text part. Non-final events (tool calls, tool results, partial
+    streaming chunks) carry no structured output and yield None.
+    """
+    if not event.is_final_response():
+        return None
 
-def _deterministic_fallback(dest_id: str, events: list) -> TripSummary:
-    """Assembles a TripSummary purely from tool results already returned in
-    this conversation -- never asks the model again, never fabricates a
-    number or fact that didn't come from a real tool call. Section 3: 'must
-    be deterministic and must not fabricate information.'"""
-    collected = {}
-    for event in events:
-        if not event.content or not event.content.parts:
+    content = getattr(event, "content", None)
+    if content is None or not getattr(content, "parts", None):
+        return None
+
+    for part in content.parts:
+        text = getattr(part, "text", None)
+        if not text:
             continue
-        for part in event.content.parts:
-            fr = getattr(part, "function_response", None)
-            if fr and isinstance(fr.response, dict) and fr.response.get("ok"):
-                collected[fr.name] = fr.response.get("data")
+        try:
+            parsed = json.loads(text)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(parsed, dict):
+            return parsed
 
-    weather = collected.get("get_weather")
-    route = collected.get("calculate_route")
-    cost = collected.get("calculate_trip_cost")
-    itinerary = collected.get("optimize_itinerary")
+    return None
 
-    return TripSummary(
-        weather={"maxTemp": weather.get("maxTemp"), "precipProb": weather.get("precipProb")} if weather else None,
-        route={"distanceKm": route.get("distanceKm"), "durationMinutes": route.get("durationMinutes")} if route else None,
-        costBreakdown=cost if cost else None,
-        itinerary={"days": itinerary.get("days", [])} if itinerary else None,
-        summary=(
-            f"Automated summary for {dest_id}: the planner's narrative output "
-            f"could not be validated twice in a row, so this is assembled "
-            f"directly from the tool results that did come back successfully. "
-            f"Some fields may be empty if that tool wasn't reached."
+
+async def run_travel_agent(req: PlanTripRequest) -> dict:
+    """Run the agent to completion and return its structured TripSummary.
+
+    Raises LookupError if the run finished without producing structured output.
+    """
+    session = await runner.session_service.create_session(
+        app_name=runner.app_name,
+        user_id=req.userId,
+    )
+
+    message = types.Content(
+        role="user",
+        parts=[types.Part(text=build_prompt(req))],
+    )
+
+    result: Optional[dict] = None
+    async for event in runner.run_async(
+        user_id=req.userId,
+        session_id=session.id,
+        new_message=message,
+    ):
+        # Keep the last structured payload: a run can emit more than one final
+        # response, and the latest one is the completed summary.
+        structured = extract_structured_output(event)
+        if structured is not None:
+            result = structured
+
+    if result is None:
+        raise LookupError("agent run produced no structured TripSummary output")
+
+    return result
+
+
+async def plan_or_500(req: PlanTripRequest) -> dict:
+    """Run the agent, translating its failures into HTTP errors."""
+    try:
+        return await run_travel_agent(req)
+    except LookupError as exc:
+        # The run completed but produced nothing usable: a transient dead end,
+        # not a broken request, so 503 rather than 500.
+        logger.warning("plan failed: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail={"error": PLAN_FAILED_MESSAGE, "detail": str(exc)},
+        ) from exc
+    except Exception as exc:
+        # Unclassified, so it may well be our own defect: 500 stays. The full
+        # traceback goes to the server log; the response keeps only the one-line
+        # cause, behind the same user-facing message.
+        logger.exception("agent run failed")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": PLAN_FAILED_MESSAGE,
+                "detail": f"agent run failed: {type(exc).__name__}: {exc}",
+            },
+        ) from exc
+
+
+@app.post("/api/plan-trip")
+async def plan_trip(req: PlanTripRequest):
+    # get_pressure and find_alternatives are blocking `requests` calls, so they
+    # go to a worker thread instead of stalling the event loop for every other
+    # in-flight plan.
+    pressure = await run_in_threadpool(get_pressure, req.destId, req.startDate)
+    score = pressure_score(pressure)
+
+    if score is None or score < PRESSURE_GATE:
+        return await plan_or_500(req)
+
+    alternatives = await run_in_threadpool(
+        find_alternatives,
+        req.origin,
+        req.destId,
+        req.startDate,
+        req.endDate,
+        req.travellers,
+        req.budgetINR,
+        req.interests,
+    )
+
+    # The agent is deliberately not run on this branch. Building a plan for a
+    # destination we are about to suggest replacing wastes a full agent run,
+    # and the traveller's answer decides what gets planned.
+    trip_draft_id = trip_drafts.save_draft(
+        request=req.model_dump(),
+        pressure=pressure,
+        alternatives=alternatives,
+    )
+
+    return {
+        "status": "awaiting_decision",
+        "tripDraftId": trip_draft_id,
+        "pressure": pressure,
+        "alternatives": alternatives,
+    }
+
+
+def match_offer(
+    alternatives: Any,
+    chosen: ChosenAlternative,
+    original_dest_id: str,
+) -> Tuple[str, dict]:
+    """Find the stored offer the traveller picked.
+
+    Returns (kind, offer) where kind is "place" or "date". Raises HTTPException
+    400 when the pick does not correspond to something that was actually
+    offered, so a confirm cannot plan against a destination or date this draft
+    never proposed.
+    """
+    places = alternatives.get("places") or [] if isinstance(alternatives, dict) else []
+    dates = alternatives.get("dates") or [] if isinstance(alternatives, dict) else []
+
+    if chosen.destId and chosen.destId != original_dest_id:
+        for place in places:
+            if place.get("destId") == chosen.destId:
+                return "place", place
+        raise HTTPException(
+            status_code=400,
+            detail=f"destId {chosen.destId!r} was not among the offered places",
+        )
+
+    if chosen.startDate:
+        for option in dates:
+            if option.get("startDate") == chosen.startDate:
+                return "date", option
+        raise HTTPException(
+            status_code=400,
+            detail=f"startDate {chosen.startDate!r} was not among the offered dates",
+        )
+
+    raise HTTPException(
+        status_code=400,
+        detail=(
+            "chosenAlternative must name a different destId, or a startDate "
+            "from the offered dates"
         ),
     )
 
 
-@app.post("/plan")
-async def plan_trip(req: PlanRequest):
-    pressure_row = get_pressure(req.dest_id, req.start_date)
-    score = pressure_row.get("score") if isinstance(pressure_row, dict) else None
-    gate_triggered = isinstance(score, (int, float)) and score >= PRESSURE_GATE
+def shift_end_date(start: str, end: str, new_start: str) -> str:
+    """Move the trip window to new_start, preserving its length.
 
-    target_dest_id = req.dest_id
-    target_date = req.start_date
-    redistribution = {"kind": "none"}
-    alternatives_offered = False
+    Date options change only the start date, so the end date has to follow or
+    the traveller silently gets a shorter or longer trip.
+    """
+    try:
+        length = date.fromisoformat(end) - date.fromisoformat(start)
+        return (date.fromisoformat(new_start) + length).isoformat()
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "cannot shift the trip window: startDate and endDate must be "
+                f"YYYY-MM-DD ({exc})"
+            ),
+        ) from exc
 
-    if gate_triggered:
-        alternatives_offered = True
-        if req.decision is None:
-            # WAIT: hand back the reading + alternatives, do not proceed further.
-            alts = find_alternatives(
-                origin=req.origin, dest_id=req.dest_id,
-                start_date=req.start_date, end_date=req.end_date,
-                travellers=req.travellers, budget_inr=req.budget_inr,
-                interests=req.interests,
+
+@app.post("/api/plan-trip/confirm")
+async def confirm_trip(req: ConfirmTripRequest):
+    draft = trip_drafts.get_draft(req.tripDraftId)
+    if draft is None:
+        raise HTTPException(
+            status_code=404, detail=f"no trip draft {req.tripDraftId!r}"
+        )
+
+    original = PlanTripRequest(**draft["request"])
+    pressure_before = pressure_score(draft["pressure"])
+
+    if req.decision == "decline":
+        plan_request = original
+        redistribution: Dict[str, Any] = {"kind": "none"}
+    else:
+        if req.chosenAlternative is None:
+            raise HTTPException(
+                status_code=400,
+                detail="chosenAlternative is required when decision is 'accept'",
             )
-            return {
-                "status": "awaiting_decision",
-                "pressure": pressure_row,
-                "alternatives": alts,
-                "alternativesOffered": True,
-                "message": (
-                    f"{req.dest_id} is at pressure {score:.2f} (>= {PRESSURE_GATE} threshold). "
-                    "Resubmit this request with decision:'accept' (+ selected_dest_id/selected_date) "
-                    "or decision:'decline' to continue anyway."
-                ),
-            }
-        if req.decision == "accept":
-            if not req.selected_dest_id:
-                return {"status": "error", "message": "selected_dest_id is required when decision='accept'"}
-            redistribution = _redistribution(
-                "date" if req.selected_dest_id == req.dest_id else "place",
-                req.dest_id, req.selected_dest_id, req.selected_date,
-            )
-            target_dest_id = req.selected_dest_id
-            target_date = req.selected_date or req.start_date
-        elif req.decision == "decline":
-            redistribution = {"kind": "none"}
-            target_dest_id = req.dest_id
-            target_date = req.start_date
+
+        kind, offer = match_offer(
+            draft["alternatives"], req.chosenAlternative, original.destId
+        )
+
+        if kind == "place":
+            plan_request = original.model_copy(update={"destId": offer["destId"]})
         else:
-            return {"status": "error", "message": "decision must be 'accept' or 'decline'"}
+            new_start = offer["startDate"]
+            plan_request = original.model_copy(
+                update={
+                    "startDate": new_start,
+                    "endDate": shift_end_date(
+                        original.startDate, original.endDate, new_start
+                    ),
+                }
+            )
 
-    prompt = (
-        f"Plan a trip to destination id '{target_dest_id}' from {target_date} to "
-        f"{req.end_date}, starting from '{req.origin}', for {req.travellers} traveller(s), "
-        f"budget INR {req.budget_inr}. Interests: {json.dumps(req.interests)}. "
-        f"Use the available tools to gather real weather, route, cost, and itinerary data, "
-        f"then produce the structured TripSummary output."
-    )
-
-    parsed, events = await _run_agent_once(prompt, req.user_id)
-    result, error = _validate(parsed)
-
-    if result is None:
-        # Retry ONCE, with the validation error appended (spec section 3).
-        parsed, events = await _run_agent_once(
-            prompt, req.user_id,
-            extra_message=f"Your previous response failed schema validation: {error}. "
-                          f"Return ONLY valid JSON matching the TripSummary schema.",
+        # Re-read pressure for what will actually be planned rather than
+        # trusting the score quoted in the offer, which was computed when the
+        # draft was created and is client-visible in between.
+        after_reading = await run_in_threadpool(
+            get_pressure, plan_request.destId, plan_request.startDate
         )
-        result, error = _validate(parsed)
+        pressure_after = pressure_score(after_reading)
+        if pressure_after is None:
+            pressure_after = pressure_score(offer)
 
-    used_fallback = False
-    if result is None:
-        result = _deterministic_fallback(target_dest_id, events)
-        used_fallback = True
+        redistribution = {
+            "kind": kind,
+            "pressureBefore": pressure_before,
+            "pressureAfter": pressure_after,
+            "savingINR": offer.get("savingINR", 0),
+        }
 
-    return {
-        "status": "ok",
-        "destId": target_dest_id,
-        "date": target_date,
-        "pressureAtRequest": pressure_row,
+    trip = await plan_or_500(plan_request)
+
+    record = {
+        **plan_request.model_dump(),
+        "tripDraftId": req.tripDraftId,
+        "trip": trip,
         "redistribution": redistribution,
-        "alternativesOffered": alternatives_offered,
-        "usedDeterministicFallback": used_fallback,
-        "plan": result.model_dump(),
+        "alternativesOffered": True,
     }
-
-
-@app.get("/health")
-async def health():
-    return {"ok": True}
-
-
-# --- Internal AI endpoints consumed by the Node backend's feedback/alerts
-# services (backend/src/services/feedback/{feedbackService,translationService}.js).
-# "Qwen3" in the original spec text isn't provisioned anywhere in this repo
-# (no Qwen SDK, no key, no endpoint) -- these use the Gemini access that IS
-# actually wired and working (see travel_agent.py), behind the same clean
-# adapter boundary the spec asks for. Each Node-side caller already falls
-# back to its own offline heuristic if this service is unreachable, so an
-# outage here degrades gracefully rather than breaking feedback processing.
-
-class TranslateRequest(BaseModel):
-    text: str
-    target_lang: str = "en"
-    source_lang: str = "auto"
-
-@app.post("/internal/ai/translate")
-async def translate(req: TranslateRequest):
-    prompt = (
-        f"Translate the following text to language code '{req.target_lang}'. "
-        f"Reply with ONLY the translated text, no quotes, no explanation.\n\n{req.text}"
-    )
-    try:
-        response = _client().models.generate_content(model="gemini-3.6-flash", contents=prompt)
-        return {"translated_text": (response.text or "").strip(), "detected_source_lang": req.source_lang}
-    except Exception as e:
-        return {"error": f"AI service call failed: {type(e).__name__}: {e}"}
-
-
-class FeedbackReview(BaseModel):
-    comment: str
-    rating: Optional[float] = None
-
-class FeedbackThemesRequest(BaseModel):
-    reviews: list[FeedbackReview]
-
-class FeedbackTheme(BaseModel):
-    theme: str
-    sentiment: str
-    mentions: int
-    evidenceIdx: list[int]
-
-class FeedbackAction(BaseModel):
-    action: str
-    effort: str
-    impact: str
-
-class FeedbackThemesResponse(BaseModel):
-    themes: list[FeedbackTheme]
-    actions: list[FeedbackAction]
-
-@app.post("/internal/ai/feedback-themes")
-async def feedback_themes(req: FeedbackThemesRequest):
-    """Spec §3.2: one LLM call, strict JSON {themes, actions}. Reviews must
-    already be in English (translate first) -- this endpoint does not
-    translate. evidenceIdx must reference real indices into `reviews`; the
-    model is instructed never to invent a comment that isn't there."""
-    numbered = "\n".join(f"[{i}] (rating {r.rating}): {r.comment}" for i, r in enumerate(req.reviews))
-    prompt = (
-        "You are analyzing real tourist feedback for one business. Extract recurring "
-        "themes and suggest actions. Rules:\n"
-        "- Only include a theme if it is mentioned in 3 or more reviews.\n"
-        "- evidenceIdx MUST be the real [index] numbers of reviews that mention the theme -- "
-        "never invent an index that isn't in the input, never invent review content.\n"
-        "- sentiment is 'positive' or 'negative' based on the reviews mentioning that theme.\n"
-        "- actions: effort and impact are each 'low', 'medium', or 'high'.\n\n"
-        f"Reviews:\n{numbered}\n\n"
-        'Respond with ONLY JSON matching: {"themes":[{"theme":str,"sentiment":str,"mentions":int,"evidenceIdx":[int]}],'
-        '"actions":[{"action":str,"effort":str,"impact":str}]}'
-    )
-    try:
-        response = _client().models.generate_content(
-            model="gemini-3.6-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(response_mime_type="application/json"),
-        )
-        parsed = json.loads(response.text)
-        validated = FeedbackThemesResponse.model_validate(parsed)
-        return validated.model_dump()
-    except (json.JSONDecodeError, ValidationError, TypeError) as e:
-        return {"error": f"model output failed validation: {e}"}
-    except Exception as e:
-        # Covers upstream failures (quota, network, 5xx) -- a clean error
-        # response, not a crash, so the Node-side caller's own fallback to
-        # the keyword heuristic engages instead of propagating a 500.
-        return {"error": f"AI service call failed: {type(e).__name__}: {e}"}
+    trip_drafts.save_trip(req.tripDraftId, record)
+    return record

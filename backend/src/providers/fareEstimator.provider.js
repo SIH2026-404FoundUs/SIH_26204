@@ -52,15 +52,16 @@ function estimate(city, mode, distanceKm, durationMin = 0) {
   }
 
   // this is always an estimate, never a live price — mark it as such
-  return ok(
-    { mode, distanceKm, fareINR: Math.round(fareINR) },
-    {
-      source: 'fareEstimator',
-      estimate: true,
-      confidence: usedGenericFallback ? 'low' : 'high',
-      ...(usedGenericFallback ? { note: `no city-specific rates for "${city}"; used generic fallback` } : {}),
-    }
-  );
+  const meta = { source: 'fareEstimator', estimate: true, confidence: 'high' };
+
+  // A cab priced with no duration got only the distance component, so the
+  // number is a floor, not a full estimate. Flag it here so consumers can
+  // tell without re-deriving it from the request inputs.
+  if (mode === 'cab' && durationMin === 0) {
+    meta.durationIncluded = false;
+  }
+
+  return ok({ mode, distanceKm, fareINR: Math.round(fareINR) }, meta);
 }
 
 
