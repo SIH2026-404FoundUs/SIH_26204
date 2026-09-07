@@ -12,17 +12,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const HISTOGRAM_PATH = path.join(__dirname, '../../../build/distance-histogram.json');
 
-let calibratedDStar = 0.78;
-try {
-  if (fs.existsSync(HISTOGRAM_PATH)) {
-    const data = JSON.parse(fs.readFileSync(HISTOGRAM_PATH, 'utf8'));
-    if (typeof data.calibratedDStar === 'number') {
-      calibratedDStar = data.calibratedDStar;
+const getCalibratedDStar = () => {
+  try {
+    if (fs.existsSync(HISTOGRAM_PATH)) {
+      const data = JSON.parse(fs.readFileSync(HISTOGRAM_PATH, 'utf8'));
+      if (typeof data.calibratedDStar === 'number') {
+        return data.calibratedDStar;
+      }
     }
+  } catch (e) {
+    // fallback
   }
-} catch (e) {
-  calibratedDStar = 0.78;
-}
+  return 1.15;
+};
 
 const router = express.Router();
 
@@ -82,7 +84,7 @@ router.post('/', async (req, res) => {
       pressureFn,
       travelTimeFn,
       tempBudgetFn,
-      calibratedDStar
+      getCalibratedDStar()
     );
 
     res.json(result);

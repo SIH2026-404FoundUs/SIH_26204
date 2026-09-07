@@ -10,16 +10,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const HISTOGRAM_PATH = path.join(__dirname, '../../../../build/distance-histogram.json');
 
-let DEFAULT_DSTAR = 0.78;
-try {
-  if (fs.existsSync(HISTOGRAM_PATH)) {
-    const data = JSON.parse(fs.readFileSync(HISTOGRAM_PATH, 'utf8'));
-    if (typeof data.calibratedDStar === 'number') {
-      DEFAULT_DSTAR = data.calibratedDStar;
+function getCalibratedDStar() {
+  try {
+    if (fs.existsSync(HISTOGRAM_PATH)) {
+      const data = JSON.parse(fs.readFileSync(HISTOGRAM_PATH, 'utf8'));
+      if (typeof data.calibratedDStar === 'number') {
+        return data.calibratedDStar;
+      }
     }
+  } catch (e) {
+    // fallback
   }
-} catch (e) {
-  DEFAULT_DSTAR = 0.78;
+  return 1.15;
 }
 
 /**
@@ -104,7 +106,7 @@ function buildDateResponse(dateResult) {
  * Main Orchestrator: Receives substitution request, fetches requested info and candidates,
  * applies filters, ranks places, calculates date alternatives, and formats response.
  */
-async function getAlternatives(request, pressureFn, travelTimeFn, budgetFn, dStar = DEFAULT_DSTAR) {
+async function getAlternatives(request, pressureFn, travelTimeFn, budgetFn, dStar = getCalibratedDStar()) {
   const { destId, startDate, origin, interests } = request;
 
   // Step 1: Get requested destination info
