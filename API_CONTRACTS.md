@@ -26,6 +26,7 @@ teammate discover a rename at integration time.
 | `POST /api/community/submissions` | Pranay/Sathvik | auth required; `{name, lat, lng, description?, photos?}` | 201 `{success:true, submission}` | 400 missing params; 403 `POV_VERIFIED_VISIT_REQUIRED` (no verified visit anywhere yet); 409 `COMMUNITY_DUPLICATE_DESTINATION`; 429 `COMMUNITY_RATE_LIMIT_EXCEEDED`. **Known gap**: dedup only checks other community submissions, not Ananya's seeded destinations — no unified Mongo `Destination` model exists yet |
 | `GET /api/community/submissions/queued` | Pranay/Sathvik | auth required, `role:"authority"` | 200 `[submission, ...]` | 403 if not authority |
 | `POST /api/community/submissions/:id/review` | Pranay/Sathvik | auth required, `role:"authority"`; `{action:"approve"\|"reject", rejectionReason?}` | 200 `{success:true, action, submission, destination?}` (destination only on approve) | 400 invalid action; 403 not authority; 404 submission not found/already processed |
+| `GET /api/v1/offers` | Pranay/Sathvik | `?destId` (required) | 200 `[offer, ...]` — open, unexpired offers only | 400 missing `destId` |
 | `POST /api/v1/offers` | Pranay/Sathvik | auth required, `role:"operator"\|"authority"`; `{businessId, destId, date, originalPrice?, discountPct?, durationMinutes?}` | 201 `{offer, notified}` — `notified` is the matched-waitlist count | 400 missing params; 403 wrong role |
 | `POST /api/v1/offers/:id/claim` | Pranay/Sathvik | auth required | 200 `{success:true, offer}` — the atomic single-winner claim | 400 missing params; 409 `already_claimed` |
 | `POST /api/v1/waitlist` | Pranay/Sathvik | auth required; `{destId, businessId?, windowFrom, windowTo, maxPriceINR?, travellers?}` | 201 the created waitlist doc | 400 missing params |
@@ -33,6 +34,14 @@ teammate discover a rename at integration time.
 | `DELETE /api/v1/waitlist/:id` | Pranay/Sathvik | auth required | 200 the cancelled waitlist doc | 400 not found/not owned; 404 |
 | `GET /api/v1/alerts` | Pranay/Sathvik | `?destId` (required), `?kind?` | 200 `[{destId, kind, severity, body, sourceUrl, sourceName, validFrom, validTo, fetchedAt}, ...]` — public, no envelope | 400 missing `destId` |
 | `POST /api/v1/alerts` | Pranay/Sathvik | auth required, `role:"authority"`; `{destId, kind, body, sourceUrl, sourceName, severity?, validFrom?, validTo}` | 200 `{success:true, alert}` — idempotent upsert on `sha256(destId+kind+normalisedBody)` | 400 missing params or `ALERT_ATTRIBUTION_REQUIRED` if `sourceUrl`/`sourceName` empty; 403 not authority |
+| `GET /api/v1/businesses/search` | Pranay/Sathvik | `?destId` (required), `?type?` | 200 `[business, ...]` sorted by `growthRank` desc, each carrying `growthRank`/`growthMultipliers` — wraps the existing `growthRanking.js` formula, no re-implementation | 400 missing `destId` |
+| `GET /api/v1/users/:id/preferences` | Pranay/Sathvik | none | 200 `{interests, budgetBand, languages}` | 404 unknown user |
+| `GET /api/v1/safety/emergency-contacts/:destId` | Pranay/Sathvik | none — public | 200 district-keyed contacts + statewide `defaults` | — (unknown destId falls back to a general/India entry, never 404) |
+| `POST /api/v1/safety/trips/share` | Pranay/Sathvik | auth required; `{tripId, destId, title?, startDate?, endDate?, stops?}` | 201 `{success:true, shareToken, expiresAt, record}` | 400 missing params |
+| `GET /api/v1/safety/trips/share/:token` | Pranay/Sathvik | none — public, read-only, PII-minimized projection | 200 `{success:true, tripProjection}` | 404 unknown token; 410 expired/revoked |
+| `POST /api/v1/safety/trips/share/:token/revoke` | Pranay/Sathvik | auth required, must be the token's owner | 200 `{success:true, isRevoked:true}` | 400 missing params |
+| `POST /api/v1/safety/complaints` | Pranay/Sathvik | auth required; `{destId, businessId?, category?, text, photos?}` | 201 `{success:true, complaint, disclaimer}` — disclaimer explicitly states no auto-forwarding to any government body | 400 missing params |
+| `GET /api/v1/safety/complaints/mine` | Pranay/Sathvik | auth required | 200 `[complaint, ...]` | — |
 | `POST /api/availability/:id` | Bharani | `{date, units, ...}` | `{ok: true}` | 400 |
 
 ## Naming contract
