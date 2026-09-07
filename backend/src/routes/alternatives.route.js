@@ -58,31 +58,32 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ ok: false, error: 'origin, destId, startDate, endDate are required' });
   }
 
-  const pressureFn = async (id, date) => {
-    const res = await getPressure(id, date);
-    if (typeof res === 'number') return { score: res, components: null };
-    if (res && typeof res === 'object') {
-      return {
-        score: res.score ?? 0.5,
-        components: res.components || null,
-        dateVaryingSubtotal: res.dateVaryingSubtotal,
-        staticSubtotal: res.staticSubtotal,
-        dropped: res.dropped || [],
-        degraded: res.degraded || [],
-        lowConfidence: res.lowConfidence || false,
-        stale: res.stale || false
-      };
-    }
-    return { score: 0.5, components: null };
-  };
+  try {
+    const pressureFn = async (id, date) => {
+      const res = await getPressure(id, date);
+      if (typeof res === 'number') return { score: res, components: null };
+      if (res && typeof res === 'object') {
+        return {
+          score: res.score ?? 0.5,
+          components: res.components || null,
+          dateVaryingSubtotal: res.dateVaryingSubtotal,
+          staticSubtotal: res.staticSubtotal,
+          dropped: res.dropped || [],
+          degraded: res.degraded || [],
+          lowConfidence: res.lowConfidence || false,
+          stale: res.stale || false
+        };
+      }
+      return { score: 0.5, components: null };
+    };
 
-  const result = await getAlternatives(
-    { origin, destId, startDate, endDate, travellers, budgetINR, interests },
-    pressureFn,
-    travelTimeFn,
-    tempBudgetFn,
-    calibratedDStar
-  );
+    const result = await getAlternatives(
+      { origin, destId, startDate, endDate, travellers, budgetINR, interests },
+      pressureFn,
+      travelTimeFn,
+      tempBudgetFn,
+      calibratedDStar
+    );
 
     res.json(result);
   } catch (error) {
