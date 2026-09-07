@@ -70,10 +70,12 @@ export async function verifyVisit(params, models = {}) {
     };
   }
 
-  // Step 1: Resolve business and verify povSecret exists
+  // Step 1: Resolve business and verify povSecret exists.
+  // povSecret has `select: false` on the schema, so it must be re-selected
+  // explicitly here or every verification fails with POV_SECRET_MISSING.
   let business = null;
   if (BusinessModel) {
-    business = await BusinessModel.findById(businessId);
+    business = await BusinessModel.findById(businessId).select("+povSecret");
   }
 
   if (!business) {

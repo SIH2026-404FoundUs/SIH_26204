@@ -40,6 +40,7 @@ describe("Proof-of-Visit (PoV) Service", () => {
     const validCodes = getValidPovCodes(secret, businessId, currentStep);
     expect(validCodes.length).toBe(3);
 
+    const code = generatePovCode(secret, businessId, currentStep);
     const prevCode = generatePovCode(secret, businessId, currentStep - 1);
     const nextCode = generatePovCode(secret, businessId, currentStep + 1);
 
@@ -95,7 +96,11 @@ describe("Proof-of-Visit (PoV) Service", () => {
     const createdAudits = [];
 
     const mockBusinessModel = {
-      findById: async (id) => (id === businessId ? mockBusiness : null),
+      // real Mongoose findById() returns a chainable Query — povSecret has
+      // `select: false` on the schema, so povService.js re-selects it explicitly.
+      findById: (id) => ({
+        select: async () => (id === businessId ? mockBusiness : null),
+      }),
     };
 
     const mockVisitModel = {
@@ -172,7 +177,9 @@ describe("Proof-of-Visit (PoV) Service", () => {
     ];
 
     const mockBusinessModel = {
-      findById: async (id) => (id === businessId ? mockBusiness : null),
+      findById: (id) => ({
+        select: async () => (id === businessId ? mockBusiness : null),
+      }),
     };
 
     const mockVisitModel = {

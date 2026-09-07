@@ -50,7 +50,10 @@ export const login = async (req, res) => {
   try {
     const user = await User.findOne({ email });
 
-    if (!user) {
+    // A user with no passwordHash (e.g. inserted directly into Mongo rather
+    // than through /signup) must fail like any other bad credential, not
+    // crash — bcrypt.compare throws on a non-string hash.
+    if (!user || !user.passwordHash) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
