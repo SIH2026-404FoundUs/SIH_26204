@@ -1,23 +1,92 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, Search, MapPin, Calendar, AlertCircle, Sparkles, RefreshCw } from 'lucide-react';
+import api from '../../lib/api';
 import { useSubstitutionStore } from '../../store/useSubstitutionStore';
 import SwapCard from './SwapCard';
 
-const POPULAR_DESTINATIONS = [
-  { id: 'manali', label: 'Manali, Himachal Pradesh' },
-  { id: 'shimla', label: 'Shimla, Himachal Pradesh' },
-  { id: 'kasauli', label: 'Kasauli, Himachal Pradesh' },
-  { id: 'dalhousie', label: 'Dalhousie, Himachal Pradesh' },
-  { id: 'khajjiar', label: 'Khajjiar, Himachal Pradesh' },
-  { id: 'mcleod_ganj', label: 'McLeod Ganj, Himachal Pradesh' },
-  { id: 'tirthan_valley', label: 'Tirthan Valley, Himachal Pradesh' },
-  { id: 'yadadri', label: 'Yadadri, Telangana' }
+const FALLBACK_DESTINATIONS = [
+  {
+    state: 'Himachal Pradesh',
+    destinations: [
+      { id: 'manali', label: 'Manali, Himachal Pradesh' },
+      { id: 'shimla', label: 'Shimla, Himachal Pradesh' },
+      { id: 'kasauli', label: 'Kasauli, Himachal Pradesh' },
+      { id: 'dalhousie', label: 'Dalhousie, Himachal Pradesh' },
+      { id: 'khajjiar', label: 'Khajjiar, Himachal Pradesh' },
+      { id: 'dharamshala', label: 'Dharamshala, Himachal Pradesh' },
+      { id: 'mcleodganj', label: 'McLeod Ganj, Himachal Pradesh' },
+      { id: 'kasol', label: 'Kasol, Himachal Pradesh' },
+      { id: 'tosh', label: 'Tosh, Himachal Pradesh' },
+      { id: 'jibhi', label: 'Jibhi, Himachal Pradesh' },
+      { id: 'tirthan-valley', label: 'Tirthan Valley, Himachal Pradesh' },
+      { id: 'bir-billing', label: 'Bir Billing, Himachal Pradesh' },
+      { id: 'palampur', label: 'Palampur, Himachal Pradesh' },
+      { id: 'chail', label: 'Chail, Himachal Pradesh' },
+      { id: 'kalpa', label: 'Kalpa, Kinnaur, Himachal Pradesh' },
+      { id: 'chhitkul', label: 'Chhitkul, Kinnaur, Himachal Pradesh' },
+      { id: 'naggar', label: 'Naggar, Himachal Pradesh' },
+      { id: 'solan', label: 'Solan, Himachal Pradesh' },
+      { id: 'spiti-kaza', label: 'Kaza, Spiti Valley, Himachal Pradesh' },
+      { id: 'mandi', label: 'Mandi, Himachal Pradesh' }
+    ]
+  },
+  {
+    state: 'Telangana',
+    destinations: [
+      { id: 'yadapalli-yadadri', label: 'Yadadri, Bhuvanagiri, Telangana' },
+      { id: 'ramappa-temple', label: 'Ramappa Temple, Mulugu, Telangana' },
+      { id: 'thousand-pillar-temple', label: 'Thousand Pillar Temple, Hanamkonda, Telangana' },
+      { id: 'warangal-fort', label: 'Warangal Fort, Telangana' },
+      { id: 'bhadrachalam', label: 'Bhadrachalam, Telangana' },
+      { id: 'charminar-hyderabad', label: 'Charminar, Hyderabad, Telangana' },
+      { id: 'golconda-hyderabad', label: 'Golconda Fort, Hyderabad, Telangana' },
+      { id: 'hussain-sagar-hyderabad', label: 'Hussain Sagar, Hyderabad, Telangana' },
+      { id: 'nagarjuna-sagar', label: 'Nagarjuna Sagar, Nalgonda, Telangana' },
+      { id: 'medak-church', label: 'Medak Cathedral, Medak, Telangana' },
+      { id: 'alampur-jogulamba', label: 'Alampur, Jogulamba Gadwal, Telangana' },
+      { id: 'ananthagiri-hills', label: 'Ananthagiri Hills, Vikarabad, Telangana' },
+      { id: 'bogatha-waterfalls', label: 'Bogatha Waterfalls, Telangana' },
+      { id: 'kondagattu', label: 'Kondagattu, Jagtial, Telangana' },
+      { id: 'kuntala-waterfalls', label: 'Kuntala Waterfalls, Adilabad, Telangana' },
+      { id: 'laknavaram-lake', label: 'Laknavaram Lake, Mulugu, Telangana' }
+    ]
+  }
 ];
+
+/** Helper to group raw API destination objects by state (Himachal Pradesh vs Telangana) */
+function formatDestinationGroups(rawList) {
+  if (!Array.isArray(rawList) || rawList.length === 0) return FALLBACK_DESTINATIONS;
+
+  const hpList = [];
+  const tgList = [];
+
+  rawList.forEach((item) => {
+    const id = item._id || item.id;
+    const label = item.displayName || item.name || id;
+    const stateName = item.state || '';
+    const obj = { id, label };
+
+    if (stateName === 'TG' || stateName.toLowerCase().includes('telangana') || label.toLowerCase().includes('telangana')) {
+      tgList.push(obj);
+    } else {
+      hpList.push(obj);
+    }
+  });
+
+  if (hpList.length === 0 && tgList.length === 0) return FALLBACK_DESTINATIONS;
+
+  return [
+    { state: 'Himachal Pradesh', destinations: hpList },
+    { state: 'Telangana', destinations: tgList }
+  ];
+}
 
 export default function SwapPage() {
   const navigate = useNavigate();
   const { result, isLoading, error, getAlternatives, reset } = useSubstitutionStore();
+
+  const [destinations, setDestinations] = useState(FALLBACK_DESTINATIONS);
 
   const [form, setForm] = useState({
     origin: 'delhi',
@@ -28,8 +97,26 @@ export default function SwapPage() {
     budgetINR: 12000
   });
 
-  // Automatically fetch alternatives on page load for initial preset
+  // Fetch dynamic destination list on component mount
   useEffect(() => {
+    const fetchDestinations = async () => {
+      try {
+        const res = await api.get('/destinations');
+        const data = res.data?.data || res.data;
+        setDestinations(formatDestinationGroups(data));
+      } catch {
+        try {
+          const res2 = await api.get('/places');
+          const data2 = res2.data?.data || res2.data;
+          setDestinations(formatDestinationGroups(data2));
+        } catch {
+          // Fallback to static 36-destination grouped dataset
+          setDestinations(FALLBACK_DESTINATIONS);
+        }
+      }
+    };
+
+    fetchDestinations();
     getAlternatives(form);
   }, []);
 
@@ -122,10 +209,14 @@ export default function SwapPage() {
                 onChange={(e) => handleChange('destId', e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
               >
-                {POPULAR_DESTINATIONS.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.label}
-                  </option>
+                {destinations.map((group) => (
+                  <optgroup key={group.state} label={group.state}>
+                    {group.destinations.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.label}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
