@@ -1,25 +1,40 @@
 # ai-service/app/main.py
 import json
+import logging
 import os
 from datetime import date
+from pathlib import Path
 from typing import Any, Dict, Literal, Optional, Tuple
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from google.adk.runners import InMemoryRunner
 from google.genai import types
 from pydantic import BaseModel, Field
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+# Load the service-local .env before importing the agent. The Agent is created
+# at import time and the Google SDK reads its credentials during construction.
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 from app.agents.travel_agent import travel_agent
 from app.services import trip_drafts
 from app.tools.alternatives import find_alternatives
 from app.tools.pressure import get_pressure
 
-load_dotenv()
+logger = logging.getLogger(__name__)
 
 APP_NAME = "travel_planner"
+
+# What a traveller (or a judge watching the demo) is shown when a plan cannot be
+# produced. The technical cause still travels in "detail" so a captured response
+# is debuggable, but it is never the headline.
+PLAN_FAILED_MESSAGE = (
+    "We couldn't generate your trip plan right now. Please try again in a moment."
+)
 
 # At or above this pressure score the traveller is shown alternatives before a
 # plan is built. The gate is applied here, in Python, rather than being left to
@@ -42,6 +57,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc: StarletteHTTPException):
+    """Let an error carry a user-facing message alongside a technical detail.
+
+    A dict detail is already the response body ({"error": ..., "detail": ...}),
+    so it is emitted as-is; every other detail keeps FastAPI's default
+    {"detail": ...} envelope.
+    """
+    body = exc.detail if isinstance(exc.detail, dict) else {"detail": exc.detail}
+    return JSONResponse(status_code=exc.status_code, content=body, headers=exc.headers)
+
 
 # One runner for the process; sessions are per-request so concurrent plans
 # don't share conversation history.
@@ -181,11 +209,24 @@ async def plan_or_500(req: PlanTripRequest) -> dict:
     try:
         return await run_travel_agent(req)
     except LookupError as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        # The run completed but produced nothing usable: a transient dead end,
+        # not a broken request, so 503 rather than 500.
+        logger.warning("plan failed: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail={"error": PLAN_FAILED_MESSAGE, "detail": str(exc)},
+        ) from exc
     except Exception as exc:
+        # Unclassified, so it may well be our own defect: 500 stays. The full
+        # traceback goes to the server log; the response keeps only the one-line
+        # cause, behind the same user-facing message.
+        logger.exception("agent run failed")
         raise HTTPException(
             status_code=500,
-            detail=f"agent run failed: {type(exc).__name__}: {exc}",
+            detail={
+                "error": PLAN_FAILED_MESSAGE,
+                "detail": f"agent run failed: {type(exc).__name__}: {exc}",
+            },
         ) from exc
 
 
