@@ -10,9 +10,12 @@ from app.tools.routes import calculate_route
 from app.tools.fare import estimate_local_transport
 from app.tools.road import search_road_services
 from app.tools.pressure import get_pressure
-from app.tools.alternatives import find_alternatives
+from app.tools.alternatives import find_alternatives, find_alternative_dates
 from app.tools.trip_cost import calculate_trip_cost
 from app.tools.itinerary import optimize_itinerary
+from app.tools.alerts import get_verified_alerts
+from app.tools.businesses import search_businesses
+from app.tools.user_preferences import get_user_preferences
 
 
 class WeatherInfo(BaseModel):
@@ -105,6 +108,6 @@ travel_agent = Agent(
     calculate_trip_cost only adds up numbers you already have. Call the fare,
     train, hotel and other data tools FIRST, then pass their real values into
     it — never invent a component value or a grand total yourself.""",
-    tools=[get_weather, get_train_availability, search_places, calculate_route, estimate_local_transport, search_road_services, get_pressure, find_alternatives, calculate_trip_cost, optimize_itinerary],
+    tools=[get_weather, get_train_availability, search_places, calculate_route, estimate_local_transport, search_road_services, get_pressure, find_alternatives, find_alternative_dates, get_verified_alerts, search_businesses, get_user_preferences, calculate_trip_cost, optimize_itinerary],
     output_schema=TripSummary,
 )

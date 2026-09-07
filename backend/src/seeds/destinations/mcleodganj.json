@@ -23,7 +23,7 @@
     "nightlife": 0.7,
     "food": 0.9,
     "wildlife": 0.4,
-    "spiritual": 1.0
+    "spiritual": 1
   },
   "nearestRailhead": "PTKC",
   "railheadDistanceKm": 90,
@@ -42,5 +42,6 @@
     "roadSeatsAvail": 35,
     "hotelMedianINR": 2600
   },
-  "seededAt": "2026-09-05T16:16:25.121046Z"
+  "seededAt": "2026-09-05T16:16:25.121046Z",
+  "demoCorridor": true
 }

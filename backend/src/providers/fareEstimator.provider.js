@@ -7,9 +7,15 @@ import fares from '../seeds/fares.json' with { type: 'json' };
 function estimate(city, mode, distanceKm, durationMin = 0) {
   const cityRates = fares[city.toLowerCase()];
 
-  // if we don't have rates for this city, be honest, don't guess
+  // Unknown city -> generic labelled default rather than a hard failure
+  // (spec: "unknown cities must NOT hard-fail"). Still an honest estimate,
+  // just lower confidence since it isn't calibrated to this specific city.
   if (!cityRates) {
-    return fail(`No fare data for city: ${city}`, { source: 'fareEstimator' });
+    cityRates = fares.generic;
+    usedGenericFallback = true;
+    if (!cityRates) {
+      return fail(`No fare data for city: ${city}`, { source: 'fareEstimator' });
+    }
   }
 
   const modeRates = cityRates[mode];

@@ -83,6 +83,11 @@ function buildPlaceResponse(ranked, dStar) {
     dStar: dStar,
     pressure: candidate.pressure,
     travelTimeRatio: candidate.travelTimeRatio,
+    travelTimeHours: candidate.travelTime ?? candidate.travelTimeHours ?? 0,
+    requestedTimeHours: candidate.requestedTimeHours ?? 0,
+    stayCost: candidate.stayCost ?? 0,
+    transportCost: candidate.transportCost ?? 0,
+    totalCost: candidate.totalCost ?? candidate.total ?? 0,
     savingINR: candidate.savingINR ?? 0,
     discountSourceBusinessId: candidate.discountSourceBusinessId || null,
     rank: candidate.rank

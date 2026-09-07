@@ -126,6 +126,7 @@ describe("Proof-of-Visit (PoV) Service", () => {
         createdAudits.push(doc);
         return doc;
       },
+      countDocuments: async () => 0,
     };
 
     const models = {
@@ -221,5 +222,53 @@ describe("Proof-of-Visit (PoV) Service", () => {
     expect(typeof opCodeInfo.code).toBe("string");
     expect(opCodeInfo.code.length).toBe(6);
     expect(opCodeInfo.expiresInSeconds > 0 && opCodeInfo.expiresInSeconds <= 90).toBe(true);
+  });
+
+  describe("Rate Limiting (spec §1.3: applies to attempts, not just successes)", () => {
+    const shimla = { lat: 31.1048, lng: 77.1734 };
+    const mockBusiness = {
+      _id: businessId, povSecret: secret, destId: "shimla",
+      ownerUserId: "owner_123", visitCount: 0, verificationTier: "self-declared",
+      save: async function () { return this; },
+    };
+    const mockBusinessModel = { findById: () => ({ select: async () => mockBusiness }) };
+    const mockVisitModel = { findOne: async () => null, create: async (doc) => ({ _id: "v1", ...doc }) };
+
+    function makeAuditLogWithAttemptCount(count) {
+      // Simulates `count` prior attempts already on record for this user/business.
+      return { create: async (doc) => doc, countDocuments: async () => count };
+    }
+
+    test("below limit (4 prior attempts) — proceeds to normal verification", async () => {
+      const models = { BusinessModel: mockBusinessModel, VisitModel: mockVisitModel, AuditLogModel: makeAuditLogWithAttemptCount(4) };
+      const code = generatePovCode(secret, businessId, currentStep);
+      const result = await verifyVisit({ userId, businessId, code, currentLocation: shimla }, models);
+      expect(result.reasonCode).not.toBe("POV_RATE_LIMIT_USER_EXCEEDED");
+      expect(result.status).toBe("verified");
+    });
+
+    test("exactly at limit (5 prior attempts) — the 6th attempt is rejected", async () => {
+      const models = { BusinessModel: mockBusinessModel, VisitModel: mockVisitModel, AuditLogModel: makeAuditLogWithAttemptCount(5) };
+      const code = generatePovCode(secret, businessId, currentStep);
+      const result = await verifyVisit({ userId, businessId, code, currentLocation: shimla }, models);
+      expect(result.status).toBe("rejected");
+      expect(result.reasonCode).toBe("POV_RATE_LIMIT_USER_EXCEEDED");
+      expect(result.code).toBe(429);
+    });
+
+    test("above limit (9 prior attempts) — still rejected, even with a correct code", async () => {
+      const models = { BusinessModel: mockBusinessModel, VisitModel: mockVisitModel, AuditLogModel: makeAuditLogWithAttemptCount(9) };
+      const code = generatePovCode(secret, businessId, currentStep);
+      const result = await verifyVisit({ userId, businessId, code, currentLocation: shimla }, models);
+      expect(result.status).toBe("rejected");
+      expect(result.reasonCode).toBe("POV_RATE_LIMIT_USER_EXCEEDED");
+    });
+
+    test("no AuditLogModel provided — rate limiting is skipped, not crashed", async () => {
+      const models = { BusinessModel: mockBusinessModel, VisitModel: mockVisitModel };
+      const code = generatePovCode(secret, businessId, currentStep);
+      const result = await verifyVisit({ userId, businessId, code, currentLocation: shimla }, models);
+      expect(result.status).toBe("verified");
+    });
   });
 });

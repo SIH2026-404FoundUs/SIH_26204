@@ -26,6 +26,7 @@ const pressureSchema = new mongoose.Schema(
     degraded: { type: [String], default: [] },
     lowConfidence: { type: Boolean, default: false },
     stale: { type: Boolean, default: false }, // set when served past the 24h freshness window
+    formulaVersion: { type: Number }, // rows without this predate weight-locking; always treated as stale
     computedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }

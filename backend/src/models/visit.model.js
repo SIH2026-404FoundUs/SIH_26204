@@ -12,7 +12,11 @@ const visitSchema = new mongoose.Schema(
     originalDestId: { type: String },
     method: { type: String, default: "rotating-code" },
     codeStep: { type: Number, required: true },
-    status: { type: String, enum: ["verified"], default: "verified" },
+    // Redraft's VISITS contract widens this to "verified" | "rejected" for
+    // schema completeness — verifyVisit() only ever writes "verified" today
+    // (rejections are audit-logged, not persisted as VISITS rows), so this is
+    // additive and changes no existing behavior.
+    status: { type: String, enum: ["verified", "rejected"], default: "verified" },
     verifiedAt: { type: Date, default: Date.now },
     location: {
       lat: Number,

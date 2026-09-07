@@ -16,12 +16,12 @@
   },
   "trackingTier": "tracked",
   "attrs": {
-    "snow": 0.0,
+    "snow": 0,
     "trek": 0.1,
     "riverside": 0.1,
-    "heritage": 1.0,
+    "heritage": 1,
     "nightlife": 0.8,
-    "food": 1.0,
+    "food": 1,
     "wildlife": 0.2,
     "spiritual": 0.7
   },
@@ -42,5 +42,6 @@
     "roadSeatsAvail": 80,
     "hotelMedianINR": 2800
   },
-  "seededAt": "2026-09-05T16:16:25.121046Z"
+  "seededAt": "2026-09-05T16:16:25.121046Z",
+  "demoCorridor": true
 }

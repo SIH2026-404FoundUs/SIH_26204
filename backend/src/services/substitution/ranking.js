@@ -87,6 +87,15 @@ async function rankCandidates(candidates, requestedDest, dStar, date, pressureFn
       const res = await pressureFn(candId, date);
       cand.pressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
     }
+    if (typeof budgetFn === 'function') {
+      const candId = cand._id || cand.id;
+      const bRes = await budgetFn(candId, date);
+      if (bRes) {
+        cand.stayCost = bRes.stayCost || 0;
+        cand.transportCost = bRes.transportCost || 0;
+        cand.totalCost = bRes.total || 0;
+      }
+    }
     cand.savingINR = await estimateSaving(requestedDest, cand, date, budgetFn);
   }
 
