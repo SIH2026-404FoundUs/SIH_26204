@@ -83,6 +83,16 @@ class ItineraryDay(BaseModel):
 class ItineraryInfo(BaseModel):
     days: List[ItineraryDay] = Field(default_factory=list)
 
+class BusinessInfo(BaseModel):
+    # growthRank/growthMultipliers come back already computed by the backend
+    # ranking -> copy them through untouched, don't recompute or reorder.
+    # An empty `businesses` list is a real state (none onboarded there yet),
+    # not a gap to fill with invented names.
+    name: Optional[str] = None
+    type: Optional[str] = None
+    growthRank: Optional[float] = None
+    growthMultipliers: Optional[dict] = None
+
 class TripSummary(BaseModel):
     weather: Optional[WeatherInfo] = None
     route: Optional[RouteInfo] = None
@@ -94,6 +104,7 @@ class TripSummary(BaseModel):
     alternatives: Optional[AlternativesInfo] = None
     costBreakdown: Optional[CostBreakdown] = None
     itinerary: Optional[ItineraryInfo] = None
+    businesses: List[BusinessInfo] = Field(default_factory=list)
     summary: str = Field(description="One or two sentence plain-language summary")
 
 
