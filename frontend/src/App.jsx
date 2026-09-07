@@ -3,7 +3,7 @@ import { Loader2, LockKeyhole, LogOut, Mail, MapPin, UserRound } from 'lucide-re
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from './store/useAuthStore'
 import PressureHeatmap from './components/pressure/PressureHeatmap'
-import TripPlanner from './components/planner/TripPlanner'
+import { SwapPage, TripConfirmation } from './components/swap'
 
 function Header() {
   const location = useLocation()
@@ -23,10 +23,11 @@ function Header() {
           <Link to="/pressure" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/pressure' ? 'text-indigo-600' : 'text-slate-600'}`}>
             Pressure
           </Link>
-          <Link to="/plan" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/plan' ? 'text-indigo-600' : 'text-slate-600'}`}>
-            Plan a trip
+          <Link to="/swap" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/swap' ? 'text-indigo-600' : 'text-slate-600'}`}>
+            Swap Engine
           </Link>
           {authUser ? (
+
             <>
               <span className="px-2 text-slate-600">{authUser.fullName}</span>
               <button type="button" onClick={logout} className="flex items-center gap-2 rounded-lg px-4 py-2 text-slate-600 transition hover:bg-slate-100">
@@ -166,18 +167,8 @@ function App() {
               </main>
             }
           />
-          {/* Open — no auth, mirrors /pressure. Talks to the agent orchestrator (ai-service), not the Express backend. */}
-          <Route
-            path="/plan"
-            element={
-              <main className="flex-1 bg-slate-50 px-6 py-12">
-                <div className="mx-auto max-w-3xl">
-                  <h1 className="mb-6 text-2xl font-semibold tracking-tight text-slate-900">Plan a Trip</h1>
-                  <TripPlanner />
-                </div>
-              </main>
-            }
-          />
+          <Route path="/swap" element={<SwapPage />} />
+          <Route path="/trip-confirmation" element={<TripConfirmation />} />
           <Route path="/login" element={authUser ? <Navigate to="/" replace /> : <AuthCard mode="login" />} />
           <Route path="/signup" element={authUser ? <Navigate to="/" replace /> : <AuthCard mode="signup" />} />
           <Route path="*" element={<Navigate to="/" replace />} />
