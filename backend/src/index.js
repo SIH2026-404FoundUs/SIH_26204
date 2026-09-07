@@ -23,6 +23,7 @@ import waitlistRoutes from "./routes/waitlist.route.js";
 import alertsRoutes from "./routes/alerts.route.js";
 import businessesRoutes from "./routes/businesses.route.js";
 import usersRoutes from "./routes/users.route.js";
+import safetyRoutes from "./routes/safety.route.js";
 
 // dotenv.config() with no path loads .env from process.cwd(), which silently
 // finds nothing (MONGODB_URI etc. come back undefined) if the server is started
@@ -62,6 +63,7 @@ app.use("/api/v1/waitlist", waitlistRoutes);
 app.use("/api/v1/alerts", alertsRoutes);
 app.use("/api/v1/businesses", businessesRoutes);
 app.use("/api/v1/users", usersRoutes);
+app.use("/api/v1/safety", safetyRoutes);
 
 app.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);

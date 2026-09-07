@@ -1,17 +1,15 @@
-import React from 'react';
-import { MapPin, TrendingDown, IndianRupee, Clock, Sparkles, Check, Compass } from 'lucide-react';
+import { MapPin, TrendingDown, Clock } from 'lucide-react'
+import Card from '../ui/Card'
+import Button from '../ui/Button'
+import { getDestinationLabel } from '../../lib/destinations'
 
 /**
- * PlaceSwapVariant component displays a single alternative destination recommendation.
- * Shows attribute distance, travel-time delta, pressure delta, and rupee savings side-by-side.
- *
- * @param {Object} props
- * @param {Object} props.place - Candidate destination object from backend response
- * @param {number} [props.requestedPressure=0.8] - Pressure score of the requested destination
- * @param {Function} [props.onAccept] - Optional callback when user accepts this place alternative
+ * A single alternative destination for a crowded trip. All numbers here come
+ * straight from the substitution engine's response -- nothing on this card is
+ * invented client-side.
  */
 export default function PlaceSwapVariant({ place, requestedPressure = 0.8, onAccept }) {
-  if (!place) return null;
+  if (!place) return null
 
   const {
     destId,
@@ -114,19 +112,11 @@ export default function PlaceSwapVariant({ place, requestedPressure = 0.8, onAcc
             {hasTravelHours ? `${ratioVal.toFixed(1)}x (${travelDeltaText})` : travelDeltaText}
           </span>
         </div>
-
-        {/* 3. Pressure Delta */}
-        <div className="flex flex-col items-center text-center p-1.5 rounded-lg bg-white shadow-2xs border border-slate-100">
-          <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
-            <TrendingDown size={11} className="text-emerald-500" />
-            Crowd
-          </span>
-          <span className="mt-0.5 text-sm font-extrabold text-emerald-600">
-            -{pressureReliefPercent}%
-          </span>
-          <span className="text-[10px] text-slate-400">Score {currentPressurePercent}%</span>
+        <div>
+          <dt className="flex items-center justify-center gap-1 text-slate-400"><TrendingDown size={11} aria-hidden="true" />Crowding</dt>
+          <dd className="mt-0.5 font-semibold text-emerald-600">-{pressureReliefPercent}pt ({currentPressurePercent}%)</dd>
         </div>
-      </div>
+      </dl>
 
       {/* Budget Breakdown Pills */}
       {(stayCost > 0 || transportCost > 0) && (
