@@ -66,7 +66,7 @@ async function filterRelief(candidates, requestedDest, date, pressureFn, relaxed
   const reqId = requestedDest?._id || requestedDest?.id;
   const reqRes = await pressureFn(reqId, date);
   const requestedPressure = typeof reqRes === 'number' ? reqRes : (reqRes?.score ?? 0.5);
-  const threshold = relaxed ? 0.20 : 0.30;
+  const threshold = relaxed ? (requestedPressure > 0.65 ? 0.10 : 0.20) : 0.30;
   const filtered = [];
 
   for (const candidate of candidates) {
