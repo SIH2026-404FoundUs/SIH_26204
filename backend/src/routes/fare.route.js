@@ -11,7 +11,9 @@ router.get("/", (req, res) => {
   if (!mode) return res.status(400).json(fail("mode is required"));
   if (!distanceKm) return res.status(400).json(fail("distanceKm is required"));
 
-  const result = estimate(city, mode, Number(distanceKm), durationMin !== undefined ? Number(durationMin) : 0);
+  // durationMin is optional — Number(undefined) is NaN, which would poison
+  // the whole fare calculation, so fall back to 0 (no per-minute component)
+  const result = estimate(city, mode, Number(distanceKm), Number(durationMin) || 0);
   res.json(result);
 });
 

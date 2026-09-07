@@ -1,10 +1,18 @@
 import asyncio
+import sys
 
 from dotenv import load_dotenv
 from google.adk.runners import InMemoryRunner
 from google.genai import types
 
 from app.agents.travel_agent import travel_agent
+
+# Event payloads carry non-cp1252 characters (e.g. the rupee sign in fare
+# summaries), which crash print() on the default Windows console encoding.
+# reconfigure() exists on 3.7+ TextIOWrapper; guard it in case stdout has
+# been replaced by something that doesn't support it.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 load_dotenv()
 

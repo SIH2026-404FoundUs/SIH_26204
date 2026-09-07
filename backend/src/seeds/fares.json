@@ -8,31 +8,16 @@
     "cab": {
       "base": 50,
       "perKm": 16,
-      "perMin": 2,
-      "minFare": 80
+      "minFare": 80,
+      "perMin": 2
     },
     "metro": {
       "slabs": [
-        [
-          2,
-          10
-        ],
-        [
-          5,
-          20
-        ],
-        [
-          12,
-          30
-        ],
-        [
-          21,
-          40
-        ],
-        [
-          32,
-          50
-        ]
+        [2, 10],
+        [5, 20],
+        [12, 30],
+        [21, 40],
+        [32, 50]
       ]
     },
     "bus": {
@@ -48,8 +33,8 @@
     "cab": {
       "base": 45,
       "perKm": 14,
-      "perMin": 2,
-      "minFare": 70
+      "minFare": 70,
+      "perMin": 1.5
     },
     "bus": {
       "flat": 15
@@ -64,8 +49,8 @@
     "cab": {
       "base": 60,
       "perKm": 20,
-      "perMin": 2.5,
-      "minFare": 100
+      "minFare": 100,
+      "perMin": 2.5
     },
     "bus": {
       "flat": 10
@@ -80,8 +65,8 @@
     "cab": {
       "base": 70,
       "perKm": 22,
-      "perMin": 2.5,
-      "minFare": 120
+      "minFare": 120,
+      "perMin": 3
     },
     "bus": {
       "flat": 15
@@ -96,8 +81,8 @@
     "cab": {
       "base": 55,
       "perKm": 18,
-      "perMin": 2,
-      "minFare": 90
+      "minFare": 90,
+      "perMin": 2
     },
     "bus": {
       "flat": 12
