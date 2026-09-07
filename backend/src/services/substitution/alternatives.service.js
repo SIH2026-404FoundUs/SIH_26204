@@ -1,13 +1,13 @@
 import { applyAllFilters } from './filters.js';
 import { rankCandidates } from './ranking.js';
 import { findDateAlternatives } from './dateSubstitution.js';
-import { Destination } from '../../models/destination.model.js';
+import { getDestination, loadDestinations } from '../pressure/seed.js';
 
 /**
  * Retrieves details, pressure score, and breakdown for the requested destination.
  */
 async function getRequestedInfo(destId, date, pressureFn) {
-  const dest = await Destination.findById(destId);
+  const dest = getDestination(destId);
   const pressure = typeof pressureFn === 'function' ? await pressureFn(destId, date) : 0;
 
   const breakdown = {
@@ -30,10 +30,9 @@ async function getRequestedInfo(destId, date, pressureFn) {
  * Fetches all tracked candidate destinations excluding the requested destination.
  */
 async function getCandidateDests(requestedDestId) {
-  return await Destination.find({
-    trackingTier: 'tracked',
-    _id: { $ne: requestedDestId }
-  });
+  return loadDestinations().filter(
+    (d) => d.trackingTier === 'tracked' && d._id !== requestedDestId
+  );
 }
 
 /**
@@ -79,7 +78,7 @@ async function getAlternatives(request, pressureFn, travelTimeFn, budgetFn, dSta
   const requested = await getRequestedInfo(destId, startDate, pressureFn);
 
   // Step 2: Fetch full requested destination document for distance calculation
-  const requestedDestDoc = await Destination.findById(destId);
+  const requestedDestDoc = getDestination(destId);
   const requestedDestObj = requestedDestDoc || { _id: destId, displayName: requested.displayName };
 
   // Step 3: Get candidate destinations
