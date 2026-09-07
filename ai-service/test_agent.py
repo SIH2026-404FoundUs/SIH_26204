@@ -1,7 +1,12 @@
 import asyncio
+from pathlib import Path
 import sys
 
 from dotenv import load_dotenv
+
+# Load credentials before importing the agent; Agent construction reads them.
+load_dotenv(Path(__file__).resolve().parent / ".env")
+
 from google.adk.runners import InMemoryRunner
 from google.genai import types
 
@@ -13,9 +18,6 @@ from app.agents.travel_agent import travel_agent
 # been replaced by something that doesn't support it.
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
-
-load_dotenv()
-
 
 PROMPT = (
     "I'm traveling from Delhi to Manali on train number 12952 from NDLS to MMCT "

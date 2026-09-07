@@ -1,6 +1,7 @@
 # ai-service/app/agents/travel_agent.py
 from pydantic import BaseModel, Field
 from typing import List, Optional
+import os
 from google.adk.agents import Agent
 from app.tools.weather import get_weather
 from app.tools.trains import get_train_availability
@@ -95,10 +96,10 @@ class TripSummary(BaseModel):
 
 travel_agent = Agent(
     name="travel_planner",
-    model="gemini-3.6-flash",
+    model=os.environ.get("MODEL", "gemini-2.5-flash"),
     instruction="""You help plan trips in India. Use the available tools to
-    get real data. Never invent prices, distances, availability, or waitlist
-    numbers. Only fill in the schema fields you have real tool data for —
+    get real data. Never invent prices, distances, durations, availability, or
+    waitlist numbers. Only fill in the schema fields you have real tool data for —
     leave others as null rather than guessing.
 
     calculate_trip_cost only adds up numbers you already have. Call the fare,

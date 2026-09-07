@@ -15,7 +15,16 @@ def estimate_local_transport(city: str, mode: str, distance_km: float, duration_
             auto, metro, and bus, which are not time-priced.
 
     Returns:
-        A dict with the estimated fare in INR.
+        A dict with the estimated fare in INR, in the standard envelope shape:
+        {"ok": True, "data": {"mode", "distanceKm", "fareINR"}, "meta": {...}},
+        or {"ok": False, "error": str, "meta": {...}} when no rates exist for
+        the city or mode.
+
+        meta carries "durationIncluded": False when mode is "cab" and no
+        duration was supplied. That marks the fare as a distance-only floor
+        with the per-minute component missing — the real fare is higher. Do
+        not present such a number as the expected cab fare without saying it
+        excludes the time component. The field is absent otherwise.
     """
     return get("/api/fare", {
         "city": city,
