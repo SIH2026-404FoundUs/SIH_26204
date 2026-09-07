@@ -1,33 +1,24 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-import { Destination } from '../backend/src/models/destination.model.js';
-import { calculateDistance, computeWeights } from '../backend/src/services/substitution/distance.js';
-import { getStats } from '../backend/src/services/substitution/standardize.js';
-import { connectDB } from '../backend/src/lib/db.js';
+import { computeWeights, weightedEuclidean } from '../backend/src/services/substitution/distance.js';
+import { getStats, getTrackedDestinations, zScore } from '../backend/src/services/substitution/standardize.js';
 import { applyAllFilters } from '../backend/src/services/substitution/filters.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables
-dotenv.config({ path: path.join(__dirname, '../backend/.env') });
-dotenv.config({ path: path.join(__dirname, './backend/.env') });
-dotenv.config();
-
 /**
- * Connects to MongoDB and fetches all tracked destinations.
+ * Loads all tracked destinations from seed JSON files.
  */
 async function loadDestinations() {
-  await connectDB();
-  const destinations = await Destination.find({ trackingTier: 'tracked' });
-  console.log(`Loaded ${destinations.length} tracked destinations from database.`);
+  const destinations = getTrackedDestinations();
+  console.log(`Loaded ${destinations.length} tracked destinations from JSON seed files.`);
   return destinations;
 }
 
 /**
- * Computes pairwise distances across all destinations using uniform attribute weights.
+ * Computes pairwise distances across all destinations using uniform attribute weights (weighted Euclidean).
  */
 async function computePairwiseDistances(destinations) {
   const n = destinations.length;
@@ -35,13 +26,21 @@ async function computePairwiseDistances(destinations) {
   const flatDistances = [];
   const weights = computeWeights(null); // Uniform weights (1/8 for each attribute)
 
+  const zScores = {};
+  for (const dest of destinations) {
+    const key = dest._id || dest.id;
+    zScores[key] = await zScore(dest);
+  }
+
   for (let i = 0; i < n; i++) {
+    const idI = destinations[i]._id || destinations[i].id;
     for (let j = 0; j < n; j++) {
       if (i === j) {
         matrix[i][j] = 0;
         continue;
       }
-      const dist = await calculateDistance(destinations[i], destinations[j], weights);
+      const idJ = destinations[j]._id || destinations[j].id;
+      const dist = weightedEuclidean(zScores[idI], zScores[idJ], weights);
       matrix[i][j] = dist;
       if (i < j) {
         flatDistances.push(dist);

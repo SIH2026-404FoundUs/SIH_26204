@@ -37,11 +37,12 @@ async function filterSimilarity(candidates, requestedDest, dStar, interests) {
 async function filterReachability(candidates, origin, requestedDest, travelTimeFn) {
   if (!Array.isArray(candidates) || typeof travelTimeFn !== 'function') return [];
 
-  const requestedTime = await travelTimeFn(origin, requestedDest);
+  const requestedId = requestedDest._id || requestedDest.id || requestedDest;
+  const requestedTime = await travelTimeFn(origin, requestedId);
   const filtered = [];
 
   for (const candidate of candidates) {
-    const candidateTime = await travelTimeFn(origin, candidate);
+    const candidateTime = await travelTimeFn(origin, candidate._id || candidate.id);
     if (candidateTime <= 1.3 * requestedTime) {
       const candObj = typeof candidate.toObject === 'function' ? candidate.toObject() : candidate;
       candObj.travelTimeRatio = requestedTime > 0 ? candidateTime / requestedTime : 1;
@@ -63,13 +64,15 @@ async function filterRelief(candidates, requestedDest, date, pressureFn, relaxed
   if (!Array.isArray(candidates) || typeof pressureFn !== 'function') return [];
 
   const reqId = requestedDest?._id || requestedDest?.id;
-  const requestedPressure = await pressureFn(reqId, date);
+  const reqRes = await pressureFn(reqId, date);
+  const requestedPressure = typeof reqRes === 'number' ? reqRes : (reqRes?.score ?? 0.5);
   const threshold = relaxed ? 0.20 : 0.30;
   const filtered = [];
 
   for (const candidate of candidates) {
     const candId = candidate?._id || candidate?.id;
-    const candidatePressure = await pressureFn(candId, date);
+    const candRes = await pressureFn(candId, date);
+    const candidatePressure = typeof candRes === 'number' ? candRes : (candRes?.score ?? 0.5);
 
     if (candidatePressure <= requestedPressure - threshold) {
       const candObj = typeof candidate.toObject === 'function' ? candidate.toObject() : candidate;
