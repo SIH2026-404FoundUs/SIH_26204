@@ -1,3 +1,5 @@
+import path from "path";
+import { fileURLToPath } from "url";
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -14,8 +16,20 @@ import fareRoutes from "./routes/fare.route.js";
 import roadRoutes from "./routes/road.route.js";
 import geocodeRoutes from "./routes/geocode.route.js";
 import alternativesRoutes from "./routes/alternatives.route.js";
+import visitsRoutes from "./routes/visits.route.js";
+import communityRoutes from "./routes/community.route.js";
+import offersRoutes from "./routes/offers.route.js";
+import waitlistRoutes from "./routes/waitlist.route.js";
+import alertsRoutes from "./routes/alerts.route.js";
+import businessesRoutes from "./routes/businesses.route.js";
+import usersRoutes from "./routes/users.route.js";
 
-dotenv.config();
+// dotenv.config() with no path loads .env from process.cwd(), which silently
+// finds nothing (MONGODB_URI etc. come back undefined) if the server is started
+// from the repo root instead of backend/. Load backend/.env explicitly so
+// `node backend/src/index.js` works the same from either directory.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, "../.env") });
 
 const app = express();
 
@@ -41,6 +55,13 @@ app.use("/api/fare", fareRoutes);
 app.use("/api/road", roadRoutes);
 app.use("/api/geocode", geocodeRoutes);
 app.use("/api/alternatives", alternativesRoutes);
+app.use("/api/v1/visits", visitsRoutes);
+app.use("/api/community", communityRoutes); // spec §3.1 literally: "POST /community/submissions"
+app.use("/api/v1/offers", offersRoutes);
+app.use("/api/v1/waitlist", waitlistRoutes);
+app.use("/api/v1/alerts", alertsRoutes);
+app.use("/api/v1/businesses", businessesRoutes);
+app.use("/api/v1/users", usersRoutes);
 
 app.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);

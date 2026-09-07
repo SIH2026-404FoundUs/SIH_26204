@@ -5,7 +5,7 @@
 import DestinationPressure from "../../models/destinationPressure.model.js";
 import { getDestination, calendarRow } from "./seed.js";
 import { collect } from "./collectors.js";
-import { assembleRow } from "./engine.js";
+import { assembleRow, FORMULA_VERSION } from "./engine.js";
 import { realProviders } from "./realProviders.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -14,7 +14,16 @@ const LIVE_TIMEOUT_MS = 4000; // spec §7: short budget, never sit on the demo p
 const providers = realProviders;
 const seed = { calendarRow };
 
-const isFresh = (row) => Date.now() - new Date(row.computedAt).getTime() < DAY_MS;
+// A row is fresh only if it's both recent AND computed under the current
+// locked formula. A row on an older formulaVersion (e.g. Ananya's seed
+// history, computed before the weights were locked) fails this regardless of
+// how recent its computedAt is -- it must never be reported as current. This
+// also fixes getPressureMap(), which never recomputes live (by design, so the
+// demo path never blocks on a five-provider fetch) but must not silently
+// serve pre-lock-weight rows as if they were fine.
+const isFresh = (row) =>
+  Date.now() - new Date(row.computedAt).getTime() < DAY_MS &&
+  row.formulaVersion === FORMULA_VERSION;
 const withTimeout = (p, ms) =>
   Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error("timeout")), ms))]);
 

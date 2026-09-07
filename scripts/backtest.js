@@ -27,8 +27,8 @@ const DATES = [
   { date: "2026-12-10", note: "lean — mid-december weekday" },
   { date: "2026-11-18", note: "lean — mid-november weekday" },
   { date: "2026-09-15", note: "lean — mid-september weekday" },
-  { date: "2026-10-20", note: "peak — bathukamma/diwali (TG-only, 0.9)" },
-  { date: "2027-01-14", note: "peak — sankranti (TG-only, 0.95)" },
+  { date: "2026-10-20", note: "peak — dussehra (national, 1.0)" },
+  { date: "2027-01-14", note: "peak — sankranti (TG-only, 1.0)" },
 ];
 
 const median = (xs) => {

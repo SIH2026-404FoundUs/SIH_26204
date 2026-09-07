@@ -16,18 +16,18 @@
   },
   "trackingTier": "tracked",
   "attrs": {
-    "snow": 0.0,
+    "snow": 0,
     "trek": 0.1,
     "riverside": 0.7,
-    "heritage": 1.0,
+    "heritage": 1,
     "nightlife": 0.1,
     "food": 0.6,
     "wildlife": 0.2,
-    "spiritual": 1.0
+    "spiritual": 1
   },
   "nearestRailhead": "ALPR",
   "railheadDistanceKm": 10,
-  "railSignalConfidence": 0.85,
+  "railSignalConfidence": 0.6,
   "roadAccess": {
     "operators": [
       "TSRTC"

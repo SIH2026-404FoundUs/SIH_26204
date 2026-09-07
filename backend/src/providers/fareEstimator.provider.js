@@ -1,11 +1,21 @@
 import { ok, fail } from '../lib/envelope.js';
 import fares from '../seeds/fares.json' with { type: 'json' };
-function estimate(city, mode, distanceKm) {
+// durationMin defaults to 0 so existing callers keep working, but note:
+// for mode 'cab' that default silently drops the per-minute component
+// and under-quotes the fare. Callers that can supply a trip duration
+// (e.g. from a routes/directions leg) should always pass it.
+function estimate(city, mode, distanceKm, durationMin = 0) {
   const cityRates = fares[city.toLowerCase()];
 
-  // if we don't have rates for this city, be honest, don't guess
+  // Unknown city -> generic labelled default rather than a hard failure
+  // (spec: "unknown cities must NOT hard-fail"). Still an honest estimate,
+  // just lower confidence since it isn't calibrated to this specific city.
   if (!cityRates) {
-    return fail(`No fare data for city: ${city}`, { source: 'fareEstimator' });
+    cityRates = fares.generic;
+    usedGenericFallback = true;
+    if (!cityRates) {
+      return fail(`No fare data for city: ${city}`, { source: 'fareEstimator' });
+    }
   }
 
   const modeRates = cityRates[mode];
@@ -15,9 +25,18 @@ function estimate(city, mode, distanceKm) {
 
   let fareINR;
 
-  if (mode === 'auto' || mode === 'cab') {
+  if (mode === 'auto') {
     // base + per-km cost, but never below the minimum fare
     fareINR = Math.max(modeRates.minFare, modeRates.base + modeRates.perKm * distanceKm);
+
+  } else if (mode === 'cab') {
+    // cabs also charge for time spent in the vehicle, not just distance.
+    // perMin is optional in the seed data — treat a missing rate as 0.
+    const perMin = modeRates.perMin ?? 0;
+    fareINR = Math.max(
+      modeRates.minFare,
+      modeRates.base + modeRates.perKm * distanceKm + perMin * durationMin
+    );
 
   } else if (mode === 'metro') {
     // slabs are [maxDistanceForThisPrice, price] pairs, in order —
@@ -35,7 +54,12 @@ function estimate(city, mode, distanceKm) {
   // this is always an estimate, never a live price — mark it as such
   return ok(
     { mode, distanceKm, fareINR: Math.round(fareINR) },
-    { source: 'fareEstimator', estimate: true, confidence: 'high' }
+    {
+      source: 'fareEstimator',
+      estimate: true,
+      confidence: usedGenericFallback ? 'low' : 'high',
+      ...(usedGenericFallback ? { note: `no city-specific rates for "${city}"; used generic fallback` } : {}),
+    }
   );
 }
 
