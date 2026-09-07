@@ -8,7 +8,7 @@ export async function geocode(address) {
       {
         params: {
           address,
-          key: process.env.GOOGE_GEOCODE_API_KEY
+          key: process.env.GOOGLE_GEOCODE_API_KEY
         }
       }
     );
