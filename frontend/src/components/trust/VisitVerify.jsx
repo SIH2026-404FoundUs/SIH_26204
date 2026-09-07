@@ -1,9 +1,13 @@
 import { useState } from 'react'
-import { Loader2, ShieldCheck } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 import { useTrustStore } from '../../store/useTrustStore'
+import PageHeader from '../ui/PageHeader'
+import Card from '../ui/Card'
+import Button from '../ui/Button'
+import Alert from '../ui/Alert'
+import FormField, { inputClass } from '../ui/FormField'
 
-// Traveller-side half of Proof-of-Visit: enter the business ID and the
-// 6-digit rotating code the operator's device is showing right now.
+/** Confirms a real visit happened, using the 6-digit code the business is showing right now. */
 export default function VisitVerify() {
   const { verifyVisit, isVerifying, lastVisitResult, visitError } = useTrustStore()
   const [businessId, setBusinessId] = useState('')
@@ -18,59 +22,38 @@ export default function VisitVerify() {
 
   return (
     <div className="mx-auto max-w-md">
-      <div className="mb-6 flex items-center gap-2 text-slate-900">
-        <ShieldCheck size={22} className="text-indigo-600" />
-        <h1 className="text-2xl font-semibold tracking-tight">Proof of Visit</h1>
-      </div>
-      <p className="mb-6 text-sm text-slate-500">
-        Ask the business to show their current code, then enter it here along with their business ID.
-      </p>
-      <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <label className="block text-left">
-          <span className="mb-2 block text-sm font-medium text-slate-700">Business ID</span>
-          <input
-            value={businessId}
-            onChange={(e) => setBusinessId(e.target.value)}
-            required
-            placeholder="e.g. biz_shimla_homestay_01"
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-          />
-        </label>
-        <label className="block text-left">
-          <span className="mb-2 block text-sm font-medium text-slate-700">6-digit code</span>
-          <input
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            required
-            inputMode="numeric"
-            maxLength={6}
-            placeholder="000000"
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-center text-lg tracking-[0.5em] text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={isVerifying}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isVerifying && <Loader2 size={16} className="animate-spin" />}
-          Verify
-        </button>
-      </form>
+      <PageHeader icon={ShieldCheck} title="Verify your visit" description="Ask the business to show their current 6-digit code, then enter it below along with their ID." />
 
-      {visitError && (
-        <p role="alert" className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{visitError}</p>
-      )}
+      <Card>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <FormField label="Business ID">
+            <input
+              value={businessId} onChange={(e) => setBusinessId(e.target.value)} required
+              placeholder="e.g. biz_shimla_homestay_01" className={inputClass}
+            />
+          </FormField>
+          <FormField label="6-digit code">
+            <input
+              value={code} onChange={(e) => setCode(e.target.value)} required
+              inputMode="numeric" maxLength={6} placeholder="000000"
+              className={`${inputClass} text-center text-lg tracking-[0.5em]`}
+            />
+          </FormField>
+          <Button type="submit" variant="primary" fullWidth loading={isVerifying}>Verify</Button>
+        </form>
+      </Card>
+
+      {visitError && <Alert tone="error" >{visitError}</Alert>}
 
       {lastVisitResult && (
-        <div className={`mt-4 rounded-xl px-4 py-3 text-sm ${verified ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+        <div className="mt-4">
           {verified ? (
-            <>
-              <p className="font-semibold">Visit verified.</p>
-              <p>New tier: {lastVisitResult.tierAfter} · total visits: {lastVisitResult.visitCount}</p>
-            </>
+            <Alert tone="success">
+              <p className="font-medium">Visit verified.</p>
+              <p className="mt-0.5 text-emerald-600">You now have {lastVisitResult.visitCount} verified {lastVisitResult.visitCount === 1 ? 'visit' : 'visits'}.</p>
+            </Alert>
           ) : (
-            <p>{lastVisitResult.message || lastVisitResult.reasonCode}</p>
+            <Alert tone="error">{lastVisitResult.message || 'That code could not be verified.'}</Alert>
           )}
         </div>
       )}
