@@ -49,3 +49,45 @@ def find_alternatives(origin: str, dest_id: str, start_date: str, end_date: str,
         "budgetINR": budget_inr,
         "interests": interests,
     })
+
+
+def find_alternative_dates(dest_id: str, start: str, end: str, origin: str,
+                           travellers: int = 1, budget_inr: float = 0.0) -> dict:
+    """Find less-crowded dates for the SAME destination, without changing the place.
+
+    This is not a second implementation — Madhuri's alternatives engine always
+    computes place-swaps and date-shifts together in one pass (see
+    find_alternatives' docstring), so this tool calls the identical backend
+    endpoint and simply narrows the summary to the date-shift half. Prefer
+    find_alternatives when you also want place alternatives; use this one when
+    the traveller specifically wants to keep the destination and only move the
+    date. `origin` is required because the underlying endpoint scores date
+    options using the same reachability/cost inputs as place options — pass the
+    traveller's actual starting point even though this call never returns a
+    different destination.
+
+    Args:
+        dest_id: Destination id slug they are planning on, e.g. "manali".
+        start: Trip start in YYYY-MM-DD format.
+        end: Trip end in YYYY-MM-DD format.
+        origin: Where the traveller starts from, e.g. "New Delhi".
+        travellers: Number of people travelling. Defaults to 1.
+        budget_inr: Total trip budget in INR. Defaults to 0 (unconstrained).
+
+    Returns:
+        On success, a dict with `requested` (the pressure reading for the
+        date(s) asked about) and `dates` (alternative dates for this same
+        destination — may legitimately be empty, meaning no better date was
+        found, not an error). `places` is also present (from the shared
+        endpoint) but should be ignored by callers of this tool.
+        On failure: {"ok": False, "error": ...}.
+    """
+    return post("/api/alternatives", {
+        "origin": origin,
+        "destId": dest_id,
+        "startDate": start,
+        "endDate": end,
+        "travellers": travellers,
+        "budgetINR": budget_inr,
+        "interests": {},
+    })

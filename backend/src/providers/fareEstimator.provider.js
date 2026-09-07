@@ -1,11 +1,18 @@
 import { ok, fail } from '../lib/envelope.js';
 import fares from '../seeds/fares.json' with { type: 'json' };
-function estimate(city, mode, distanceKm) {
-  const cityRates = fares[city.toLowerCase()];
+function estimate(city, mode, distanceKm, durationMin = 0) {
+  let cityRates = fares[city.toLowerCase()];
+  let usedGenericFallback = false;
 
-  // if we don't have rates for this city, be honest, don't guess
+  // Unknown city -> generic labelled default rather than a hard failure
+  // (spec: "unknown cities must NOT hard-fail"). Still an honest estimate,
+  // just lower confidence since it isn't calibrated to this specific city.
   if (!cityRates) {
-    return fail(`No fare data for city: ${city}`, { source: 'fareEstimator' });
+    cityRates = fares.generic;
+    usedGenericFallback = true;
+    if (!cityRates) {
+      return fail(`No fare data for city: ${city}`, { source: 'fareEstimator' });
+    }
   }
 
   const modeRates = cityRates[mode];
@@ -15,9 +22,16 @@ function estimate(city, mode, distanceKm) {
 
   let fareINR;
 
-  if (mode === 'auto' || mode === 'cab') {
+  if (mode === 'auto') {
     // base + per-km cost, but never below the minimum fare
     fareINR = Math.max(modeRates.minFare, modeRates.base + modeRates.perKm * distanceKm);
+
+  } else if (mode === 'cab') {
+    // base + per-km + per-min cost, but never below the minimum fare
+    fareINR = Math.max(
+      modeRates.minFare,
+      modeRates.base + modeRates.perKm * distanceKm + (modeRates.perMin ?? 0) * durationMin
+    );
 
   } else if (mode === 'metro') {
     // slabs are [maxDistanceForThisPrice, price] pairs, in order —
@@ -35,7 +49,12 @@ function estimate(city, mode, distanceKm) {
   // this is always an estimate, never a live price — mark it as such
   return ok(
     { mode, distanceKm, fareINR: Math.round(fareINR) },
-    { source: 'fareEstimator', estimate: true, confidence: 'high' }
+    {
+      source: 'fareEstimator',
+      estimate: true,
+      confidence: usedGenericFallback ? 'low' : 'high',
+      ...(usedGenericFallback ? { note: `no city-specific rates for "${city}"; used generic fallback` } : {}),
+    }
   );
 }
 

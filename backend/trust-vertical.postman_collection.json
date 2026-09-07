@@ -1,0 +1,256 @@
+{
+  "info": {
+    "_postman_id": "trust-vertical-collection-v1",
+    "name": "Trust Vertical + Pressure Engine",
+    "description": "Auth, Pressure Engine, and the visits/community/offers/waitlist/alerts endpoints. Run requests top-to-bottom within a folder — Login must run before any auth-required request (Postman keeps the jwt cookie automatically for {{baseUrl}}). Some requests need a role upgrade (operator/authority) that has no self-service endpoint yet — see the note on those requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5001" },
+    { "key": "destId", "value": "shimla" },
+    { "key": "date", "value": "2026-11-15" },
+    { "key": "businessId", "value": "biz_shimla_homestay_01" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Tester\",\n  \"email\": \"postman-tester@example.com\",\n  \"password\": \"testpass123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/signup", "host": ["{{baseUrl}}"], "path": ["api", "auth", "signup"] }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"postman-tester@example.com\",\n  \"password\": \"testpass123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Check Auth (who am I)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/auth/check", "host": ["{{baseUrl}}"], "path": ["api", "auth", "check"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pressure Engine",
+      "item": [
+        {
+          "name": "Get Pressure by destId",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pressure/{{destId}}?date={{date}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pressure", "{{destId}}"],
+              "query": [{ "key": "date", "value": "{{date}}" }]
+            }
+          }
+        },
+        {
+          "name": "Get Pressure Map",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pressure/map?date={{date}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pressure", "map"],
+              "query": [{ "key": "date", "value": "{{date}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Visits (Proof-of-Visit)",
+      "item": [
+        {
+          "name": "Get Operator Code",
+          "request": {
+            "method": "GET",
+            "description": "Public — no auth needed. Only works if the business has a povSecret set (seeded businesses don't by default; see repo notes on manually setting one for testing).",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/visits/operator-code/{{businessId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "visits", "operator-code", "{{businessId}}"]
+            }
+          }
+        },
+        {
+          "name": "Verify Visit",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "description": "Requires login first. Paste the `code` from the Get Operator Code response before running — it rotates every 90s.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"businessId\": \"{{businessId}}\",\n  \"code\": \"PASTE_CODE_HERE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/visits/verify", "host": ["{{baseUrl}}"], "path": ["api", "v1", "visits", "verify"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Community Discovery",
+      "item": [
+        {
+          "name": "Submit Destination",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "description": "Requires login + at least 1 verified visit anywhere (403 otherwise).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hidden Waterfall\",\n  \"lat\": 32.24,\n  \"lng\": 77.19,\n  \"description\": \"Found this on a trek, no signage\",\n  \"photos\": []\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/community/submissions", "host": ["{{baseUrl}}"], "path": ["api", "community", "submissions"] }
+          }
+        },
+        {
+          "name": "Get Queued Submissions (authority only)",
+          "request": {
+            "method": "GET",
+            "description": "Requires the logged-in user's role to be 'authority'.",
+            "url": { "raw": "{{baseUrl}}/api/community/submissions/queued", "host": ["{{baseUrl}}"], "path": ["api", "community", "submissions", "queued"] }
+          }
+        },
+        {
+          "name": "Review Submission (authority only)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "description": "Requires the logged-in user's role to be 'authority'. Replace :id with a real submission _id from the queued list.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"approve\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/community/submissions/:id/review",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "community", "submissions", ":id", "review"],
+              "variable": [{ "key": "id", "value": "PASTE_SUBMISSION_ID" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Offers + Waitlist",
+      "item": [
+        {
+          "name": "Create Waitlist Entry",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "description": "Requires login.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destId\": \"{{destId}}\",\n  \"windowFrom\": \"2026-12-01\",\n  \"windowTo\": \"2026-12-10\",\n  \"maxPriceINR\": 5000,\n  \"travellers\": 2\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/waitlist", "host": ["{{baseUrl}}"], "path": ["api", "v1", "waitlist"] }
+          }
+        },
+        {
+          "name": "My Waitlists",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/waitlist/mine", "host": ["{{baseUrl}}"], "path": ["api", "v1", "waitlist", "mine"] }
+          }
+        },
+        {
+          "name": "Cancel Waitlist Entry",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/waitlist/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "waitlist", ":id"],
+              "variable": [{ "key": "id", "value": "PASTE_WAITLIST_ID" }]
+            }
+          }
+        },
+        {
+          "name": "Create Offer (operator/authority only)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "description": "Requires the logged-in user's role to be 'operator' or 'authority'. Notifies matching waitlist entries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"businessId\": \"{{businessId}}\",\n  \"destId\": \"{{destId}}\",\n  \"date\": \"2026-12-05\",\n  \"originalPrice\": 2000,\n  \"discountPct\": 20,\n  \"durationMinutes\": 15\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/offers", "host": ["{{baseUrl}}"], "path": ["api", "v1", "offers"] }
+          }
+        },
+        {
+          "name": "Claim Offer",
+          "request": {
+            "method": "POST",
+            "description": "Requires login. Replace :id with a real offer _id from Create Offer's response.",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/offers/:id/claim",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "offers", ":id", "claim"],
+              "variable": [{ "key": "id", "value": "PASTE_OFFER_ID" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "item": [
+        {
+          "name": "Get Verified Alerts",
+          "request": {
+            "method": "GET",
+            "description": "Public, no auth needed.",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/alerts?destId={{destId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "alerts"],
+              "query": [{ "key": "destId", "value": "{{destId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Ingest Alert (authority only)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "description": "Requires the logged-in user's role to be 'authority'.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destId\": \"{{destId}}\",\n  \"kind\": \"road\",\n  \"body\": \"Landslide reported near the Shimla bypass, expect delays\",\n  \"sourceUrl\": \"https://himachal.nic.in/advisories/example\",\n  \"sourceName\": \"HP State PWD\",\n  \"severity\": \"warning\",\n  \"validTo\": \"2026-12-31\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/alerts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "alerts"] }
+          }
+        }
+      ]
+    }
+  ]
+}

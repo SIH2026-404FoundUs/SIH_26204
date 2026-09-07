@@ -8,6 +8,7 @@
     "cab": {
       "base": 50,
       "perKm": 16,
+      "perMin": 2,
       "minFare": 80
     },
     "metro": {
@@ -47,6 +48,7 @@
     "cab": {
       "base": 45,
       "perKm": 14,
+      "perMin": 2,
       "minFare": 70
     },
     "bus": {
@@ -62,6 +64,7 @@
     "cab": {
       "base": 60,
       "perKm": 20,
+      "perMin": 2.5,
       "minFare": 100
     },
     "bus": {
@@ -77,6 +80,7 @@
     "cab": {
       "base": 70,
       "perKm": 22,
+      "perMin": 2.5,
       "minFare": 120
     },
     "bus": {
@@ -92,10 +96,27 @@
     "cab": {
       "base": 55,
       "perKm": 18,
+      "perMin": 2,
       "minFare": 90
     },
     "bus": {
       "flat": 12
+    }
+  },
+  "generic": {
+    "auto": {
+      "base": 30,
+      "perKm": 12,
+      "minFare": 30
+    },
+    "cab": {
+      "base": 55,
+      "perKm": 18,
+      "perMin": 2,
+      "minFare": 90
+    },
+    "bus": {
+      "flat": 15
     }
   }
 }

@@ -16,7 +16,7 @@
   },
   "trackingTier": "tracked",
   "attrs": {
-    "snow": 0.0,
+    "snow": 0,
     "trek": 0.8,
     "riverside": 0.4,
     "heritage": 0.4,
@@ -27,7 +27,7 @@
   },
   "nearestRailhead": "VKB",
   "railheadDistanceKm": 6,
-  "railSignalConfidence": 0.85,
+  "railSignalConfidence": 0.6,
   "roadAccess": {
     "operators": [
       "TSRTC"

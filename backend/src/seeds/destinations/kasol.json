@@ -18,7 +18,7 @@
   "attrs": {
     "snow": 0.6,
     "trek": 0.9,
-    "riverside": 1.0,
+    "riverside": 1,
     "heritage": 0.2,
     "nightlife": 0.7,
     "food": 0.8,
@@ -42,5 +42,6 @@
     "roadSeatsAvail": 40,
     "hotelMedianINR": 1800
   },
-  "seededAt": "2026-09-05T16:16:25.121046Z"
+  "seededAt": "2026-09-05T16:16:25.121046Z",
+  "demoCorridor": true
 }

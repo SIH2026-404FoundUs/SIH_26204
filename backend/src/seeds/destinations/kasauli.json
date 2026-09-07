@@ -27,7 +27,7 @@
   },
   "nearestRailhead": "KLK",
   "railheadDistanceKm": 25,
-  "railSignalConfidence": 0.8,
+  "railSignalConfidence": 0.6,
   "roadAccess": {
     "operators": [
       "HRTC"
