@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ONBOARDING_STATES } from "../services/onboarding/stateMachine.js";
 
 const businessSchema = new mongoose.Schema({
   _id: {
@@ -63,6 +64,7 @@ const businessSchema = new mongoose.Schema({
   },
   onboardingState: {
     type: String,
+    enum: ONBOARDING_STATES,
   },
   lastWhatsAppMessageId: {
     type: String,
