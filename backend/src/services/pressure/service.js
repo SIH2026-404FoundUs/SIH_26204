@@ -66,5 +66,18 @@ export async function getPressure(destId, date) {
 // spec §10 /pressure/map — every tracked destination for one date.
 export async function getPressureMap(date) {
   const rows = await DestinationPressure.find({ date }).lean();
-  return rows.map((r) => ({ ...r, stale: !isFresh(r) }));
+  // Enrich with lat/lng from the seed file (never stored on the Mongo row
+  // itself -- destination_pressures only ever held the computed score, not
+  // the destination's static facts). Additive only: every field the map
+  // response already had is untouched, so no existing consumer's parsing
+  // of this shape can break. Powers the India-outline map on the frontend.
+  return rows.map((r) => {
+    const dest = getDestination(r.destId);
+    return {
+      ...r,
+      stale: !isFresh(r),
+      lat: dest?.location?.lat ?? null,
+      lng: dest?.location?.lng ?? null,
+    };
+  });
 }
