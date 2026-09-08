@@ -12,6 +12,7 @@ export default function DestinationSelect({ value, onChange, className = '', ...
       className={`${inputClass} ${className}`}
       {...props}
     >
+      <option value="" disabled>Choose a destination</option>
       {DESTINATION_GROUPS.map((group) => (
         <optgroup key={group.state} label={group.state}>
           {group.destinations.map((d) => (

@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { validatePasswordPolicy } from "../lib/passwordPolicy.js";
 import { issueAuthToken, findValidAuthToken, consumeAuthToken, findAuthTokenAnyState } from "../lib/authTokens.js";
 import { sendMail, verificationEmail, passwordResetEmail } from "../lib/mailer.js";
+import mongoose from "mongoose";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_FULLNAME_LEN = 200;
@@ -29,6 +30,9 @@ function validateEmailField(email) {
 export const signup = async (req, res) => {
   const { fullName, email, password, confirmPassword, phone, preferredLanguage } = req.body;
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ message: "Authentication service temporarily unavailable" });
+    }
     if (!fullName || !email || !password || !confirmPassword) {
       return res.status(400).json({ message: "fullName, email, password, and confirmPassword are required" });
     }
@@ -97,6 +101,9 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   const { email, password } = req.body;
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ message: "Authentication service temporarily unavailable" });
+    }
     if (typeof email !== "string" || typeof password !== "string" || !email.trim() || !password.trim()) {
       return res.status(400).json({ message: "Invalid credentials" });
     }

@@ -2,7 +2,8 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 import os
-from google.adk.agents import Agent
+from google.adk.agents import Agent, SequentialAgent
+from google.adk.models.lite_llm import LiteLlm
 from app.tools.weather import get_weather
 from app.tools.trains import get_train_availability
 from app.tools.places import search_places
@@ -108,17 +109,110 @@ class TripSummary(BaseModel):
     summary: str = Field(description="One or two sentence plain-language summary")
 
 
-travel_agent = Agent(
-    name="travel_planner",
-    model=os.environ.get("MODEL", "gemini-2.5-flash"),
+# The ADK talks to Gemini natively and to every other provider through LiteLLM.
+# MODEL is therefore a LiteLLM model id ("<provider>/<model>"). Vertex AI is
+# configured with Application Default Credentials from the local gcloud CLI.
+#
+# Gemini supports the agent's tool-calling and structured-output stages without
+# local CPU inference or the previous Groq/Ollama limits.
+DEFAULT_MODEL = "vertex_ai/gemini-2.5-flash"
+
+_MODEL_ID = os.environ.get("MODEL", DEFAULT_MODEL)
+
+
+def _make_model() -> LiteLlm:
+    """Build the LiteLlm model, applying provider-specific options only.
+
+    Groq's gpt-oss-120b is a reasoning model: by default (and
+    unavoidably once tools are involved) Groq returns the model's reasoning
+    as a separate field on the assistant message. ADK's multi-turn tool loop
+    replays that assistant message back to Groq on the next call, and Groq
+    rejects it -- 400 "property 'reasoning_content' is unsupported" -- because
+    Groq (unlike DeepSeek/Anthropic reasoning models) does not accept
+    reasoning content being echoed back in message history.
+    reasoning_format="hidden" is a Groq-specific request parameter, so it is
+    only sent when the selected model uses the Groq provider. Vertex AI and
+    other providers receive their default LiteLLM options.
+    """
+    if _MODEL_ID.startswith("groq/"):
+        return LiteLlm(model=_MODEL_ID, reasoning_format="hidden")
+    return LiteLlm(model=_MODEL_ID)
+
+
+# Groq's API rejects any request that sets response_format (json_object /
+# json_schema) together with `tools` -- a hard platform rule, not a
+# per-model limitation (see: "json mode cannot be combined with tool/function
+# calling"). Google ADK's LlmAgent, when given both `tools` and
+# `output_schema`, sends response_format on every call including the
+# tool-calling ones, so a single agent with both attributes 400s on every
+# turn against Groq.
+#
+# The fix is to split the work into two agents run in sequence:
+#   1. `_tool_agent` -- has all the data-gathering tools, no output_schema.
+#      Its calls never carry response_format, so tool use works normally.
+#      It writes its plain-text findings into session state under
+#      "raw_findings" (via output_key).
+#   2. `_formatter_agent` -- has output_schema=TripSummary, no tools. Its
+#      calls never carry `tools`, so response_format works normally. It
+#      reads {raw_findings} from state and emits the strict TripSummary
+#      JSON that main.py parses.
+#
+# This mirrors the "separate finalization" pattern other Groq-facing SDKs
+# (e.g. TanStack AI's Groq adapter) use for the same platform restriction.
+
+_tool_agent = Agent(
+    name="travel_data_gatherer",
+    model=_make_model(),
     instruction="""You help plan trips in India. Use the available tools to
     get real data. Never invent prices, distances, durations, availability, or
-    waitlist numbers. Only fill in the schema fields you have real tool data for —
-    leave others as null rather than guessing.
+    waitlist numbers.
 
     calculate_trip_cost only adds up numbers you already have. Call the fare,
     train, hotel and other data tools FIRST, then pass their real values into
-    it — never invent a component value or a grand total yourself.""",
-    tools=[get_weather, get_train_availability, search_places, calculate_route, estimate_local_transport, search_road_services, get_pressure, find_alternatives, find_alternative_dates, get_verified_alerts, search_businesses, get_user_preferences, calculate_trip_cost, optimize_itinerary],
+    it -- never invent a component value or a grand total yourself.
+
+    When you have gathered everything you can (or a tool tells you data
+    isn't available), write a plain-text summary of every real value you
+    found: weather, route, hotels, train status, fares, road options,
+    crowding pressure, alternatives, cost breakdown, itinerary, and relevant
+    businesses. Be explicit about which fields you have no real data for --
+    say so rather than omitting them, so the next step knows to leave them
+    null rather than guessing.""",
+    tools=[
+        get_weather,
+        get_train_availability,
+        search_places,
+        calculate_route,
+        estimate_local_transport,
+        search_road_services,
+        get_pressure,
+        find_alternatives,
+        find_alternative_dates,
+        get_verified_alerts,
+        search_businesses,
+        get_user_preferences,
+        calculate_trip_cost,
+        optimize_itinerary,
+    ],
+    output_key="raw_findings",
+)
+
+_formatter_agent = Agent(
+    name="travel_formatter",
+    model=_make_model(),
+    instruction="""You convert trip-planning findings into a strict TripSummary
+    JSON object. Here are the findings gathered by data-gathering tools:
+
+    {raw_findings}
+
+    Only fill in the schema fields the findings above give you real data for
+    -- leave every other field null rather than guessing or inventing a
+    plausible-sounding value. Do not invent prices, distances, durations,
+    availability, or waitlist numbers that weren't in the findings.""",
     output_schema=TripSummary,
+)
+
+travel_agent = SequentialAgent(
+    name="travel_planner",
+    sub_agents=[_tool_agent, _formatter_agent],
 )

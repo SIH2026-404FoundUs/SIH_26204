@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { applyAllFilters } from './filters.js';
 import { rankCandidates } from './ranking.js';
 import { findDateAlternatives } from './dateSubstitution.js';
-import { getTrackedDestinations, getDestinationById } from './standardize.js';
+import { loadDestinations, getDestination } from '../pressure/seed.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,7 +28,7 @@ function getCalibratedDStar() {
  * Retrieves details, pressure score, and breakdown for the requested destination.
  */
 async function getRequestedInfo(destId, date, pressureFn) {
-  const dest = getDestinationById(destId);
+  const dest = getDestination(destId);
   const result = typeof pressureFn === 'function' ? await pressureFn(destId, date) : null;
 
   const pressure = typeof result === 'number' ? result : (result?.score ?? 0.5);
@@ -65,7 +65,7 @@ async function getRequestedInfo(destId, date, pressureFn) {
  * Fetches all tracked candidate destinations excluding the requested destination.
  */
 async function getCandidateDests(requestedDestId) {
-  return getTrackedDestinations().filter(
+  return loadDestinations().filter((d) => d.trackingTier === 'tracked').filter(
     (d) => (d._id || d.id) !== requestedDestId
   );
 }
@@ -128,7 +128,7 @@ async function getAlternatives(request, pressureFn, travelTimeFn, budgetFn, dSta
   const requested = await getRequestedInfo(destId, startDate, pressureFn);
 
   // Step 2: Fetch full requested destination document for distance calculation
-  const requestedDestDoc = getDestinationById(destId);
+  const requestedDestDoc = getDestination(destId);
   const requestedDestObj = requestedDestDoc || { _id: destId, displayName: requested.displayName };
 
   // Step 3: Get candidate destinations

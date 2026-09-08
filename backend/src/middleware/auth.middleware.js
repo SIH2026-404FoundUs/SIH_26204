@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import User from "../models/user.model.js";
 
 export const protectRoute = async (req, res, next) => {
@@ -24,6 +25,10 @@ export const protectRoute = async (req, res, next) => {
 
     if (!decoded) {
       return res.status(401).json({ message: "Unauthorized - Invalid Token" });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ message: "Authentication service temporarily unavailable" });
     }
 
     const user = await User.findById(decoded.userId).select("-passwordHash");

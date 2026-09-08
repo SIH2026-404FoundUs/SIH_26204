@@ -166,10 +166,33 @@ export default function EverythingMap({
 
     try {
       // 1. Geocode origin address -> { lat, lng }
-      const geoRes = await api.get('/geocode', { params: { address: sourceOverride } });
-      const originCoords = geoRes.data?.data;
-      if (!originCoords?.lat || !originCoords?.lng) {
-        throw new Error(`Could not find location for '${sourceOverride}'`);
+      let originCoords;
+      try {
+        const geoRes = await api.get('/geocode', { params: { address: sourceOverride } });
+        originCoords = geoRes.data?.data;
+        if (!Number.isFinite(originCoords?.lat) || !Number.isFinite(originCoords?.lng)) {
+          throw new Error(geoRes.data?.message || `Could not find location for '${sourceOverride}'`);
+        }
+      } catch (backendGeocodeError) {
+        // The browser already has a loaded Maps SDK and can geocode even when
+        // the backend's server-side geocoding key is unavailable or exhausted.
+        // This remains real provider data; it is not a city-coordinate fallback.
+        if (!mapsSDK?.Geocoder) throw backendGeocodeError;
+        originCoords = await new Promise((resolve, reject) => {
+          const geocoder = new mapsSDK.Geocoder();
+          geocoder.geocode({ address: sourceOverride }, (results, status) => {
+            const location = results?.[0]?.geometry?.location;
+            if (status !== 'OK' || !location) {
+              reject(backendGeocodeError);
+              return;
+            }
+            resolve({
+              lat: location.lat(),
+              lng: location.lng(),
+              formattedAddress: results[0].formatted_address,
+            });
+          });
+        });
       }
 
       // 2. Fetch destination list -> find destination lat/lng & name
@@ -275,7 +298,6 @@ export default function EverythingMap({
   // Auto-calculate route whenever destination, source, or travelMode changes
   useEffect(() => {
     if (debouncedSource && selectedDestId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       handleFetchRoute(debouncedSource);
     } else {
       setRouteData(null);

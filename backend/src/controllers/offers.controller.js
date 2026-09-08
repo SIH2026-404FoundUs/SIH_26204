@@ -3,6 +3,7 @@ import { processOfferMatching } from "../services/waitlist/waitlistService.js";
 import Offer from "../models/offer.model.js";
 import Waitlist from "../models/waitlist.model.js";
 import AuditLog from "../models/auditLog.model.js";
+import Business from "../models/business.model.js";
 
 const models = { OfferModel: Offer, WaitlistModel: Waitlist, AuditLogModel: AuditLog };
 
@@ -12,6 +13,13 @@ export const createOfferController = async (req, res) => {
   try {
     if (!["operator", "authority"].includes(req.user.role)) {
       return res.status(403).json({ message: "operator or authority role required" });
+    }
+    if (req.user.role === "operator") {
+      const business = await Business.findById(req.body.businessId).select("ownerUserId");
+      if (!business) return res.status(404).json({ message: "business not found" });
+      if (String(business.ownerUserId || "") !== String(req.user._id)) {
+        return res.status(403).json({ message: "business owner role required" });
+      }
     }
     const offer = await createOffer(req.body, models);
     const { matchCount } = await processOfferMatching(offer, models);

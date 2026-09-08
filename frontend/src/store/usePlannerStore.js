@@ -8,6 +8,7 @@ import { useAuthStore } from './useAuthStore'
 const aiClient = axios.create({
   baseURL: import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:8000',
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 })
 
 const getErrorMessage = (error, fallback) =>
@@ -16,6 +17,25 @@ const getErrorMessage = (error, fallback) =>
   || (typeof error?.response?.data?.detail === 'string' ? error.response.data.detail : null)
   || error?.message
   || fallback
+
+const isObject = (value) => value !== null && typeof value === 'object'
+
+const invalidResponse = (message) => {
+  throw new Error(message)
+}
+
+const isPressureDecision = (data) => (
+  isObject(data)
+  && data.status === 'awaiting_decision'
+  && typeof data.tripDraftId === 'string'
+  && data.tripDraftId.length > 0
+  && isObject(data.pressure)
+  && typeof data.pressure.score === 'number'
+  && isObject(data.alternatives)
+  && isObject(data.alternatives.requested)
+  && Array.isArray(data.alternatives.places)
+  && Array.isArray(data.alternatives.dates)
+)
 
 // The two real backend endpoints (main.py) and their actual shapes:
 //   POST /api/plan-trip          -> either {status:"awaiting_decision", tripDraftId,
@@ -39,10 +59,11 @@ export const usePlannerStore = create((set, get) => ({
   error: null,
 
   clearError: () => set({ error: null }),
-  reset: () => set({ request: null, tripDraftId: null, awaitingDecision: false, pressure: null, alternatives: null, plan: null, error: null }),
+  reset: () => set({ request: null, tripDraftId: null, awaitingDecision: false, pressure: null, alternatives: null, plan: null, isPlanning: false, error: null }),
 
   submitTrip: async (form) => {
-    set({ isPlanning: true, error: null, plan: null })
+    if (get().isPlanning) return false
+    set({ isPlanning: true, error: null, plan: null, tripDraftId: null, awaitingDecision: false, pressure: null, alternatives: null })
     // Real authUser id so the trip is attributable -- otherwise every plan
     // saves under the literal string "guest" and the My Trips page (which
     // reads GET /api/v1/trips?userId=<authUser._id>) would always be empty.
@@ -60,6 +81,9 @@ export const usePlannerStore = create((set, get) => ({
       const res = await aiClient.post('/api/plan-trip', request)
       set({ request })
       if (res.data.status === 'awaiting_decision') {
+        if (!isPressureDecision(res.data)) {
+          invalidResponse('The trip planner returned an incomplete pressure decision.')
+        }
         set({
           awaitingDecision: true,
           tripDraftId: res.data.tripDraftId,
@@ -68,8 +92,14 @@ export const usePlannerStore = create((set, get) => ({
         })
       } else {
         // Not gated: res.data IS the TripSummary itself, no envelope.
+        if (!isObject(res.data) || typeof res.data.summary !== 'string') {
+          invalidResponse('The trip planner returned an incomplete trip plan.')
+        }
         set({
           awaitingDecision: false,
+          tripDraftId: null,
+          pressure: null,
+          alternatives: null,
           plan: { trip: res.data, redistribution: null, destId: request.destId, startDate: request.startDate, endDate: request.endDate },
         })
       }
@@ -85,7 +115,11 @@ export const usePlannerStore = create((set, get) => ({
   // decision: "accept" | "decline". selection ({destId} or {date}) only required on accept.
   submitDecision: async (decision, selection) => {
     const { tripDraftId } = get()
-    if (!tripDraftId) return false
+    if (!tripDraftId) {
+      set({ error: 'This pressure decision has expired. Please start the trip plan again.' })
+      return false
+    }
+    if (get().isPlanning) return false
     set({ isPlanning: true, error: null })
     try {
       const body = { tripDraftId, decision }
@@ -93,8 +127,14 @@ export const usePlannerStore = create((set, get) => ({
         body.chosenAlternative = { destId: selection.destId, startDate: selection.date }
       }
       const res = await aiClient.post('/api/plan-trip/confirm', body)
+      if (!isObject(res.data) || !isObject(res.data.trip) || !res.data.destId || !res.data.startDate) {
+        invalidResponse('The trip planner returned an incomplete confirmed plan.')
+      }
       set({
         awaitingDecision: false,
+        tripDraftId: null,
+        pressure: null,
+        alternatives: null,
         plan: {
           trip: res.data.trip,
           redistribution: res.data.redistribution,

@@ -13,11 +13,10 @@ export const useTripsStore = create((set) => ({
   isLoadingSummary: false,
   summaryError: null,
 
-  fetchMyTrips: async (userId) => {
-    if (!userId) return
+  fetchMyTrips: async () => {
     set({ isLoading: true, error: null })
     try {
-      const res = await api.get('/v1/trips', { params: { userId } })
+      const res = await api.get('/v1/trips')
       set({ trips: res.data })
     } catch (error) {
       set({ error: getErrorMessage(error, 'Could not load your trips') })
