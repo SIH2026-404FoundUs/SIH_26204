@@ -13,6 +13,7 @@ import routesRoutes from "./routes/routes.route.js";
 import fareRoutes from "./routes/fare.route.js";
 import roadRoutes from "./routes/road.route.js";
 import onboardingRoutes from "./routes/onboarding.route.js";
+import whatsappWebhookRoutes from "./routes/whatsappWebhook.route.js";
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use("/api/routes", routesRoutes);
 app.use("/api/fare", fareRoutes);
 app.use("/api/road", roadRoutes);
 app.use("/api/internal/onboarding", onboardingRoutes);
+app.use("/api/webhook/whatsapp", whatsappWebhookRoutes);
 
 app.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);
