@@ -1,4 +1,4 @@
-import { MapPin, TrendingDown, Clock } from 'lucide-react'
+import { MapPin, TrendingDown, Clock, Sparkles, IndianRupee, Compass, Check } from 'lucide-react'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
 import { getDestinationLabel } from '../../lib/destinations'
@@ -112,11 +112,17 @@ export default function PlaceSwapVariant({ place, requestedPressure = 0.8, onAcc
             {hasTravelHours ? `${ratioVal.toFixed(1)}x (${travelDeltaText})` : travelDeltaText}
           </span>
         </div>
-        <div>
-          <dt className="flex items-center justify-center gap-1 text-slate-400"><TrendingDown size={11} aria-hidden="true" />Crowding</dt>
-          <dd className="mt-0.5 font-semibold text-emerald-600">-{pressureReliefPercent}pt ({currentPressurePercent}%)</dd>
+        <div className="flex flex-col items-center text-center p-1.5 rounded-lg bg-white shadow-2xs border border-slate-100">
+          <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
+            <TrendingDown size={11} className="text-emerald-500" />
+            Crowding
+          </span>
+          <span className="mt-0.5 text-sm font-extrabold text-emerald-600">
+            -{pressureReliefPercent}pt
+          </span>
+          <span className="text-[10px] text-slate-400">now {currentPressurePercent}%</span>
         </div>
-      </dl>
+      </div>
 
       {/* Budget Breakdown Pills */}
       {(stayCost > 0 || transportCost > 0) && (

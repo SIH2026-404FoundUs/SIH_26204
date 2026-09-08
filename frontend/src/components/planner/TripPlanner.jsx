@@ -101,7 +101,7 @@ function DecisionPanel() {
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {dates.map((d) => (
               <AlternativeCard key={d.startDate} label={new Date(d.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} pressure={d.pressure} savingINR={d.savingINR}
-                onSelect={() => submitDecision('accept', { destId: usePlannerStore.getState().request.dest_id, date: d.startDate })} />
+                onSelect={() => submitDecision('accept', { date: d.startDate })} />
             ))}
           </div>
         </div>
@@ -120,15 +120,15 @@ function DecisionPanel() {
 
 function PlanResult() {
   const { plan } = usePlannerStore()
-  if (!plan || plan.status !== 'ok') return null
-  const { redistribution, plan: trip } = plan
+  if (!plan) return null
+  const { trip, redistribution, destId, startDate } = plan
   const switched = redistribution?.kind && redistribution.kind !== 'none'
 
   return (
     <Card>
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className="text-sm font-semibold text-slate-900">{getDestinationLabel(plan.destId)}</span>
-        <span className="text-xs text-slate-400">{plan.date}</span>
+        <span className="text-sm font-semibold text-slate-900">{getDestinationLabel(destId)}</span>
+        <span className="text-xs text-slate-400">{startDate}</span>
         {switched && <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">Switched from your original pick</span>}
       </div>
 
@@ -147,11 +147,13 @@ function PlanResult() {
             <div className="text-slate-500">{trip.weather.maxTemp}°C · {trip.weather.precipProb}% chance of rain</div>
           </div>
         )}
-        {trip?.costBreakdown && (
+        {trip?.costBreakdown?.grandTotal != null && (
           <div className="rounded-xl bg-slate-50 p-3 text-sm sm:col-span-2">
             <div className="font-medium text-slate-700">Estimated cost</div>
             <div className="text-slate-500">
-              ₹{trip.costBreakdown.grandTotal.toLocaleString('en-IN')} total, including ₹{trip.costBreakdown.contingency.toLocaleString('en-IN')} contingency — an estimate, not a live quote
+              ₹{trip.costBreakdown.grandTotal.toLocaleString('en-IN')}
+              {trip.costBreakdown.contingency != null && ` total, including ₹${trip.costBreakdown.contingency.toLocaleString('en-IN')} contingency`}
+              {' '}— an estimate, not a live quote
             </div>
           </div>
         )}
