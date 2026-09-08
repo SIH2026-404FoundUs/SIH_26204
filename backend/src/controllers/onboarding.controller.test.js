@@ -219,7 +219,9 @@ describe("POST /upload (onboarding internal fallback)", () => {
 
       expect(status).toBe(200);
       expect(extractStub).toHaveBeenCalledTimes(1);
-      expect(extractStub).toHaveBeenCalledWith(transcript, "hi");
+      // Brand-new draft (bootstrap path) -- no pending question to be a
+      // reply to, so pendingField is null.
+      expect(extractStub).toHaveBeenCalledWith(transcript, "hi", null);
       expect(data.onboardingState).toBe("EXTRACTING");
       expect(data.extraction.attempted).toBe(true);
       expect(data.extraction.shapeValid).toBe(true);

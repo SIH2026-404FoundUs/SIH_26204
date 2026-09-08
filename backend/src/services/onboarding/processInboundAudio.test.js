@@ -213,7 +213,7 @@ describe("processInboundAudio — extractedFields: null explicitly opts out of e
 });
 
 describe("processInboundAudio — real extraction (extractFn) wiring", () => {
-  test("extractedFields omitted calls extractFn with the transcript and detected language", async () => {
+  test("extractedFields omitted calls extractFn with the transcript, detected language, and pendingField", async () => {
     const extractFn = jest.fn().mockResolvedValue(emptyExtraction());
 
     await processInboundAudio({
@@ -227,7 +227,9 @@ describe("processInboundAudio — real extraction (extractFn) wiring", () => {
     });
 
     expect(extractFn).toHaveBeenCalledTimes(1);
-    expect(extractFn).toHaveBeenCalledWith("Teen kamre hain, geyser hai.", "hi");
+    // Brand-new draft (bootstrap path) -- no pending question to be a
+    // reply to, so pendingField is null.
+    expect(extractFn).toHaveBeenCalledWith("Teen kamre hain, geyser hai.", "hi", null);
   });
 
   test("a real (stubbed) extraction that omits previously-known fields does not clobber them — only newly-stated fields are updated", async () => {
@@ -555,5 +557,177 @@ describe("processInboundAudio — a SECOND message for an already-progressed dra
     const afterMessage3 = await Business.findOne({ ownerPhone });
     expect(afterMessage3.capacity).toBe(6); // untouched, still whatever message 2 set
     expect(afterMessage3.onboardingState).toBe("EXTRACTING");
+  });
+});
+
+describe("processInboundAudio — pendingField context passed to extraction", () => {
+  test("a brand-new draft's first (spontaneous) message passes pendingField: null — no question was ever asked", async () => {
+    const extractFn = jest.fn().mockResolvedValue(emptyExtraction());
+
+    await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000030",
+      destId: "shimla",
+      messageId: "wamid.pf.1",
+      transcribeFn: async () => ({ transcript: "This is a homestay.", detectedLanguage: "en" }),
+      extractFn,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(extractFn).toHaveBeenCalledWith("This is a homestay.", "en", null);
+  });
+
+  test("a reply to an already-progressed draft passes the exact field the FOLLOWUP question was about", async () => {
+    // Draft already at EXTRACTING with name/type/nearestLandmark/destId
+    // known; capacity is the next missing field in REQUIRED_FIELDS_FOR_LIVE
+    // order, so a question about capacity would have been sent after the
+    // draft reached this state -- this message is presumed to be that reply.
+    await Business.create({
+      _id: "biz_test_pending_field",
+      destId: "shimla",
+      ownerPhone: "919000000031",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      nearestLandmark: "Golconda Fort",
+    });
+
+    const extractFn = jest.fn().mockResolvedValue(emptyExtraction());
+
+    await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000031",
+      messageId: "wamid.pf.2",
+      transcribeFn: async () => ({ transcript: "Six.", detectedLanguage: "en" }),
+      extractFn,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(extractFn).toHaveBeenCalledWith("Six.", "en", "capacity");
+  });
+
+  test("pendingField advances to the NEXT missing field once the previous one is answered", async () => {
+    await Business.create({
+      _id: "biz_test_pending_field_2",
+      destId: "shimla",
+      ownerPhone: "919000000032",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      nearestLandmark: "Golconda Fort",
+      capacity: 6, // just answered -- priceRangeINR is next in order
+    });
+
+    const extractFn = jest.fn().mockResolvedValue(emptyExtraction());
+
+    await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000032",
+      messageId: "wamid.pf.3",
+      transcribeFn: async () => ({ transcript: "One to two thousand.", detectedLanguage: "en" }),
+      extractFn,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(extractFn).toHaveBeenCalledWith("One to two thousand.", "en", "priceRangeINR");
+  });
+
+  test("no pendingField (nothing was actually missing last time) even for an already-progressed draft", async () => {
+    // Every required field already present -- self-correcting property:
+    // no question would have been sent, so nothing to be a reply to.
+    await Business.create({
+      _id: "biz_test_pending_field_none",
+      destId: "shimla",
+      ownerPhone: "919000000033",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      nearestLandmark: "Golconda Fort",
+      capacity: 6,
+      priceRangeINR: { min: 1000, max: 2000 },
+    });
+
+    const extractFn = jest.fn().mockResolvedValue(emptyExtraction());
+
+    await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000033",
+      messageId: "wamid.pf.4",
+      transcribeFn: async () => ({ transcript: "Thanks!", detectedLanguage: "en" }),
+      extractFn,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(extractFn).toHaveBeenCalledWith("Thanks!", "en", null);
+  });
+
+  // The actual real-world risk this whole feature addresses: a terse
+  // reply like "Six" has no stated subject in isolation. This can't be
+  // proven against the real Gemini model in an automated test (no real
+  // network calls allowed in this suite) -- what CAN be proven is that
+  // the plumbing correctly delivers the pendingField context to
+  // extraction, using a stub that models the realistic difference a real
+  // extraction prompt should make: with the "capacity" hint, "Six" is
+  // interpretable; without any hint, a bare "Six" has no stated subject
+  // and a well-behaved extractor (real or stubbed) has nothing honest to
+  // extract it into.
+  test("a terse reply correctly resolves the intended field WITH pendingField context, and correctly stays null WITHOUT it", async () => {
+    // Models a transcript-in/extraction-out relationship a real,
+    // well-behaved Gemini call following the prompt's own rules would
+    // plausibly produce: "Six" alone -> nothing extractable without
+    // context; "Six" + told this answers capacity -> capacity: 6.
+    const contextAwareExtractFn = jest.fn(async (transcript, language, pendingField) => {
+      if (pendingField === "capacity" && /six/i.test(transcript)) {
+        return { ...emptyExtraction(), capacity: 6 };
+      }
+      return emptyExtraction();
+    });
+
+    // WITH context: draft already at EXTRACTING, capacity next-missing.
+    await Business.create({
+      _id: "biz_test_terse_with_context",
+      destId: "shimla",
+      ownerPhone: "919000000034",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      nearestLandmark: "Golconda Fort",
+    });
+
+    const withContext = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000034",
+      messageId: "wamid.terse.1",
+      transcribeFn: async () => ({ transcript: "Six.", detectedLanguage: "en" }),
+      extractFn: contextAwareExtractFn,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(contextAwareExtractFn).toHaveBeenCalledWith("Six.", "en", "capacity");
+    expect(withContext.extractionAccepted).toBe(true);
+    const savedWithContext = await Business.findOne({ _id: "biz_test_terse_with_context" });
+    expect(savedWithContext.capacity).toBe(6);
+
+    // WITHOUT context: same terse transcript, but a spontaneous
+    // brand-new draft with no pending question at all.
+    const withoutContext = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000035",
+      destId: "shimla",
+      messageId: "wamid.terse.2",
+      transcribeFn: async () => ({ transcript: "Six.", detectedLanguage: "en" }),
+      extractFn: contextAwareExtractFn,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(contextAwareExtractFn).toHaveBeenCalledWith("Six.", "en", null);
+    const savedWithoutContext = await Business.findOne({ ownerPhone: "919000000035" });
+    // Nothing extracted -- proves the context genuinely mattered above,
+    // not that the stub always fills in capacity regardless.
+    expect(savedWithoutContext.capacity).toBeUndefined();
+    // And honesty/shape discipline for every OTHER field is completely
+    // unaffected -- this doesn't loosen anything beyond the one named field.
+    expect(withoutContext.extraction.shapeValid).toBe(true);
+    expect(withoutContext.extraction.honest).toBe(true);
   });
 });

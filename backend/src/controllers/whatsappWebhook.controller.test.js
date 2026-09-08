@@ -175,7 +175,9 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       // not null), so it called the real extraction path itself, with the
       // transcript that was just produced.
       expect(extractFn).toHaveBeenCalledTimes(1);
-      expect(extractFn).toHaveBeenCalledWith(transcript, "hi");
+      // Draft started at AWAITING_VOICE (before TRANSCRIBING) -- the
+      // bootstrap path, no pending question to be a reply to.
+      expect(extractFn).toHaveBeenCalledWith(transcript, "hi", null);
 
       // And the actual persisted state change, including the extracted
       // fields — EXTRACTING now that a real (stubbed) extraction ran and

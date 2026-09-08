@@ -15,7 +15,7 @@ import { transcribeAudio } from "./transcription.js";
 import { extractFields } from "./extractFields.js";
 import { validateExtractionShape, checkExtractionHonesty } from "./extraction.js";
 import { transitionDraft, ONBOARDING_STATES } from "./stateMachine.js";
-import { getNextFollowUpQuestion } from "./followUp.js";
+import { getNextFollowUpQuestion, getNextMissingRequiredField } from "./followUp.js";
 import { sendWhatsAppMessage } from "./sendMessage.js";
 
 /**
@@ -120,7 +120,11 @@ export async function isDuplicateMessage(ownerPhone, messageId) {
  *   independent of the extraction accept/reject outcome (e.g. staff_skills).
  * @param {Function} [params.transcribeFn] - injectable, passed through to transcribeAudio().
  * @param {Function} [params.extractFn] - injectable, passed through to extractFields()
- *   when extractedFields was omitted (real-extraction case only).
+ *   when extractedFields was omitted (real-extraction case only). That
+ *   call also receives a `pendingField` context argument, computed
+ *   internally (not a param on this function) from the existing draft's
+ *   pre-message fields whenever this message is for an already-progressed
+ *   draft — see the inline comment above `pendingField`'s declaration.
  * @param {Function} [params.sendMessageFn] - injectable, passed through to
  *   sendWhatsAppMessage() for the FOLLOWUP question sent after a
  *   successful attempt, if required fields are still missing. Defaults to
@@ -179,6 +183,17 @@ export async function processInboundAudio({
 
   let resultState;
   let appliedHops;
+  // The REQUIRED_FIELDS_FOR_LIVE field name a FOLLOWUP question was just
+  // asked about, if this message is a reply to one — determined from the
+  // EXISTING draft's PRE-message field state (the same presence check
+  // that decided what to ask last time; not a separately stored "last
+  // question" pointer). Passed to extractFields() below so a terse,
+  // context-dependent reply ("Six") can be correctly interpreted instead
+  // of defaulting to null, per the extraction prompt's own "return null
+  // if in doubt" discipline. Deliberately left null for a bootstrap
+  // message (see the `if` branch below) — a spontaneous first message
+  // has no pending question to be a reply to.
+  let pendingField = null;
 
   if (currentIndex < TRANSCRIBING_INDEX) {
     // Brand-new draft, or one still short of TRANSCRIBING — walk it
@@ -209,6 +224,13 @@ export async function processInboundAudio({
     // content against the draft's CURRENT state as-is.
     resultState = currentState;
     appliedHops = [];
+    // This is almost certainly a reply to whatever FOLLOWUP question was
+    // sent after the last successful message — recomputed here from
+    // `existing`'s pre-message fields, not tracked as separate state. If
+    // nothing was actually missing last time, no question was sent, and
+    // this correctly stays null too (same self-correcting property
+    // getNextFollowUpQuestion itself relies on).
+    pendingField = getNextMissingRequiredField(existing);
   }
 
   const { transcript, detectedLanguage } = await transcribeAudio(audioBuffer, transcribeFn);
@@ -220,7 +242,7 @@ export async function processInboundAudio({
   // the full three-way contract.
   let effectiveExtractedFields = extractedFields;
   if (extractedFields === undefined) {
-    effectiveExtractedFields = await extractFields(transcript, detectedLanguage, extractFn);
+    effectiveExtractedFields = await extractFields(transcript, detectedLanguage, pendingField, extractFn);
   }
 
   const extractionAttempted = effectiveExtractedFields != null;

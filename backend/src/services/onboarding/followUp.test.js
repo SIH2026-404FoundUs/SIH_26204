@@ -1,6 +1,6 @@
 import { describe, test, expect } from "@jest/globals";
 import { REQUIRED_FIELDS_FOR_LIVE } from "./stateMachine.js";
-import { getNextFollowUpQuestion } from "./followUp.js";
+import { getNextFollowUpQuestion, getNextMissingRequiredField } from "./followUp.js";
 
 const completeFields = {
   name: "Green Valley Homestay",
@@ -146,5 +146,32 @@ describe("getNextFollowUpQuestion", () => {
     getNextFollowUpQuestion(fields, "en");
 
     expect(fields).toEqual(snapshot);
+  });
+});
+
+describe("getNextMissingRequiredField", () => {
+  test("returns the field NAME, not question text, for the first missing field", () => {
+    const fields = { ...completeFields, capacity: null };
+    expect(getNextMissingRequiredField(fields)).toBe("capacity");
+  });
+
+  test("returns null when every required field is already genuinely present", () => {
+    expect(getNextMissingRequiredField(completeFields)).toBeNull();
+  });
+
+  test("matches whatever field getNextFollowUpQuestion is basing its question on, for every single-missing-field case", () => {
+    for (const field of REQUIRED_FIELDS_FOR_LIVE) {
+      const fields = { ...completeFields, [field]: null };
+      expect(getNextMissingRequiredField(fields)).toBe(field);
+    }
+  });
+
+  test("an empty object returns the first field in REQUIRED_FIELDS_FOR_LIVE order", () => {
+    expect(getNextMissingRequiredField({})).toBe(REQUIRED_FIELDS_FOR_LIVE[0]);
+  });
+
+  test("handles the priceRangeINR Mongoose {} default the same way hasRequiredFieldsForLive does", () => {
+    const fields = { ...completeFields, priceRangeINR: {} };
+    expect(getNextMissingRequiredField(fields)).toBe("priceRangeINR");
   });
 });

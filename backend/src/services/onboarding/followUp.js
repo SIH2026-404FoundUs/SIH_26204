@@ -75,6 +75,31 @@ function questionText(field, language) {
 }
 
 /**
+ * The name of the first REQUIRED_FIELDS_FOR_LIVE field that is not yet
+ * genuinely present on `currentFields`, in REQUIRED_FIELDS_FOR_LIVE's own
+ * order — or null if every required field is already present. This is
+ * the field getNextFollowUpQuestion() would ask about next; exported
+ * separately (not just as question text) so a caller can also use the
+ * raw field name as context elsewhere — e.g. processInboundAudio.js
+ * passing it to extractFields() so the AI extraction prompt knows a
+ * reply is likely answering this specific field.
+ *
+ * @param {Object} currentFields
+ * @returns {string|null}
+ */
+export function getNextMissingRequiredField(currentFields) {
+  const fields = currentFields ?? {};
+
+  for (const field of REQUIRED_FIELDS_FOR_LIVE) {
+    if (!isRequiredFieldPresent(field, fields[field])) {
+      return field;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Decides the next FOLLOWUP question to ask, per Section 1.1: one
  * question, for the first null required field, in a fixed order
  * (REQUIRED_FIELDS_FOR_LIVE's own order) — not all missing fields at
@@ -89,13 +114,6 @@ function questionText(field, language) {
  *   required field is already genuinely present.
  */
 export function getNextFollowUpQuestion(currentFields, language) {
-  const fields = currentFields ?? {};
-
-  for (const field of REQUIRED_FIELDS_FOR_LIVE) {
-    if (!isRequiredFieldPresent(field, fields[field])) {
-      return questionText(field, language);
-    }
-  }
-
-  return null;
+  const field = getNextMissingRequiredField(currentFields);
+  return field ? questionText(field, language) : null;
 }
