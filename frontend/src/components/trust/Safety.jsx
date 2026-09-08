@@ -42,8 +42,8 @@ export default function Safety() {
               {Object.entries(CONTACT_LABELS).map(([key, label]) =>
                 emergencyContacts[key] ? (
                   <div key={key}>
-                    <p className="text-xs text-slate-400">{label}</p>
-                    <p className="font-medium text-slate-800">{emergencyContacts[key]}</p>
+                    <p className="text-xs text-ash">{label}</p>
+                    <p className="font-medium text-ink">{emergencyContacts[key]}</p>
                   </div>
                 ) : null
               )}

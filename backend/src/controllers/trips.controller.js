@@ -31,6 +31,73 @@ export const createTripController = async (req, res) => {
   }
 };
 
+// GET /api/v1/trips?userId= — the traveller's own trip history (My Trips).
+// Not part of the locked §6 contract's original endpoint list, but needed for
+// the frontend's My Trips page to be real rather than a "coming soon" stub --
+// everything it reads (createdAt, requestedDestId, redistribution.kind) was
+// already in the schema.
+export const listTripsController = async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ message: "userId query param required" });
+    const trips = await Trip.find({ userId }).sort({ createdAt: -1 }).lean();
+    res.status(200).json(trips);
+  } catch (error) {
+    console.log("Error in listTrips controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// GET /api/v1/trips/summary — authority-dashboard aggregate (frontend sitemap
+// doc, Page 11: "the query logic is a few lines once real trip records exist
+// to aggregate"). Now that they do, ship the real numbers instead of a
+// "coming soon" panel -- but only the numbers this schema can actually
+// support honestly; no capacity-gap table here, since that needs a
+// destinations collection this project still doesn't have.
+export const getTripsSummaryController = async (req, res) => {
+  try {
+    const [totals] = await Trip.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalTrips: { $sum: 1 },
+          redirectedPlace: { $sum: { $cond: [{ $eq: ["$redistribution.kind", "place"] }, 1, 0] } },
+          redirectedDate: { $sum: { $cond: [{ $eq: ["$redistribution.kind", "date"] }, 1, 0] } },
+          declined: { $sum: { $cond: [{ $eq: ["$redistribution.kind", "none"] }, 1, 0] } },
+          totalSavingINR: { $sum: { $ifNull: ["$redistribution.savingINR", 0] } },
+          // "Budget moved" = the traveller's own declared budgetINR for every
+          // trip that was actually redirected (place or date), not the
+          // saving amount -- a distinct figure from totalSavingINR above.
+          totalBudgetINRMoved: {
+            $sum: {
+              $cond: [{ $ne: ["$redistribution.kind", "none"] }, { $ifNull: ["$budgetINR", 0] }, 0],
+            },
+          },
+        },
+      },
+    ]);
+
+    const totalTrips = totals?.totalTrips || 0;
+    const redirected = (totals?.redirectedPlace || 0) + (totals?.redirectedDate || 0);
+
+    res.status(200).json({
+      totalTrips,
+      redirectedPlace: totals?.redirectedPlace || 0,
+      redirectedDate: totals?.redirectedDate || 0,
+      declined: totals?.declined || 0,
+      // Share of all trips where the traveller took the offered relief.
+      // null (not 0) when there is no data yet -- an honest "unavailable",
+      // not a fabricated zero.
+      acceptanceRate: totalTrips > 0 ? Number((redirected / totalTrips).toFixed(3)) : null,
+      totalSavingINR: totals?.totalSavingINR || 0,
+      totalBudgetINRMoved: totals?.totalBudgetINRMoved || 0,
+    });
+  } catch (error) {
+    console.log("Error in getTripsSummary controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 // GET /api/v1/trips/:id
 export const getTripController = async (req, res) => {
   try {

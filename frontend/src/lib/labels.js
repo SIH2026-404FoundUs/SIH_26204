@@ -77,3 +77,25 @@ export const COMPLAINT_CATEGORY_LABEL = {
 export function complaintCategoryLabel(category) {
   return COMPLAINT_CATEGORY_LABEL[category] || category
 }
+
+// A trip's own honest acceptance-rate data (redistribution.kind), made
+// visible to the traveller who generated it -- the point of the My Trips
+// page per the frontend sitemap doc (Page 6).
+export const REDISTRIBUTION_KIND_LABEL = {
+  none: { label: 'Went as planned', tone: 'neutral' },
+  place: { label: 'Redirected to another place', tone: 'success' },
+  date: { label: 'Shifted to another date', tone: 'success' },
+}
+
+export function redistributionKindLabel(kind) {
+  return REDISTRIBUTION_KIND_LABEL[kind] || { label: kind || 'Planning', tone: 'neutral' }
+}
+
+export const TRIP_STATE_LABEL = {
+  draft: { label: 'In progress', tone: 'warning' },
+  planned: { label: 'Planned', tone: 'success' },
+}
+
+export function tripStateLabel(state) {
+  return TRIP_STATE_LABEL[state] || { label: state || 'Unknown', tone: 'neutral' }
+}

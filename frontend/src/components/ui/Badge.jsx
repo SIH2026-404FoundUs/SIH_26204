@@ -1,12 +1,14 @@
-// Status pill with a fixed semantic palette. Every "raw enum value shown to a
-// user" problem in this app (offer status, verification tier, submission
-// status...) should resolve to one of these five tones, never a bespoke color.
+// Status pill with a fixed semantic palette, remapped onto the design
+// tokens: success/positive reads as relief teal, danger/warning as pressure
+// ochre -- but only ever tinted, never the saturated crowding colours
+// themselves, since those are reserved exclusively for actual pressure data
+// (§3.1's "never used as decorative accents elsewhere" rule).
 const TONES = {
-  neutral: 'bg-slate-100 text-slate-700',
-  success: 'bg-emerald-50 text-emerald-700',
-  warning: 'bg-amber-50 text-amber-700',
-  danger: 'bg-rose-50 text-rose-700',
-  info: 'bg-indigo-50 text-indigo-700',
+  neutral: 'bg-paper-dim text-ink/70',
+  success: 'bg-relief/10 text-relief',
+  warning: 'bg-pressure/10 text-pressure',
+  danger: 'bg-pressure/15 text-pressure',
+  info: 'bg-ink/8 text-ink-soft',
 }
 
 export default function Badge({ tone = 'neutral', icon: Icon, children, className = '' }) {

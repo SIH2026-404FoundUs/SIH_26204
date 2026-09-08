@@ -27,11 +27,11 @@ export default function SwapCard({ data, onAcceptPlace, onAcceptDate, onDecline 
   if (isLowPressure) {
     return (
       <Card className="mx-auto max-w-2xl text-center" padding="p-8">
-        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-relief/10 text-relief">
           <CheckCircle2 size={24} aria-hidden="true" />
         </span>
-        <h2 className="mt-4 text-xl font-semibold text-slate-900">{requestedName} looks good for these dates</h2>
-        <p className="mt-2 text-sm text-slate-500">
+        <h2 className="mt-4 text-xl font-semibold text-ink">{requestedName} looks good for these dates</h2>
+        <p className="mt-2 text-sm text-ash">
           Crowding is estimated at {pressurePercent}% — low enough that there's no need to switch destination or date.
         </p>
         <Button variant="primary" className="mt-6" onClick={() => onDecline?.()}>
@@ -48,8 +48,8 @@ export default function SwapCard({ data, onAcceptPlace, onAcceptDate, onDecline 
     <div className="space-y-6">
       <Card className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <MapPin size={18} className="text-slate-400" aria-hidden="true" />
-          <span className="font-semibold text-slate-900">{requestedName}</span>
+          <MapPin size={18} className="text-ash" aria-hidden="true" />
+          <span className="font-semibold text-ink">{requestedName}</span>
           {relaxedRelief && <Badge tone="info">Showing close matches</Badge>}
         </div>
         <Badge tone="danger">{pressurePercent}% crowded</Badge>
@@ -57,8 +57,8 @@ export default function SwapCard({ data, onAcceptPlace, onAcceptDate, onDecline 
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div>
-          <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-slate-900">
-            <MapPin size={16} className="text-indigo-600" aria-hidden="true" />
+          <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-ink">
+            <MapPin size={16} className="text-pressure" aria-hidden="true" />
             Other destinations ({places.length})
           </h3>
           {hasPlaces ? (
@@ -73,8 +73,8 @@ export default function SwapCard({ data, onAcceptPlace, onAcceptDate, onDecline 
         </div>
 
         <div>
-          <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-slate-900">
-            <Calendar size={16} className="text-teal-600" aria-hidden="true" />
+          <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-ink">
+            <Calendar size={16} className="text-relief" aria-hidden="true" />
             Other dates ({dates.length})
           </h3>
           {hasDates ? (
@@ -89,7 +89,7 @@ export default function SwapCard({ data, onAcceptPlace, onAcceptDate, onDecline 
         </div>
       </div>
 
-      <div className="border-t border-slate-200 pt-2">
+      <div className="border-t border-paper-dim pt-2">
         <DeclineButton onDecline={onDecline} requestedName={requestedName} />
       </div>
     </div>

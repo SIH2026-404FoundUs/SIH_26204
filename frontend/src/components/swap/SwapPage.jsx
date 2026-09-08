@@ -52,7 +52,7 @@ export default function SwapPage() {
   }
 
   return (
-    <main className="flex-1 bg-slate-50 px-6 py-12">
+    <main className="flex-1 bg-paper px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <PageHeader
           icon={MapPin}

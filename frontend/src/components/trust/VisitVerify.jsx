@@ -50,7 +50,7 @@ export default function VisitVerify() {
           {verified ? (
             <Alert tone="success">
               <p className="font-medium">Visit verified.</p>
-              <p className="mt-0.5 text-emerald-600">You now have {lastVisitResult.visitCount} verified {lastVisitResult.visitCount === 1 ? 'visit' : 'visits'}.</p>
+              <p className="mt-0.5 text-relief">You now have {lastVisitResult.visitCount} verified {lastVisitResult.visitCount === 1 ? 'visit' : 'visits'}.</p>
             </Alert>
           ) : (
             <Alert tone="error">{lastVisitResult.message || 'That code could not be verified.'}</Alert>

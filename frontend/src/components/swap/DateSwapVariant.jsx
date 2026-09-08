@@ -19,25 +19,25 @@ export default function DateSwapVariant({ dateObj, requestedPressure = 0.8, onAc
   const formattedDate = formatDate(startDate)
 
   return (
-    <Card className="transition hover:border-teal-300" padding="p-4">
+    <Card className="transition hover:border-relief/40" padding="p-4">
       <div className="flex items-start justify-between gap-3">
-        <h3 className="flex items-center gap-1.5 text-base font-semibold text-slate-900">
-          <Calendar size={16} className="shrink-0 text-teal-600" aria-hidden="true" />
+        <h3 className="flex items-center gap-1.5 text-base font-semibold text-ink">
+          <Calendar size={16} className="shrink-0 text-relief" aria-hidden="true" />
           {formattedDate}
         </h3>
         {savingINR > 0 && (
-          <span className="shrink-0 text-xs font-semibold text-emerald-700">Save ₹{savingINR.toLocaleString('en-IN')}</span>
+          <span className="shrink-0 text-xs font-semibold text-relief">Save ₹{savingINR.toLocaleString('en-IN')}</span>
         )}
       </div>
-      <p className="mt-0.5 text-xs text-slate-400">Same destination, different dates</p>
+      <p className="mt-0.5 text-xs text-ash">Same destination, different dates</p>
 
-      <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-500">
-        <TrendingDown size={12} className="text-emerald-500" aria-hidden="true" />
-        <span className="font-medium text-emerald-600">-{pressureReliefPercent}pt crowding</span>
+      <div className="mt-3 flex items-center gap-1.5 text-xs text-ash">
+        <TrendingDown size={12} className="text-relief" aria-hidden="true" />
+        <span className="font-medium text-relief">-{pressureReliefPercent}pt crowding</span>
         <span>({candidatePressurePercent}% vs your original date)</span>
       </div>
 
-      <Button variant="secondary" fullWidth className="mt-4 hover:border-teal-300" onClick={() => onAccept?.(dateObj)}>
+      <Button variant="secondary" fullWidth className="mt-4 hover:border-relief/40" onClick={() => onAccept?.(dateObj)}>
         Move trip to this date
       </Button>
     </Card>

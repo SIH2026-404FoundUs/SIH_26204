@@ -40,11 +40,11 @@ export default function Alerts() {
               <Card key={alert._id} padding="p-4">
                 <div className="mb-1.5 flex items-center gap-2">
                   <Badge tone={severity.tone}>{severity.label}</Badge>
-                  <span className="text-xs text-slate-400">{alertKindLabel(alert.kind)}</span>
+                  <span className="text-xs text-ash">{alertKindLabel(alert.kind)}</span>
                 </div>
-                <p className="text-sm text-slate-800">{alert.body}</p>
-                <p className="mt-2 text-xs text-slate-400">
-                  Source: <a href={alert.sourceUrl} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">{alert.sourceName}</a>
+                <p className="text-sm text-ink">{alert.body}</p>
+                <p className="mt-2 text-xs text-ash">
+                  Source: <a href={alert.sourceUrl} target="_blank" rel="noreferrer" className="text-pressure hover:underline">{alert.sourceName}</a>
                   {' · valid until '}{new Date(alert.validTo).toLocaleDateString()}
                 </p>
               </Card>
