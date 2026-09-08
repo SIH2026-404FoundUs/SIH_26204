@@ -731,3 +731,199 @@ describe("processInboundAudio — pendingField context passed to extraction", ()
     expect(withoutContext.extraction.honest).toBe(true);
   });
 });
+
+describe("processInboundAudio — destId resolution wiring", () => {
+  test("pendingField === 'destId' with a confidently-resolvable transcript sets destId, independent of extraction", async () => {
+    // Draft already has every other required field except destId --
+    // getNextMissingRequiredField(existing) will report "destId" as the
+    // pendingField, and this reply names a real, unambiguous place.
+    await Business.create({
+      _id: "biz_test_destid_resolve",
+      ownerPhone: "919000000040",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      capacity: 6,
+      priceRangeINR: { min: 1000, max: 2000 },
+      nearestLandmark: "Golconda Fort",
+      // destId intentionally left unset.
+    });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000040",
+      messageId: "wamid.destid.1",
+      transcribeFn: async () => ({ transcript: "It's near the mall in Shimla.", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(), // extraction contributes nothing -- resolution is independent
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(result.applied).toBe(true);
+    const saved = await Business.findOne({ _id: "biz_test_destid_resolve" });
+    expect(saved.destId).toBe("shimla");
+  });
+
+  test("pendingField === 'destId' with an unresolvable transcript leaves destId null -- doesn't fabricate, asks again", async () => {
+    await Business.create({
+      _id: "biz_test_destid_no_match",
+      ownerPhone: "919000000041",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      capacity: 6,
+      priceRangeINR: { min: 1000, max: 2000 },
+      nearestLandmark: "Golconda Fort",
+    });
+
+    const sendMessageFn = jest.fn().mockResolvedValue({ ok: true });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000041",
+      messageId: "wamid.destid.2",
+      transcribeFn: async () => ({ transcript: "Somewhere nice, I'll tell you later.", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(),
+      sendMessageFn,
+    });
+
+    expect(result.applied).toBe(true);
+    const saved = await Business.findOne({ _id: "biz_test_destid_no_match" });
+    expect(saved.destId).toBeUndefined();
+    // The destId question is asked again, since it's still missing.
+    expect(sendMessageFn).toHaveBeenCalledTimes(1);
+    expect(sendMessageFn.mock.calls[0][1]).toBe("Which town or area is your property near?");
+  });
+
+  test("pendingField === 'destId' with a genuinely ambiguous transcript (real seed-data collision) leaves destId null", async () => {
+    await Business.create({
+      _id: "biz_test_destid_ambiguous",
+      ownerPhone: "919000000042",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      capacity: 6,
+      priceRangeINR: { min: 1000, max: 2000 },
+      nearestLandmark: "Some Landmark",
+    });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000042",
+      messageId: "wamid.destid.3",
+      // "Hyderabad" alone genuinely matches three real destinations --
+      // see destinationResolver.test.js for the same confirmed case.
+      transcribeFn: async () => ({ transcript: "It's in Hyderabad.", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(),
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(result.applied).toBe(true);
+    const saved = await Business.findOne({ _id: "biz_test_destid_ambiguous" });
+    expect(saved.destId).toBeUndefined();
+  });
+
+  test("resolution is only attempted when pendingField is 'destId' -- not run against every message's transcript", async () => {
+    // capacity is the pending field here, not destId, even though the
+    // transcript happens to mention a real place name. destId must stay
+    // untouched (still absent), proving resolution isn't run speculatively.
+    await Business.create({
+      _id: "biz_test_destid_not_pending",
+      ownerPhone: "919000000043",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      nearestLandmark: "Golconda Fort",
+      // capacity still missing -- that's the pending field, not destId.
+    });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000043",
+      messageId: "wamid.destid.4",
+      transcribeFn: async () => ({ transcript: "We're in Shimla and can host six guests.", detectedLanguage: "en" }),
+      extractFn: async () => ({ ...emptyExtraction(), capacity: 6 }),
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(result.applied).toBe(true);
+    const saved = await Business.findOne({ _id: "biz_test_destid_not_pending" });
+    expect(saved.capacity).toBe(6);
+    expect(saved.destId).toBeUndefined();
+  });
+
+  test("an explicit destId param still takes precedence and skips resolution entirely", async () => {
+    // Mutually exclusive by construction in practice (explicit destId is
+    // only ever passed for a brand-new draft), but verified defensively:
+    // when both could theoretically apply, the explicit param wins and
+    // resolution against the transcript never overrides it.
+    await Business.create({
+      _id: "biz_test_destid_explicit_wins",
+      ownerPhone: "919000000044",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      capacity: 6,
+      priceRangeINR: { min: 1000, max: 2000 },
+      nearestLandmark: "Golconda Fort",
+    });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000044",
+      destId: "manali", // explicit param -- transcript below says "Shimla"
+      messageId: "wamid.destid.5",
+      transcribeFn: async () => ({ transcript: "It's near the mall in Shimla.", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(),
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(result.applied).toBe(true);
+    const saved = await Business.findOne({ _id: "biz_test_destid_explicit_wins" });
+    expect(saved.destId).toBe("manali");
+  });
+
+  test("destId resolution merges even when extraction FAILS the honesty check on this same message — independent of extractionAccepted, matching staff_skills/staff_serviceAreaDestIds's established pattern", async () => {
+    await Business.create({
+      _id: "biz_test_destid_survives_dishonest_extraction",
+      ownerPhone: "919000000045",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      capacity: 6,
+      priceRangeINR: { min: 1000, max: 2000 },
+      nearestLandmark: "Golconda Fort",
+      // destId still missing -- this is the pending field.
+    });
+
+    // The transcript resolves destId confidently ("near the mall in
+    // Shimla" -> "shimla"), but the SAME message's extraction attempt
+    // invents an amenity never mentioned in that transcript -- must fail
+    // checkExtractionHonesty(), exactly like the "rejected extraction"
+    // tests elsewhere in this file.
+    const dishonestExtraction = {
+      ...emptyExtraction(),
+      amenities: ["swimming pool"], // never mentioned below
+    };
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000045",
+      messageId: "wamid.destid.6",
+      transcribeFn: async () => ({ transcript: "It's near the mall in Shimla.", detectedLanguage: "en" }),
+      extractFn: async () => dishonestExtraction,
+      sendMessageFn: stubSendMessage,
+    });
+
+    // Confirm the honesty check genuinely failed on this message --
+    // otherwise this test wouldn't be proving anything.
+    expect(result.extractionAccepted).toBe(false);
+    expect(result.extraction.honest).toBe(false);
+    expect(result.extraction.failedFields).toEqual([{ field: "amenities[0]", value: "swimming pool" }]);
+
+    // destId resolution still merged, independent of that rejection.
+    const saved = await Business.findOne({ _id: "biz_test_destid_survives_dishonest_extraction" });
+    expect(saved.destId).toBe("shimla");
+    // And the rejected extraction's invented field correctly did NOT persist.
+    expect(saved.amenities).toEqual([]);
+  });
+});

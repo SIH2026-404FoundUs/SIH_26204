@@ -17,6 +17,7 @@ import { validateExtractionShape, checkExtractionHonesty } from "./extraction.js
 import { transitionDraft, ONBOARDING_STATES } from "./stateMachine.js";
 import { getNextFollowUpQuestion, getNextMissingRequiredField } from "./followUp.js";
 import { sendWhatsAppMessage } from "./sendMessage.js";
+import { resolveDestId } from "./destinationResolver.js";
 
 /**
  * Advances an in-memory draft state from `startState` through every
@@ -91,14 +92,19 @@ export async function isDuplicateMessage(ownerPhone, messageId) {
  * WhatsApp-originated draft can therefore be created and progress through
  * TRANSCRIBING/EXTRACTING/etc with destId still null.
  *
- * Real extraction now exists (extractFields()), but that is NOT a destId
- * RESOLUTION step — nothing here turns transcript text like "near the
- * mall in Shimla" into the canonical slug "shimla". That inference is
- * separate, unbuilt work; this change only stops the previous hard
- * failure for a destId-less new draft, it does not add a way to fill
- * destId in automatically. A draft can now exist and advance without one,
- * but will simply stay blocked at the LIVE gate (missing_required_fields)
- * until something — this inference, or a manual/follow-up step — sets it.
+ * destId RESOLUTION now exists (destinationResolver.js's resolveDestId,
+ * a real-seed-data lookup, deliberately not an AI call — see that
+ * module): whenever pendingField === "destId" (this message is a reply
+ * to the "which town or area..." FOLLOWUP question) and no explicit
+ * destId param was given, the transcript is checked against it. A
+ * confident single match sets destId; anything else (no match, or a
+ * genuinely ambiguous one — e.g. a real operator just saying "Hyderabad"
+ * alone, which matches three real destinations) leaves it null and lets
+ * the FOLLOWUP loop ask again, rather than guessing. A draft can still
+ * exist and advance with destId null (extractFields() finding it in a
+ * spontaneous, non-reply message is not solved by this — extraction has
+ * no location-inference step), and stays blocked at the LIVE gate
+ * (missing_required_fields) until something sets it.
  *
  * @param {Object} params
  * @param {Buffer} params.audioBuffer
@@ -267,6 +273,20 @@ export async function processInboundAudio({
   };
   if (destId) {
     setOnSave.destId = destId;
+  } else if (pendingField === "destId") {
+    // This message is (almost certainly) the operator's reply to the
+    // "which town or area is your property near?" FOLLOWUP question — a
+    // lookup problem against real seed data, not an extraction problem,
+    // so this runs independently of the AI extraction pipeline above
+    // (same reasoning as the explicit destId param merging
+    // unconditionally, just above). No AI call, no guessing: only sets
+    // destId when resolveDestId() found exactly one confident match;
+    // stays null (draft unchanged, same question asked again next time)
+    // otherwise — see destinationResolver.js for the full matching rules.
+    const resolvedDestId = resolveDestId(transcript);
+    if (resolvedDestId) {
+      setOnSave.destId = resolvedDestId;
+    }
   }
 
   // Only advance past TRANSCRIBING, and only persist the extracted
