@@ -21,6 +21,7 @@ import OffersWaitlist from './components/trust/OffersWaitlist'
 import Alerts from './components/trust/Alerts'
 import Safety from './components/trust/Safety'
 import Businesses from './components/trust/Businesses'
+import MapPreview from './pages/MapPreview'
 
 // Where each role lands after authenticating (auth spec §7/§20) -- mirrors
 // AuthScreen's own ROLE_HOME, used here for the post-refresh/direct-URL
@@ -63,6 +64,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/explore" element={<Page wide><PressureHeatmap /></Page>} />
+          <Route path="/map-preview" element={<MapPreview />} />
           <Route path="/explore/:destId" element={<Page><DestinationDetail /></Page>} />
           <Route path="/businesses" element={<Page><Businesses /></Page>} />
           {/* Public safety advisory read (spec §3.3) -- also reachable from
