@@ -1,14 +1,10 @@
-// WhatsApp Cloud API webhook — bharani-tasks.md Section 1.1/1.2.
+// WhatsApp Cloud API webhook — bharani-tasks.md Section 1.1/1.2/1.6.
 //
-// This pass only: verify correctly, receive correctly, log correctly.
-// NOT wired into the state machine yet — that's the next step, once a
-// real payload has been seen on stage/in testing and its shape confirmed
-// against what's assumed here. No fixture/sample payload exists anywhere
-// in this repo (checked before writing this — no __fixtures__ directory,
-// no webhook-related file anywhere prior to this).
-//
-// The POST body shape below is based on Meta's publicly documented
-// WhatsApp Cloud API webhook payload format, not a real captured sample:
+// No fixture/sample payload existed anywhere in this repo when the GET/POST
+// skeleton was first built; a real audio payload has since been confirmed
+// against a live WhatsApp test-number send, matching the shape assumed
+// below (based on Meta's publicly documented WhatsApp Cloud API webhook
+// format, not a captured sample at the time it was written):
 //   https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks
 //   https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples
 //
@@ -38,12 +34,28 @@
 //
 // `entry`/`changes`/`messages` are all arrays — Meta can batch more than
 // one in a single POST, so all three are iterated, not just indexed at [0].
-// `messages[].audio.id` is the media_id Section 1.2's two-step fetch needs
-// (GET .../v21.0/{media_id} then the authenticated URL it returns) — only
-// the id is extracted here, never the actual audio bytes; that fetch isn't
-// built yet. A webhook delivery can also carry `value.statuses` (delivery/
-// read receipts) instead of `value.messages` — those are ignored here,
-// not an error case.
+// A webhook delivery can also carry `value.statuses` (delivery/read
+// receipts) instead of `value.messages` — those are ignored here, not an
+// error case (no `value.messages` key on them at all, so the per-message
+// loop below simply never runs for them).
+//
+// This is the point where the real WhatsApp path and the internal
+// fallback endpoint (Section 1.6) converge into one shared pipeline, per
+// "the exact same pipeline downstream of the webhook": an inbound audio
+// message calls fetchWhatsAppMedia() for the real bytes, then hands them
+// to the SAME services/onboarding/processInboundAudio.js the internal
+// endpoint uses — no second implementation of transcribe -> validate ->
+// honesty-check -> transitionDraft -> persist lives here.
+//
+// Meta requires a fast 200 regardless of processing outcome (it retries
+// aggressively otherwise), and transcription alone can take up to ~90s on
+// CPU per Section 1.2's own warning — so the response is sent immediately,
+// before any of that work starts, not after awaiting it. The actual
+// processing runs in the background; failures are logged, never surfaced
+// back to Meta (the response has already gone out by then).
+
+import { fetchWhatsAppMedia } from "../services/onboarding/mediaDownload.js";
+import { processInboundAudio, isDuplicateMessage } from "../services/onboarding/processInboundAudio.js";
 
 /**
  * GET /api/webhook/whatsapp — Meta's one-time verification handshake.
@@ -69,43 +81,115 @@ export function verifyWebhook(req, res) {
 }
 
 /**
- * POST /api/webhook/whatsapp — inbound message delivery.
- * Meta requires a fast 200 regardless of processing outcome (it retries
- * aggressively otherwise) — so the full raw payload is logged for later
- * inspection, sender/type/media-id are extracted and logged per message,
- * and the response is always 200, even if logging/parsing itself throws.
+ * Processes one inbound message from the webhook payload. Only "audio" is
+ * wired into the real pipeline right now — "text" (e.g. the consent reply
+ * that would drive AWAITING_CONSENT) and anything else are just logged,
+ * per this task's scope.
+ *
+ * @param {Object} message
+ * @param {Object} deps
+ * @param {Function} [deps.fetchFn] - injectable, passed through to fetchWhatsAppMedia().
+ * @param {Function} [deps.transcribeFn] - injectable, passed through to transcribeAudio().
  */
-export function receiveWebhook(req, res) {
-  console.log("WhatsApp webhook payload:", JSON.stringify(req.body, null, 2));
+async function processWebhookMessage(message, { fetchFn, transcribeFn } = {}) {
+  const from = message?.from ?? null;
+  const type = message?.type ?? null;
+  const messageId = message?.id ?? null;
 
-  try {
-    const entries = Array.isArray(req.body?.entry) ? req.body.entry : [];
-    for (const entry of entries) {
-      const changes = Array.isArray(entry?.changes) ? entry.changes : [];
-      for (const change of changes) {
-        const messages = Array.isArray(change?.value?.messages) ? change.value.messages : [];
-        for (const message of messages) {
-          const from = message?.from ?? null;
-          const type = message?.type ?? null;
-          const messageId = message?.id ?? null;
+  if (type === "audio") {
+    const mediaId = message?.audio?.id ?? null;
+    console.log("Inbound WhatsApp audio message:", { from, messageId, mediaId });
 
-          if (type === "audio") {
-            const mediaId = message?.audio?.id ?? null;
-            console.log("Inbound WhatsApp audio message:", { from, messageId, mediaId });
-          } else if (type === "text") {
-            const text = message?.text?.body ?? null;
-            console.log("Inbound WhatsApp text message:", { from, messageId, text });
-          } else {
-            console.log("Inbound WhatsApp message of unhandled type:", { from, messageId, type });
-          }
-        }
+    if (!from || !messageId || !mediaId) {
+      console.error("Inbound WhatsApp audio message missing from/id/audio.id — cannot process:", {
+        from,
+        messageId,
+        mediaId,
+      });
+      return;
+    }
+
+    // Meta retries webhook deliveries aggressively (see module docstring)
+    // — check for a replay BEFORE spending a media download on it, not
+    // just after, so a retry costs nothing beyond one DB lookup.
+    if (await isDuplicateMessage(from, messageId)) {
+      console.log("WhatsApp audio message is a replay of an already-processed messageId — skipping:", {
+        from,
+        messageId,
+      });
+      return;
+    }
+
+    // KNOWN GAP, not silently defaulted: no real extraction call
+    // (Qwen3/Gemini) is wired in here yet. extractedFields is passed as
+    // an explicit `null` below -- not omitted -- so processInboundAudio
+    // treats this as "extraction not attempted": it stops the draft at
+    // TRANSCRIBING and writes none of the extraction fields, rather than
+    // risking clobbering any real values a prior extraction may have set.
+    // Once a real extraction call exists for this path, replace `null`
+    // with its actual result.
+    const audioBuffer = await fetchWhatsAppMedia(mediaId, fetchFn);
+    const result = await processInboundAudio({
+      audioBuffer,
+      ownerPhone: from,
+      messageId,
+      extractedFields: null,
+      transcribeFn,
+    });
+    console.log("WhatsApp audio message processed:", result);
+  } else if (type === "text") {
+    const text = message?.text?.body ?? null;
+    console.log("Inbound WhatsApp text message:", { from, messageId, text });
+  } else {
+    console.log("Inbound WhatsApp message of unhandled type:", { from, messageId, type });
+  }
+}
+
+async function processWebhookPayload(body, deps) {
+  const entries = Array.isArray(body?.entry) ? body.entry : [];
+  for (const entry of entries) {
+    const changes = Array.isArray(entry?.changes) ? entry.changes : [];
+    for (const change of changes) {
+      const messages = Array.isArray(change?.value?.messages) ? change.value.messages : [];
+      for (const message of messages) {
+        await processWebhookMessage(message, deps);
       }
     }
-  } catch (error) {
-    // Never let our own logging/parsing failure turn into a missed 200 —
-    // that would trigger a Meta retry storm on top of whatever broke.
-    console.error("Error while logging WhatsApp webhook payload:", error.message);
+  }
+}
+
+/**
+ * Builds the POST /api/webhook/whatsapp handler. `fetchFn`/`transcribeFn`
+ * are injectable for tests, exactly like eligibility.js's pressureFn —
+ * production callers omit both and get the real network calls.
+ *
+ * @param {Object} [deps]
+ * @param {Function} [deps.fetchFn]
+ * @param {Function} [deps.transcribeFn]
+ */
+export function createReceiveWebhookHandler({ fetchFn, transcribeFn } = {}) {
+  function handleReceiveWebhook(req, res) {
+    console.log("WhatsApp webhook payload:", JSON.stringify(req.body, null, 2));
+
+    // Fast 200 first — see module docstring for why this must not wait on
+    // the actual processing below.
+    res.sendStatus(200);
+
+    const backgroundWork = processWebhookPayload(req.body, { fetchFn, transcribeFn }).catch((error) => {
+      // The response is already sent; nothing to return this to. Log only.
+      console.error("Error processing WhatsApp webhook payload:", error.message);
+    });
+
+    // Exposed purely for tests to await ("...through to a persisted state
+    // change" isn't observable otherwise, since this is intentionally
+    // fire-and-forget in production). Never read in production code.
+    handleReceiveWebhook.pendingWork.push(backgroundWork);
   }
 
-  return res.sendStatus(200);
+  handleReceiveWebhook.pendingWork = [];
+  return handleReceiveWebhook;
 }
+
+// Default-configured handler for production wiring (index.js), matching
+// how every other route in this codebase is mounted directly.
+export const receiveWebhook = createReceiveWebhookHandler();

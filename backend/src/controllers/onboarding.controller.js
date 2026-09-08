@@ -5,22 +5,15 @@
 // feeds the exact same Whisper -> Qwen3 -> MongoDB pipeline downstream of
 // the webhook. Never present this as the feature."
 //
-// A Business document IS the draft throughout onboarding — confirmed
-// against schema-workplan.md before building this: there is no separate
-// draft collection anywhere in the schema (16 collections total, checked
-// the full list), and BUSINESSES itself carries both onboardingState and
-// lastWhatsAppMessageId directly (bharani-tasks.md §1.1: "State is stored
-// on the business draft document, keyed by lastWhatsAppMessageId"). So
-// this handler reads/writes the same Business collection the real
-// WhatsApp webhook eventually will, in place, from AWAITING_CONSENT
-// through to whatever state this request reaches.
+// The actual pipeline (transcribe -> validate/honesty-check -> advance
+// state -> persist) lives in services/onboarding/processInboundAudio.js,
+// shared with whatsappWebhook.controller.js — this file is now just the
+// HTTP adapter around it: parsing the multipart request, validating the
+// placeholder inputs, and translating the shared core's result into HTTP
+// responses.
 
-import crypto from "crypto";
 import multer from "multer";
-import Business from "../models/business.model.js";
-import { transcribeAudio } from "../services/onboarding/transcription.js";
-import { validateExtractionShape, checkExtractionHonesty } from "../services/onboarding/extraction.js";
-import { transitionDraft, ONBOARDING_STATES } from "../services/onboarding/stateMachine.js";
+import { processInboundAudio } from "../services/onboarding/processInboundAudio.js";
 
 const MAX_AUDIO_BYTES = 20 * 1024 * 1024; // 20MB — comfortably above any real WhatsApp voice note
 
@@ -28,49 +21,6 @@ export const uploadAudioMiddleware = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_AUDIO_BYTES },
 }).single("audio");
-
-/**
- * Advances an in-memory draft state from `startState` through every
- * intermediate state up to and including `targetState`, one
- * transitionDraft() call per hop (the state machine only allows single
- * hops, so a fresh draft walking from nothing to TRANSCRIBING takes
- * several calls: null->AWAITING_CONSENT->AWAITING_VOICE->TRANSCRIBING).
- *
- * Each hop is given its own synthetic sub-id and a synthetic draft with
- * lastWhatsAppMessageId always null, so transitionDraft's idempotency
- * branch never fires mid-walk — idempotency for the whole request is
- * handled once, up front, by the caller, before this ever runs.
- *
- * @returns {{ ok: boolean, state: string|null, appliedHops?: string[], reason?: string }}
- */
-function walkStates(startState, targetState, baseMessageId) {
-  const startIndex = startState === null ? -1 : ONBOARDING_STATES.indexOf(startState);
-  const targetIndex = ONBOARDING_STATES.indexOf(targetState);
-
-  if (startIndex > targetIndex) {
-    return { ok: false, reason: "already_past_target", state: startState };
-  }
-
-  let state = startState;
-  const appliedHops = [];
-  const hopStates = ONBOARDING_STATES.slice(startIndex + 1, targetIndex + 1);
-
-  for (let i = 0; i < hopStates.length; i++) {
-    const nextState = hopStates[i];
-    const result = transitionDraft(
-      { onboardingState: state, lastWhatsAppMessageId: null },
-      nextState,
-      `${baseMessageId}::step${i + 1}`
-    );
-    if (!result.applied) {
-      return { ok: false, reason: result.reason, state };
-    }
-    state = result.state;
-    appliedHops.push(nextState);
-  }
-
-  return { ok: true, state, appliedHops };
-}
 
 /**
  * Parses an optional request field expected to be a JSON-encoded array of
@@ -98,9 +48,8 @@ function parseOptionalStringArray(rawValue, fieldName) {
  * Builds the internal onboarding-upload handler. `transcribeFn` is
  * injectable for tests, exactly like eligibility.js's pressureFn.
  * Production callers omit it, and transcribeAudio() falls back to its own
- * "not implemented yet" stub — correct behavior, since the real
- * faster-whisper backend isn't wired up yet either; this endpoint should
- * fail the same loud, clear way the WhatsApp path would if unconfigured.
+ * real HTTP-backed default — correct behavior; this endpoint should fail
+ * the same loud, clear way the WhatsApp path would if unconfigured.
  *
  * @param {Object} [deps]
  * @param {Function} [deps.transcribeFn]
@@ -163,102 +112,47 @@ export function createOnboardingUploadHandler({ transcribeFn } = {}) {
         return res.status(400).json({ error: true, message: staffServiceAreaResult.error });
       }
 
-      const existing = await Business.findOne({ ownerPhone });
-      const currentState = existing ? existing.onboardingState ?? null : null;
-      const attemptMessageId = messageId || crypto.randomUUID();
-
-      // Whole-request idempotency: a genuinely replayed upload (same
-      // messageId already persisted on this draft) does zero work — no
-      // transcription, no extraction, no writes.
-      if (existing?.lastWhatsAppMessageId != null && existing.lastWhatsAppMessageId === attemptMessageId) {
-        return res.status(200).json({
-          businessId: existing._id,
-          onboardingState: existing.onboardingState,
-          applied: false,
-          reason: "duplicate_message",
-        });
-      }
-
-      const preCheck = walkStates(currentState, "TRANSCRIBING", attemptMessageId);
-      if (!preCheck.ok) {
-        return res.status(409).json({
-          error: true,
-          message: `draft is not eligible for this endpoint (currently at ${currentState ?? "no state"})`,
-          reason: preCheck.reason,
-        });
-      }
-
-      // Step 2: transcribe (Whisper -> Qwen3 pipeline, Section 1.2).
-      const { transcript, detectedLanguage } = await transcribeAudio(req.file.buffer, transcribeFn);
-
-      const shapeResult = validateExtractionShape(extractedFields);
-      const honestyResult = shapeResult.valid
-        ? checkExtractionHonesty(extractedFields, transcript)
-        : { honest: false, failedFields: [] };
-      const extractionAccepted = shapeResult.valid && honestyResult.honest;
-
-      const setOnSave = {
-        ownerPhone,
-        destId,
-        rawTranscript: transcript,
-        transcriptLang: detectedLanguage,
-        onboardingState: preCheck.state, // TRANSCRIBING, unless the EXTRACTING hop below succeeds too
-      };
-      let appliedHops = preCheck.appliedHops;
-
-      // Step 4: only advance past TRANSCRIBING, and only persist the
-      // extracted fields, when the extraction was both well-formed and
-      // honest. A failed check does NOT silently drop the rejection — it's
-      // reported in full below — but it also must not advance the draft.
-      if (extractionAccepted) {
-        const extractStep = transitionDraft(
-          { onboardingState: preCheck.state, lastWhatsAppMessageId: null },
-          "EXTRACTING",
-          `${attemptMessageId}::step_extract`
-        );
-        if (extractStep.applied) {
-          appliedHops = [...appliedHops, "EXTRACTING"];
-          Object.assign(setOnSave, extractedFields, { onboardingState: "EXTRACTING" });
-        }
-      }
-
-      // Merged independently of the extraction accept/reject outcome above
-      // — these were never part of that pipeline, so a rejected extraction
-      // must not withhold them.
+      const extraFields = {};
       if (staffSkillsResult.value !== undefined) {
-        setOnSave.staff_skills = staffSkillsResult.value;
+        extraFields.staff_skills = staffSkillsResult.value;
       }
       if (staffServiceAreaResult.value !== undefined) {
-        setOnSave.staff_serviceAreaDestIds = staffServiceAreaResult.value;
+        extraFields.staff_serviceAreaDestIds = staffServiceAreaResult.value;
       }
 
-      // Schema validators run on this write (enum checks, priceRangeINR
-      // shape, etc. all apply). name/type are the one deliberate
-      // exception: business.model.js makes them required only once
-      // onboardingState reaches LIVE, matching transitionDraft()'s own
-      // hasRequiredFieldsForLive() gate on that same transition — a draft
-      // sitting at TRANSCRIBING/EXTRACTING with name/type still unknown
-      // is legitimate and must still be saveable.
-      const draftId = existing ? existing._id : `biz_${destId}_${crypto.randomUUID()}`;
-      setOnSave.lastWhatsAppMessageId = attemptMessageId;
-      const saved = await Business.findOneAndUpdate(
-        { _id: draftId },
-        { $set: setOnSave },
-        { upsert: true, new: true, runValidators: true, context: "query" }
-      );
+      const result = await processInboundAudio({
+        audioBuffer: req.file.buffer,
+        destId,
+        ownerPhone,
+        messageId,
+        extractedFields,
+        extraFields,
+        transcribeFn,
+      });
 
-      return res.status(extractionAccepted ? 200 : 422).json({
-        businessId: saved._id,
-        onboardingState: saved.onboardingState,
-        appliedHops,
-        transcript,
-        detectedLanguage,
-        extraction: {
-          shapeValid: shapeResult.valid,
-          shapeErrors: shapeResult.errors,
-          honest: honestyResult.honest,
-          failedFields: honestyResult.failedFields,
-        },
+      if (!result.applied) {
+        if (result.reason === "duplicate_message") {
+          return res.status(200).json({
+            businessId: result.businessId,
+            onboardingState: result.onboardingState,
+            applied: false,
+            reason: "duplicate_message",
+          });
+        }
+        return res.status(409).json({
+          error: true,
+          message: `draft is not eligible for this endpoint (currently at ${result.onboardingState ?? "no state"})`,
+          reason: result.reason,
+        });
+      }
+
+      return res.status(result.extractionAccepted ? 200 : 422).json({
+        businessId: result.businessId,
+        onboardingState: result.onboardingState,
+        appliedHops: result.appliedHops,
+        transcript: result.transcript,
+        detectedLanguage: result.detectedLanguage,
+        extraction: result.extraction,
       });
     } catch (error) {
       console.error("Error in onboarding upload handler:", error.message);
