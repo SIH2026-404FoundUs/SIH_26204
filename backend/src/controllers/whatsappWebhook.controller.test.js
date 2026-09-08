@@ -117,7 +117,23 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
     const transcript = "Yeh mera ghar hai, teen kamre hain, Main Chowk ke paas.";
     const transcribeFn = jest.fn().mockResolvedValue({ transcript, detectedLanguage: "hi" });
 
-    const handler = createReceiveWebhookHandler({ fetchFn, transcribeFn });
+    // A realistic, honest extraction: capacity and nearestLandmark are
+    // genuinely stated in the transcript above ("teen kamre" / "Main
+    // Chowk"); everything else is left null since it wasn't said. Proves
+    // the real extraction path end-to-end, not just that it was called.
+    const extractFn = jest.fn().mockResolvedValue({
+      name: null,
+      type: null,
+      capacity: 3,
+      priceRangeINR: null,
+      amenities: [],
+      meals: [],
+      nearestLandmark: "Main Chowk",
+      languages: ["hi"],
+      seasonalNotes: null,
+    });
+
+    const handler = createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn });
     const app = createTestApp(handler);
     const server = app.listen(0);
 
@@ -149,17 +165,22 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       expect(Buffer.isBuffer(transcribeFn.mock.calls[0][0])).toBe(true);
       expect(transcribeFn.mock.calls[0][0]).toEqual(Buffer.from(realAudioBytes));
 
-      // And the actual persisted state change. TRANSCRIBING, not
-      // EXTRACTING: the webhook path passes extractedFields: null (no
-      // real extraction call wired in yet), which processInboundAudio
-      // treats as "extraction not attempted" — it stops here rather than
-      // advancing on a placeholder (see processInboundAudio.test.js's
-      // "extraction not attempted must not clobber existing data" suite).
+      // extractedFields was never passed to processInboundAudio (omitted,
+      // not null), so it called the real extraction path itself, with the
+      // transcript that was just produced.
+      expect(extractFn).toHaveBeenCalledTimes(1);
+      expect(extractFn).toHaveBeenCalledWith(transcript, "hi");
+
+      // And the actual persisted state change, including the extracted
+      // fields — EXTRACTING now that a real (stubbed) extraction ran and
+      // was accepted as shape-valid and honest.
       const saved = await Business.findOne({ _id: "biz_test_whatsapp_flow" });
-      expect(saved.onboardingState).toBe("TRANSCRIBING");
+      expect(saved.onboardingState).toBe("EXTRACTING");
       expect(saved.rawTranscript).toBe(transcript);
       expect(saved.transcriptLang).toBe("hi");
       expect(saved.lastWhatsAppMessageId).toBe(messageId);
+      expect(saved.capacity).toBe(3);
+      expect(saved.nearestLandmark).toBe("Main Chowk");
     } finally {
       server.close();
     }
@@ -185,8 +206,19 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       return { ok: true, status: 200, arrayBuffer: async () => new ArrayBuffer(4) };
     });
     const transcribeFn = jest.fn().mockResolvedValue({ transcript: "hi", detectedLanguage: "en" });
+    const extractFn = jest.fn().mockResolvedValue({
+      name: null,
+      type: null,
+      capacity: null,
+      priceRangeINR: null,
+      amenities: [],
+      meals: [],
+      nearestLandmark: null,
+      languages: [],
+      seasonalNotes: null,
+    });
 
-    const handler = createReceiveWebhookHandler({ fetchFn, transcribeFn });
+    const handler = createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn });
     const app = createTestApp(handler);
     const server = app.listen(0);
 
@@ -202,6 +234,7 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       });
       await Promise.all(handler.pendingWork);
       expect(transcribeFn).toHaveBeenCalledTimes(1);
+      expect(extractFn).toHaveBeenCalledTimes(1);
 
       // Meta retries the identical webhook delivery.
       const replay = buildAudioWebhookPayload({ from: ownerPhone, messageId, mediaId });
@@ -212,9 +245,11 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       });
       await Promise.all(handler.pendingWork);
 
-      // Neither media download nor transcription happened a second time.
+      // Neither media download, transcription, nor extraction happened a
+      // second time.
       expect(fetchFn).toHaveBeenCalledTimes(2); // still just the first delivery's two calls
       expect(transcribeFn).toHaveBeenCalledTimes(1); // not called again
+      expect(extractFn).toHaveBeenCalledTimes(1); // not called again
     } finally {
       server.close();
     }

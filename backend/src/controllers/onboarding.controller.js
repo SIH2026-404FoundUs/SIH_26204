@@ -5,12 +5,15 @@
 // feeds the exact same Whisper -> Qwen3 -> MongoDB pipeline downstream of
 // the webhook. Never present this as the feature."
 //
-// The actual pipeline (transcribe -> validate/honesty-check -> advance
-// state -> persist) lives in services/onboarding/processInboundAudio.js,
-// shared with whatsappWebhook.controller.js — this file is now just the
-// HTTP adapter around it: parsing the multipart request, validating the
-// placeholder inputs, and translating the shared core's result into HTTP
-// responses.
+// The actual pipeline (transcribe -> extract -> validate/honesty-check ->
+// advance state -> persist) lives in
+// services/onboarding/processInboundAudio.js, shared with
+// whatsappWebhook.controller.js — this file is now just the HTTP adapter
+// around it: parsing the multipart request, validating the inputs, and
+// translating the shared core's result into HTTP responses.
+// extractedFields is optional here: supplied, it's used as-is (lets a
+// caller inject a specific extraction scenario for testing); absent, a
+// real extraction call fires, same as the WhatsApp path.
 
 import multer from "multer";
 import { processInboundAudio } from "../services/onboarding/processInboundAudio.js";
@@ -45,16 +48,18 @@ function parseOptionalStringArray(rawValue, fieldName) {
 }
 
 /**
- * Builds the internal onboarding-upload handler. `transcribeFn` is
- * injectable for tests, exactly like eligibility.js's pressureFn.
- * Production callers omit it, and transcribeAudio() falls back to its own
- * real HTTP-backed default — correct behavior; this endpoint should fail
- * the same loud, clear way the WhatsApp path would if unconfigured.
+ * Builds the internal onboarding-upload handler. `transcribeFn`/`extractFn`
+ * are injectable for tests, exactly like eligibility.js's pressureFn.
+ * Production callers omit both, and transcribeAudio()/extractFields() fall
+ * back to their own real HTTP-backed defaults — correct behavior; this
+ * endpoint should fail the same loud, clear way the WhatsApp path would if
+ * unconfigured.
  *
  * @param {Object} [deps]
  * @param {Function} [deps.transcribeFn]
+ * @param {Function} [deps.extractFn]
  */
-export function createOnboardingUploadHandler({ transcribeFn } = {}) {
+export function createOnboardingUploadHandler({ transcribeFn, extractFn } = {}) {
   return async function handleOnboardingUpload(req, res) {
     try {
       if (!req.file) {
@@ -66,26 +71,31 @@ export function createOnboardingUploadHandler({ transcribeFn } = {}) {
         return res.status(400).json({ error: true, message: "destId and ownerPhone are required" });
       }
 
-      // PLACEHOLDER for the real Qwen3 extraction call (Section 1.3) — not
-      // built yet. Caller supplies the extracted fields directly so the
-      // rest of the pipeline (shape + honesty checks, state advancement,
-      // persistence) can be exercised end-to-end without a live LLM.
+      // extractedFields is optional. Supplied: used as-is, letting a
+      // caller inject a specific extraction scenario directly (as every
+      // existing test here does) without a live LLM. Absent entirely:
+      // left as `undefined` and passed through to processInboundAudio
+      // unchanged — its own three-way signal then triggers a real
+      // extraction call (services/onboarding/extractFields.js), so this
+      // endpoint genuinely runs "the exact same pipeline downstream of
+      // the webhook" (transcription AND extraction both real) rather than
+      // requiring a placeholder every time.
       let extractedFields;
-      try {
-        extractedFields =
-          typeof req.body.extractedFields === "string"
-            ? JSON.parse(req.body.extractedFields)
-            : req.body.extractedFields;
-      } catch {
-        return res.status(400).json({ error: true, message: "extractedFields must be valid JSON" });
-      }
-      if (!extractedFields || typeof extractedFields !== "object") {
-        return res.status(400).json({
-          error: true,
-          message:
-            "extractedFields is required for now (placeholder for the real Qwen3 call, Section 1.3, " +
-            "not built yet) — pass the fields you want validated directly in the request body.",
-        });
+      if (req.body.extractedFields !== undefined) {
+        try {
+          extractedFields =
+            typeof req.body.extractedFields === "string"
+              ? JSON.parse(req.body.extractedFields)
+              : req.body.extractedFields;
+        } catch {
+          return res.status(400).json({ error: true, message: "extractedFields must be valid JSON" });
+        }
+        if (!extractedFields || typeof extractedFields !== "object") {
+          return res.status(400).json({
+            error: true,
+            message: "extractedFields, when supplied, must be a JSON object",
+          });
+        }
       }
 
       // staff_skills/staff_serviceAreaDestIds collection mechanism is
@@ -128,6 +138,7 @@ export function createOnboardingUploadHandler({ transcribeFn } = {}) {
         extractedFields,
         extraFields,
         transcribeFn,
+        extractFn,
       });
 
       if (!result.applied) {

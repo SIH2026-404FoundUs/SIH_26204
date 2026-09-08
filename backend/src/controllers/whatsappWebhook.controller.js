@@ -90,8 +90,9 @@ export function verifyWebhook(req, res) {
  * @param {Object} deps
  * @param {Function} [deps.fetchFn] - injectable, passed through to fetchWhatsAppMedia().
  * @param {Function} [deps.transcribeFn] - injectable, passed through to transcribeAudio().
+ * @param {Function} [deps.extractFn] - injectable, passed through to extractFields().
  */
-async function processWebhookMessage(message, { fetchFn, transcribeFn } = {}) {
+async function processWebhookMessage(message, { fetchFn, transcribeFn, extractFn } = {}) {
   const from = message?.from ?? null;
   const type = message?.type ?? null;
   const messageId = message?.id ?? null;
@@ -120,21 +121,21 @@ async function processWebhookMessage(message, { fetchFn, transcribeFn } = {}) {
       return;
     }
 
-    // KNOWN GAP, not silently defaulted: no real extraction call
-    // (Qwen3/Gemini) is wired in here yet. extractedFields is passed as
-    // an explicit `null` below -- not omitted -- so processInboundAudio
-    // treats this as "extraction not attempted": it stops the draft at
-    // TRANSCRIBING and writes none of the extraction fields, rather than
-    // risking clobbering any real values a prior extraction may have set.
-    // Once a real extraction call exists for this path, replace `null`
-    // with its actual result.
+    // extractedFields is deliberately NOT passed here (not even as
+    // `undefined` explicitly — the key is simply absent from this object).
+    // processInboundAudio treats that omission as "no placeholder
+    // supplied, actually attempt real extraction" and calls the real
+    // Gemini-backed extraction service itself (services/onboarding/
+    // extractFields.js -> ai-service's POST /onboarding/extract), running
+    // the same validateExtractionShape/checkExtractionHonesty checks on
+    // whatever comes back as any other extraction attempt.
     const audioBuffer = await fetchWhatsAppMedia(mediaId, fetchFn);
     const result = await processInboundAudio({
       audioBuffer,
       ownerPhone: from,
       messageId,
-      extractedFields: null,
       transcribeFn,
+      extractFn,
     });
     console.log("WhatsApp audio message processed:", result);
   } else if (type === "text") {
@@ -159,15 +160,17 @@ async function processWebhookPayload(body, deps) {
 }
 
 /**
- * Builds the POST /api/webhook/whatsapp handler. `fetchFn`/`transcribeFn`
- * are injectable for tests, exactly like eligibility.js's pressureFn —
- * production callers omit both and get the real network calls.
+ * Builds the POST /api/webhook/whatsapp handler. `fetchFn`/`transcribeFn`/
+ * `extractFn` are injectable for tests, exactly like eligibility.js's
+ * pressureFn — production callers omit all three and get the real network
+ * calls (media download, transcription, and extraction respectively).
  *
  * @param {Object} [deps]
  * @param {Function} [deps.fetchFn]
  * @param {Function} [deps.transcribeFn]
+ * @param {Function} [deps.extractFn]
  */
-export function createReceiveWebhookHandler({ fetchFn, transcribeFn } = {}) {
+export function createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn } = {}) {
   function handleReceiveWebhook(req, res) {
     console.log("WhatsApp webhook payload:", JSON.stringify(req.body, null, 2));
 
@@ -175,7 +178,7 @@ export function createReceiveWebhookHandler({ fetchFn, transcribeFn } = {}) {
     // the actual processing below.
     res.sendStatus(200);
 
-    const backgroundWork = processWebhookPayload(req.body, { fetchFn, transcribeFn }).catch((error) => {
+    const backgroundWork = processWebhookPayload(req.body, { fetchFn, transcribeFn, extractFn }).catch((error) => {
       // The response is already sent; nothing to return this to. Log only.
       console.error("Error processing WhatsApp webhook payload:", error.message);
     });

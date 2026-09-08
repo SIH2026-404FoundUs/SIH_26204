@@ -22,12 +22,13 @@ afterEach(async () => {
 });
 
 // Builds a standalone test app with the upload route mounted directly,
-// injecting a stub transcribeFn the same way eligibility.test.js injects
-// pressureFn — never depends on a real transcription backend.
-function createTestApp(transcribeFn) {
+// injecting stub transcribeFn/extractFn the same way eligibility.test.js
+// injects pressureFn — never depends on a real transcription or
+// extraction backend.
+function createTestApp(transcribeFn, extractFn) {
   const app = express();
   app.use(express.json());
-  app.post("/upload", uploadAudioMiddleware, createOnboardingUploadHandler({ transcribeFn }));
+  app.post("/upload", uploadAudioMiddleware, createOnboardingUploadHandler({ transcribeFn, extractFn }));
   return app;
 }
 
@@ -112,6 +113,44 @@ describe("POST /upload (onboarding internal fallback)", () => {
       expect(saved.rawTranscript).toBe(transcript);
       expect(saved.transcriptLang).toBe("hi");
       expect(saved.destId).toBe("shimla");
+    } finally {
+      server.close();
+    }
+  });
+
+  test("with no extractedFields supplied at all, a real extraction call fires end-to-end (via the injected extractFn stub)", async () => {
+    // The point of this test: with extractedFields genuinely absent from
+    // the request, this endpoint now runs "the exact same pipeline
+    // downstream of the webhook" for real — transcription AND extraction
+    // both actually attempted, not a placeholder standing in for the
+    // extraction half. No real Gemini call happens here: extractFn is an
+    // injected stub, same DI pattern as transcribeFn.
+    const transcript = "This is Green Valley Homestay near Main Chowk. We have hot water.";
+    const transcribeStub = jest.fn().mockResolvedValue({ transcript, detectedLanguage: "hi" });
+    const extractStub = jest.fn().mockResolvedValue(validExtraction());
+    const app = createTestApp(transcribeStub, extractStub);
+    const server = app.listen(0);
+
+    try {
+      const { status, data } = await postUpload(server, {
+        destId: "shimla",
+        ownerPhone: "+919876500099",
+        // extractedFields intentionally NOT included in the request at all.
+        messageId: "upload-real-extraction-1",
+      });
+
+      expect(status).toBe(200);
+      expect(extractStub).toHaveBeenCalledTimes(1);
+      expect(extractStub).toHaveBeenCalledWith(transcript, "hi");
+      expect(data.onboardingState).toBe("EXTRACTING");
+      expect(data.extraction.attempted).toBe(true);
+      expect(data.extraction.shapeValid).toBe(true);
+      expect(data.extraction.honest).toBe(true);
+
+      const saved = await Business.findOne({ _id: data.businessId });
+      expect(saved.name).toBe("Green Valley Homestay");
+      expect(saved.type).toBe("homestay");
+      expect(saved.rawTranscript).toBe(transcript);
     } finally {
       server.close();
     }

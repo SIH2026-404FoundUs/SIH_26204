@@ -12,6 +12,7 @@
 import crypto from "crypto";
 import Business from "../../models/business.model.js";
 import { transcribeAudio } from "./transcription.js";
+import { extractFields } from "./extractFields.js";
 import { validateExtractionShape, checkExtractionHonesty } from "./extraction.js";
 import { transitionDraft, ONBOARDING_STATES } from "./stateMachine.js";
 
@@ -94,19 +95,21 @@ export async function isDuplicateMessage(ownerPhone, messageId) {
  * @param {string} params.ownerPhone
  * @param {string} params.messageId
  * @param {string} [params.destId] - required only when no draft exists yet.
- * @param {Object|null} [params.extractedFields] - no default: null/undefined means
- *   "extraction was not attempted" (e.g. the real WhatsApp path has no
- *   extraction call wired in yet), NOT "extraction ran and returned
- *   nothing." Callers MUST pass one explicitly, distinguishing the two.
- *   When null/undefined: shape/honesty validation is skipped entirely, the
- *   draft never advances past TRANSCRIBING, and none of extractedFields'
- *   keys are written — an untouched Mongo doc is never at risk of having
- *   real prior values clobbered back to null by a message with nothing to
- *   report. When provided (even if every field inside it is null): the
- *   normal shape/honesty-checked EXTRACTING path runs exactly as before.
+ * @param {Object|null} [params.extractedFields] - three-way signal, no default:
+ *   - omitted entirely (undefined): "no placeholder supplied — actually
+ *     attempt real extraction" (the real WhatsApp path, via extractFields()/
+ *     extractFn below). This is the ONLY case that triggers a real call.
+ *   - explicit null: "extraction not attempted, skip it" — shape/honesty
+ *     validation is skipped entirely, the draft never advances past
+ *     TRANSCRIBING, nothing extraction-related is written. Kept as an
+ *     explicit opt-out for callers that genuinely should not attempt one.
+ *   - an object (even all-null fields): used as-is, exactly like before —
+ *     this is onboarding.controller.js's placeholder-from-request-body path.
  * @param {Object} [params.extraFields] - merged into the write unconditionally,
  *   independent of the extraction accept/reject outcome (e.g. staff_skills).
  * @param {Function} [params.transcribeFn] - injectable, passed through to transcribeAudio().
+ * @param {Function} [params.extractFn] - injectable, passed through to extractFields()
+ *   when extractedFields was omitted (real-extraction case only).
  * @returns {Promise<Object>} one of three shapes:
  *   - duplicate: { applied: false, reason: "duplicate_message", businessId, onboardingState }
  *   - not eligible right now: { applied: false, reason: <string>, businessId, onboardingState }
@@ -122,6 +125,7 @@ export async function processInboundAudio({
   extractedFields,
   extraFields = {},
   transcribeFn,
+  extractFn,
 }) {
   const existing = await Business.findOne({ ownerPhone });
 
@@ -159,19 +163,25 @@ export async function processInboundAudio({
 
   const { transcript, detectedLanguage } = await transcribeAudio(audioBuffer, transcribeFn);
 
-  // null/undefined means extraction was never attempted for this message
-  // (no Qwen3/Gemini call wired in yet) — distinct from an attempt that
-  // genuinely found nothing. Skip shape/honesty validation entirely in
-  // that case; don't run it against a placeholder as if it were real.
-  const extractionAttempted = extractedFields != null;
+  // extractedFields omitted entirely (undefined) is the real WhatsApp
+  // case: no placeholder was given, so actually call the real extraction
+  // service rather than skipping. Explicit null stays an intentional
+  // "don't attempt" opt-out, still supported. See the param doc above for
+  // the full three-way contract.
+  let effectiveExtractedFields = extractedFields;
+  if (extractedFields === undefined) {
+    effectiveExtractedFields = await extractFields(transcript, detectedLanguage, extractFn);
+  }
+
+  const extractionAttempted = effectiveExtractedFields != null;
   let shapeResult = null;
   let honestyResult = null;
   let extractionAccepted = false;
 
   if (extractionAttempted) {
-    shapeResult = validateExtractionShape(extractedFields);
+    shapeResult = validateExtractionShape(effectiveExtractedFields);
     honestyResult = shapeResult.valid
-      ? checkExtractionHonesty(extractedFields, transcript)
+      ? checkExtractionHonesty(effectiveExtractedFields, transcript)
       : { honest: false, failedFields: [] };
     extractionAccepted = shapeResult.valid && honestyResult.honest;
   }
@@ -200,7 +210,21 @@ export async function processInboundAudio({
     );
     if (extractStep.applied) {
       appliedHops = [...appliedHops, "EXTRACTING"];
-      Object.assign(setOnSave, extractedFields, { onboardingState: "EXTRACTING" });
+      // Only merge fields the extraction actually made a claim about. A
+      // null here means "not stated in this message," not "clear this
+      // field" — a real extraction attempt legitimately returns null for
+      // most fields on any single short message (nobody restates their
+      // whole business every time), so blindly Object.assign-ing it in
+      // would silently wipe real data an earlier successful extraction
+      // already set. This is the same clobbering risk already fixed once
+      // for the placeholder-extraction case, reintroduced here through
+      // genuine extraction output unless guarded the same way. Array
+      // fields (amenities/meals/languages) are never null in the schema
+      // — only [] — so they're merged unconditionally, same as before.
+      const nonNullExtractedFields = Object.fromEntries(
+        Object.entries(effectiveExtractedFields).filter(([, value]) => value !== null)
+      );
+      Object.assign(setOnSave, nonNullExtractedFields, { onboardingState: "EXTRACTING" });
     }
   }
 
