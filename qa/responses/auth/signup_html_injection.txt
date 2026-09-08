@@ -1,0 +1,13 @@
+HTTP/1.1 201 Created
+X-Powered-By: Express
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Set-Cookie: jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YWEwMTdkYzE0ZWUzMzM4NTkxZGI1MDQiLCJpYXQiOjE3ODg4NzY3NjQsImV4cCI6MTc4OTQ4MTU2NH0.ZK7ZS_FNAh1e1BUEB92U4S5ypY-iFtM_qf6iHADDiws; Max-Age=604800; Path=/; Expires=Tue, 15 Sep 2026 14:12:44 GMT; HttpOnly; Secure; SameSite=None
+Content-Type: application/json; charset=utf-8
+Content-Length: 123
+ETag: W/"7b-b8tnUti4/ojK5QuPcyvi8aUNM+Y"
+Date: Tue, 08 Sep 2026 14:12:44 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"_id":"6aa017dc14ee3338591db504","fullName":"<script>alert(1)</script>","email":"xss-test@example.com","role":"traveller"}

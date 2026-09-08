@@ -1,0 +1,12 @@
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Content-Type: application/json; charset=utf-8
+Content-Length: 242
+ETag: W/"f2-+oLU6wUF0CKbXu1aWIz+nb3bMEI"
+Date: Tue, 08 Sep 2026 14:12:45 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"preferences":{"languages":[]},"_id":"6aa017da14ee3338591db4fa","email":"qa.traveller.1788876762@example.com","fullName":"QA Traveller","role":"traveller","createdAt":"2026-09-08T14:12:42.504Z","updatedAt":"2026-09-08T14:12:42.504Z","__v":0}

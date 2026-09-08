@@ -80,6 +80,19 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ ok: false, error: 'origin, destId, startDate, endDate are required' });
   }
 
+  // QA finding (brutal-qa-report.md, P1): destId="fake-xyz" (not a tracked
+  // destination at all) returned a fully-formed, entirely fabricated
+  // response -- pressure 0.5 across every component -- rather than an
+  // error. Root cause was the `?? 0.5` fallbacks below, which exist to
+  // handle a *candidate* destination's pressure being momentarily
+  // unavailable, but were also firing for the *requested* destination not
+  // existing at all. Reject that case up front, the same way
+  // GET /api/v1/pressure/:destId already does, instead of letting the rest
+  // of this pipeline invent a plausible-looking profile for it.
+  if (!getDestinationById(destId)) {
+    return res.status(404).json({ ok: false, error: `unknown destId: ${destId}` });
+  }
+
   try {
     const pressureFnWrapper = async (id, date) => {
       const res = await getPressure(id, date);

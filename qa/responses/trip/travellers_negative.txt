@@ -1,0 +1,1 @@
+{"error":"We couldn't generate your trip plan right now. Please try again in a moment.","detail":"agent run produced no structured TripSummary output"}

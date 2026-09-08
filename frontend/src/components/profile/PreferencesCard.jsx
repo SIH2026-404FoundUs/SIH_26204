@@ -19,11 +19,18 @@ export default function PreferencesCard({ userId }) {
   useEffect(() => {
     if (!userId) return
     let cancelled = false
-    setIsLoading(true)
-    api.get(`/v1/users/${userId}/preferences`)
-      .then((res) => { if (!cancelled) setPreferences(res.data) })
-      .catch((err) => { if (!cancelled) setError(getErrorMessage(err, 'Could not load your preferences')) })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+    async function loadPreferences() {
+      setIsLoading(true)
+      try {
+        const res = await api.get(`/v1/users/${userId}/preferences`)
+        if (!cancelled) setPreferences(res.data)
+      } catch (err) {
+        if (!cancelled) setError(getErrorMessage(err, 'Could not load your preferences'))
+      } finally {
+        if (!cancelled) setIsLoading(false)
+      }
+    }
+    loadPreferences()
     return () => { cancelled = true }
   }, [userId])
 

@@ -1,7 +1,4 @@
 import { MapPin, TrendingDown, Clock, Sparkles, IndianRupee, Compass, Check } from 'lucide-react'
-import Card from '../ui/Card'
-import Button from '../ui/Button'
-import { getDestinationLabel } from '../../lib/destinations'
 
 /**
  * A single alternative destination for a crowded trip. All numbers here come
