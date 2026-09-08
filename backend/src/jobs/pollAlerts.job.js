@@ -21,6 +21,13 @@ const EXTREME_HEAT_C = 38;
 const EXTREME_COLD_C = 2;
 
 const iso = (d) => d.toISOString().slice(0, 10);
+// `new Date("2026-09-08")` is midnight UTC *start* of that day. Passing that
+// same string as both validFrom and validTo produced a zero-width validity
+// window -- the alert was already expired (validTo < now) within moments of
+// being created, for the entire rest of the day. Confirmed live: 14 alerts
+// ingested, GET /api/v1/alerts returned [] for all of them immediately
+// after. validTo for a same-day advisory needs to be the END of that day.
+const endOfDay = (isoDate) => new Date(`${isoDate}T23:59:59.999Z`);
 
 // Real source: derives a same-day advisory from Open-Meteo's actual forecast
 // when it crosses a hazard threshold. Not a government warning feed, but a
@@ -39,7 +46,7 @@ async function pollOpenMeteoWarnings(dest) {
       destId: dest._id, kind: "weather", severity: "warning",
       body: `Heavy rain likely today (${precipProb}% precipitation probability). Roads and outdoor activities may be affected.`,
       sourceUrl: "https://open-meteo.com/", sourceName: "Open-Meteo Weather API",
-      validFrom: date, validTo: date,
+      validFrom: date, validTo: endOfDay(date),
     });
   }
   if (maxTempC >= EXTREME_HEAT_C) {
@@ -47,7 +54,7 @@ async function pollOpenMeteoWarnings(dest) {
       destId: dest._id, kind: "weather", severity: "warning",
       body: `Extreme heat expected today (max ${maxTempC}°C). Stay hydrated and avoid midday outdoor exposure.`,
       sourceUrl: "https://open-meteo.com/", sourceName: "Open-Meteo Weather API",
-      validFrom: date, validTo: date,
+      validFrom: date, validTo: endOfDay(date),
     });
   }
   if (maxTempC <= EXTREME_COLD_C) {
@@ -55,7 +62,7 @@ async function pollOpenMeteoWarnings(dest) {
       destId: dest._id, kind: "weather", severity: "warning",
       body: `Extreme cold expected today (max ${maxTempC}°C). Carry cold-weather gear.`,
       sourceUrl: "https://open-meteo.com/", sourceName: "Open-Meteo Weather API",
-      validFrom: date, validTo: date,
+      validFrom: date, validTo: endOfDay(date),
     });
   }
   return candidates;

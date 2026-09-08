@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { TriangleAlert, Search } from 'lucide-react'
 import { useTrustStore } from '../../store/useTrustStore'
 import { alertSeverity, alertKindLabel } from '../../lib/labels'
@@ -16,6 +16,13 @@ import DestinationSelect from '../ui/DestinationSelect'
 export default function Alerts() {
   const { alerts, isLoadingAlerts, fetchAlerts, safetyError } = useTrustStore()
   const [destId, setDestId] = useState('manali')
+
+  // Consistent with Businesses.jsx: show something real on first paint
+  // rather than an empty state the user has to click "Check" to clear.
+  useEffect(() => {
+    fetchAlerts(destId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="mx-auto max-w-2xl">

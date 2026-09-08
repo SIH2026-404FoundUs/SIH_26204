@@ -1,4 +1,4 @@
-import { generateToken } from "../lib/jwt.js";
+import { generateToken, AUTH_COOKIE_OPTIONS } from "../lib/jwt.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 
@@ -79,7 +79,10 @@ export const login = async (req, res) => {
 
 export const logout = (req, res) => {
   try {
-    res.cookie("jwt", "", { maxAge: 0 });
+    // Match the attributes generateToken() set it with -- a clearing
+    // Set-Cookie with a mismatched SameSite/Secure can fail to actually
+    // clear a cookie in some browsers.
+    res.cookie("jwt", "", { ...AUTH_COOKIE_OPTIONS, maxAge: 0 });
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.log("Error in logout controller", error.message);
