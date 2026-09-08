@@ -133,7 +133,13 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       seasonalNotes: null,
     });
 
-    const handler = createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn });
+    // This draft's fields will still be missing several
+    // REQUIRED_FIELDS_FOR_LIVE after this message (only capacity/
+    // nearestLandmark get set) — without a stub here, the default real
+    // sendMessageFn would attempt an actual Meta API call.
+    const sendMessageFn = jest.fn().mockResolvedValue({ ok: true });
+
+    const handler = createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn, sendMessageFn });
     const app = createTestApp(handler);
     const server = app.listen(0);
 
@@ -181,6 +187,12 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       expect(saved.lastWhatsAppMessageId).toBe(messageId);
       expect(saved.capacity).toBe(3);
       expect(saved.nearestLandmark).toBe("Main Chowk");
+
+      // The draft is still missing name/type/priceRangeINR/destId, so a
+      // real FOLLOWUP question was sent back to the operator.
+      expect(sendMessageFn).toHaveBeenCalledTimes(1);
+      expect(sendMessageFn.mock.calls[0][0]).toBe(ownerPhone);
+      expect(typeof sendMessageFn.mock.calls[0][1]).toBe("string");
     } finally {
       server.close();
     }
@@ -218,7 +230,9 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       seasonalNotes: null,
     });
 
-    const handler = createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn });
+    const sendMessageFn = jest.fn().mockResolvedValue({ ok: true });
+
+    const handler = createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn, sendMessageFn });
     const app = createTestApp(handler);
     const server = app.listen(0);
 
@@ -250,6 +264,7 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       expect(fetchFn).toHaveBeenCalledTimes(2); // still just the first delivery's two calls
       expect(transcribeFn).toHaveBeenCalledTimes(1); // not called again
       expect(extractFn).toHaveBeenCalledTimes(1); // not called again
+      expect(sendMessageFn).toHaveBeenCalledTimes(1); // not called again
     } finally {
       server.close();
     }

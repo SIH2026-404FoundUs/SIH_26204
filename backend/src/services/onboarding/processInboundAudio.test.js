@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import Business from "../../models/business.model.js";
 import { processInboundAudio } from "./processInboundAudio.js";
+import { getNextFollowUpQuestion } from "./followUp.js";
 
 let mongod;
 
@@ -21,6 +22,16 @@ afterEach(async () => {
 });
 
 const stubTranscribe = async () => ({ transcript: "hello world", detectedLanguage: "en" });
+
+// sendMessageFn now defaults, at the processInboundAudio level, to a REAL
+// WhatsApp send (consistent with transcribeFn/extractFn) -- and none of
+// the drafts in this file's other tests supply all six
+// REQUIRED_FIELDS_FOR_LIVE, so getNextFollowUpQuestion() will find
+// something missing and attempt a send on essentially every test unless
+// one is injected. This shared stub keeps every test in this file free of
+// any real-network risk; tests that specifically care about send
+// behavior use their own dedicated jest.fn() instead.
+const stubSendMessage = async () => ({ ok: true });
 
 // A shape-valid extraction with every field null/empty — matches
 // validateExtractionShape's exact expected-field set (extraction.js),
@@ -53,6 +64,7 @@ describe("processInboundAudio — destId handling", () => {
       messageId: "wamid.1",
       transcribeFn: stubTranscribe,
       extractFn: async () => emptyExtraction(),
+      sendMessageFn: stubSendMessage,
     });
 
     expect(result.applied).toBe(true);
@@ -76,6 +88,7 @@ describe("processInboundAudio — destId handling", () => {
       messageId: "wamid.2",
       transcribeFn: stubTranscribe,
       extractFn,
+      sendMessageFn: stubSendMessage,
     });
 
     expect(result.applied).toBe(true);
@@ -114,6 +127,7 @@ describe("processInboundAudio — destId handling", () => {
       messageId: "wamid.3",
       transcribeFn: stubTranscribe,
       extractFn: async () => emptyExtraction(),
+      sendMessageFn: stubSendMessage,
       // no destId — the webhook path never has one to give
     });
 
@@ -143,6 +157,7 @@ describe("processInboundAudio — extractedFields: null explicitly opts out of e
       messageId: "wamid.4",
       transcribeFn: stubTranscribe,
       extractedFields: null, // explicit opt-out, not omission
+      sendMessageFn: stubSendMessage,
     });
 
     // Already at EXTRACTING, which is past TRANSCRIBING (the walk target)
@@ -175,6 +190,7 @@ describe("processInboundAudio — extractedFields: null explicitly opts out of e
       messageId: "wamid.5",
       transcribeFn: stubTranscribe,
       extractedFields: null,
+      sendMessageFn: stubSendMessage,
     });
 
     expect(result.applied).toBe(true);
@@ -201,6 +217,7 @@ describe("processInboundAudio — real extraction (extractFn) wiring", () => {
       messageId: "wamid.6",
       transcribeFn: async () => ({ transcript: "Teen kamre hain, geyser hai.", detectedLanguage: "hi" }),
       extractFn,
+      sendMessageFn: stubSendMessage,
     });
 
     expect(extractFn).toHaveBeenCalledTimes(1);
@@ -235,6 +252,7 @@ describe("processInboundAudio — real extraction (extractFn) wiring", () => {
       messageId: "wamid.7",
       transcribeFn: async () => ({ transcript: "Hum paanch log rakh sakte hain.", detectedLanguage: "hi" }),
       extractFn: async () => partialExtraction,
+      sendMessageFn: stubSendMessage,
     });
 
     expect(result.applied).toBe(true);
@@ -266,6 +284,7 @@ describe("processInboundAudio — real extraction (extractFn) wiring", () => {
       messageId: "wamid.8",
       transcribeFn: async () => ({ transcript: "Teen kamre hain, geyser hai.", detectedLanguage: "hi" }),
       extractFn: async () => dishonestExtraction,
+      sendMessageFn: stubSendMessage,
     });
 
     expect(result.applied).toBe(true);
@@ -291,6 +310,7 @@ describe("processInboundAudio — real extraction (extractFn) wiring", () => {
       messageId: "wamid.9",
       transcribeFn: stubTranscribe,
       extractFn: async () => malformed,
+      sendMessageFn: stubSendMessage,
     });
 
     expect(result.applied).toBe(true);
@@ -298,5 +318,92 @@ describe("processInboundAudio — real extraction (extractFn) wiring", () => {
     expect(result.extractionAccepted).toBe(false);
     expect(result.extraction.shapeValid).toBe(false);
     expect(result.extraction.shapeErrors.length).toBeGreaterThan(0);
+  });
+});
+
+describe("processInboundAudio — FOLLOWUP question send", () => {
+  test("a message reaching a state with missing required fields triggers a follow-up send with the correct question and phone number", async () => {
+    const sendMessageFn = jest.fn().mockResolvedValue({ ok: true });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000011",
+      destId: "shimla", // one required field present...
+      messageId: "wamid.11",
+      transcribeFn: async () => ({ transcript: "hello", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(), // ...but nothing else was actually stated
+      sendMessageFn,
+    });
+
+    expect(result.applied).toBe(true);
+    expect(sendMessageFn).toHaveBeenCalledTimes(1);
+    // name is first in REQUIRED_FIELDS_FOR_LIVE's order and still missing
+    // here — derive the expected text from the real function rather than
+    // hardcoding English wording a second time in this test.
+    const expectedQuestion = getNextFollowUpQuestion({ destId: "shimla" }, "en");
+    expect(sendMessageFn).toHaveBeenCalledWith("919000000011", expectedQuestion);
+  });
+
+  test("a fully-complete draft (every required field already known) does NOT trigger a follow-up send", async () => {
+    await Business.create({
+      _id: "biz_test_complete_no_send",
+      destId: "shimla",
+      ownerPhone: "919000000010",
+      onboardingState: "AWAITING_VOICE",
+      name: "Complete Homestay",
+      type: "homestay",
+      capacity: 4,
+      priceRangeINR: { min: 1000, max: 2000 },
+      nearestLandmark: "Main Chowk",
+    });
+
+    const sendMessageFn = jest.fn().mockResolvedValue({ ok: true });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000010",
+      messageId: "wamid.10",
+      transcribeFn: stubTranscribe,
+      extractFn: async () => emptyExtraction(), // nothing new stated, nothing clobbered
+      sendMessageFn,
+    });
+
+    expect(result.applied).toBe(true);
+    const saved = await Business.findOne({ _id: "biz_test_complete_no_send" });
+    expect(getNextFollowUpQuestion(saved, "en")).toBeNull(); // sanity: fixture really is complete
+    expect(sendMessageFn).not.toHaveBeenCalled();
+  });
+
+  test("a send failure is caught and logged without affecting the persisted draft state", async () => {
+    const failingSend = jest.fn().mockRejectedValue(new Error("Meta returned 500"));
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      const result = await processInboundAudio({
+        audioBuffer: Buffer.from("audio"),
+        ownerPhone: "919000000012",
+        destId: "shimla",
+        messageId: "wamid.12",
+        transcribeFn: async () => ({ transcript: "hello", detectedLanguage: "en" }),
+        extractFn: async () => emptyExtraction(),
+        sendMessageFn: failingSend,
+      });
+
+      // The pipeline's own result is unaffected -- extraction/state
+      // advancement already succeeded before the send was even attempted,
+      // and a failed send must not undo it.
+      expect(result.applied).toBe(true);
+      expect(result.onboardingState).toBe("EXTRACTING");
+
+      const saved = await Business.findOne({ ownerPhone: "919000000012" });
+      expect(saved.onboardingState).toBe("EXTRACTING");
+
+      expect(failingSend).toHaveBeenCalledTimes(1);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("failed to send follow-up question")
+      );
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
   });
 });

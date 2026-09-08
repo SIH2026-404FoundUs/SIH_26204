@@ -15,6 +15,8 @@ import { transcribeAudio } from "./transcription.js";
 import { extractFields } from "./extractFields.js";
 import { validateExtractionShape, checkExtractionHonesty } from "./extraction.js";
 import { transitionDraft, ONBOARDING_STATES } from "./stateMachine.js";
+import { getNextFollowUpQuestion } from "./followUp.js";
+import { sendWhatsAppMessage } from "./sendMessage.js";
 
 /**
  * Advances an in-memory draft state from `startState` through every
@@ -119,6 +121,14 @@ export async function isDuplicateMessage(ownerPhone, messageId) {
  * @param {Function} [params.transcribeFn] - injectable, passed through to transcribeAudio().
  * @param {Function} [params.extractFn] - injectable, passed through to extractFields()
  *   when extractedFields was omitted (real-extraction case only).
+ * @param {Function} [params.sendMessageFn] - injectable, passed through to
+ *   sendWhatsAppMessage() for the FOLLOWUP question sent after a
+ *   successful attempt, if required fields are still missing. Defaults to
+ *   a real send (same convention as transcribeFn/extractFn) — callers
+ *   that must never risk a real WhatsApp send by default (e.g.
+ *   onboarding.controller.js's fallback endpoint) are responsible for
+ *   supplying their own safe default; this function does not decide that
+ *   for them.
  * @returns {Promise<Object>} one of three shapes:
  *   - duplicate: { applied: false, reason: "duplicate_message", businessId, onboardingState }
  *   - not eligible right now: { applied: false, reason: <string>, businessId, onboardingState }
@@ -135,6 +145,7 @@ export async function processInboundAudio({
   extraFields = {},
   transcribeFn,
   extractFn,
+  sendMessageFn,
 }) {
   const existing = await Business.findOne({ ownerPhone });
 
@@ -243,6 +254,24 @@ export async function processInboundAudio({
     { $set: setOnSave },
     { upsert: true, new: true, runValidators: true, context: "query" }
   );
+
+  // Section 1.1's FOLLOWUP question, sent after every processed message
+  // (regardless of whether this message's own extraction was accepted —
+  // required fields may already be missing independent of that), based on
+  // the draft's actual current state, not just what this message
+  // contributed. A failed send must not undo an already-successful save:
+  // the extraction/state advancement above already happened and is
+  // correct regardless of whether the operator ever receives this question.
+  try {
+    const nextQuestion = getNextFollowUpQuestion(saved, detectedLanguage);
+    if (nextQuestion) {
+      await sendWhatsAppMessage(ownerPhone, nextQuestion, sendMessageFn);
+    }
+  } catch (sendError) {
+    console.error(
+      `processInboundAudio: failed to send follow-up question to ownerPhone for business ${saved._id}: ${sendError.message}`
+    );
+  }
 
   return {
     applied: true,

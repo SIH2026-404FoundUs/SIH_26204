@@ -133,6 +133,69 @@ describe("POST /upload (onboarding internal fallback)", () => {
     }
   });
 
+  test("with no sendMessageFn configured, a draft left with missing required fields produces zero real network calls for the follow-up send", async () => {
+    // Proves the no-op default actually holds -- not just that the code
+    // reads correctly. Deliberately incomplete extraction (capacity/
+    // priceRangeINR/nearestLandmark/destId all still missing after this
+    // save) is exactly the scenario where a real send WOULD be attempted
+    // if createOnboardingUploadHandler's own sendMessageFn default were
+    // the real send (or undefined, falling through to processInboundAudio's
+    // real default) instead of the no-op.
+    const transcript = "This is Bare Bones Homestay. No other details given.";
+    const transcribeStub = jest.fn().mockResolvedValue({ transcript, detectedLanguage: "en" });
+    const incompleteExtraction = {
+      name: "Bare Bones Homestay",
+      type: "homestay",
+      capacity: null,
+      priceRangeINR: null,
+      amenities: [],
+      meals: [],
+      nearestLandmark: null,
+      languages: [],
+      seasonalNotes: null,
+    };
+
+    // No sendMessageFn passed to createTestApp/createOnboardingUploadHandler
+    // at all -- exercising the real, unconfigured default path.
+    const app = createTestApp(transcribeStub);
+    const server = app.listen(0);
+
+    const originalFetch = global.fetch;
+    const fetchSpy = jest.fn((...args) => originalFetch(...args));
+    global.fetch = fetchSpy;
+
+    try {
+      const { status, data } = await postUpload(server, {
+        destId: "shimla",
+        ownerPhone: "+919876500098",
+        extractedFields: incompleteExtraction,
+        messageId: "upload-noop-send-1",
+      });
+
+      expect(status).toBe(200);
+      expect(data.onboardingState).toBe("EXTRACTING");
+
+      // Sanity: the draft really is left with missing required fields --
+      // this is the scenario where a real send would fire without the
+      // no-op default actually applying.
+      const saved = await Business.findOne({ _id: data.businessId });
+      expect(saved.capacity).toBeUndefined();
+      expect(saved.priceRangeINR?.min).toBeUndefined();
+      expect(saved.priceRangeINR?.max).toBeUndefined();
+      expect(saved.nearestLandmark).toBeUndefined();
+
+      // The real proof: no fetch call this request made (including the
+      // test client's own call to the local Express server under test,
+      // which the graph.facebook.com filter below excludes) ever reached
+      // Meta's Graph API.
+      const graphApiCalls = fetchSpy.mock.calls.filter(([url]) => String(url).includes("graph.facebook.com"));
+      expect(graphApiCalls).toEqual([]);
+    } finally {
+      global.fetch = originalFetch;
+      server.close();
+    }
+  });
+
   test("with no extractedFields supplied at all, a real extraction call fires end-to-end (via the injected extractFn stub)", async () => {
     // The point of this test: with extractedFields genuinely absent from
     // the request, this endpoint now runs "the exact same pipeline

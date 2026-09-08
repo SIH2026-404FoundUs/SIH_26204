@@ -47,19 +47,38 @@ function parseOptionalStringArray(rawValue, fieldName) {
   return { ok: true, value: parsed };
 }
 
+// No-op default for sendMessageFn: unlike transcribeFn/extractFn (which
+// SHOULD fall through to their real HTTP-backed defaults here, so this
+// endpoint fails the same loud, clear way the WhatsApp path would if
+// unconfigured), a real send has an irreversible side effect on a third
+// party (an actual WhatsApp message reaching a real phone). Section 1.6's
+// whole purpose is exercising this pipeline without live Meta
+// dependencies -- defaulting to a real send here would mean any call to
+// this internal/testing endpoint that ends with required fields still
+// missing (the common case; most test drafts are intentionally
+// incomplete) silently attempts a real outbound message unless every
+// caller remembers to opt out. Opt-in, not opt-out, for anything that
+// reaches outside the system with real-world consequences.
+async function noopSendMessage() {
+  return { skipped: true, reason: "no sendMessageFn configured for the internal fallback endpoint" };
+}
+
 /**
  * Builds the internal onboarding-upload handler. `transcribeFn`/`extractFn`
  * are injectable for tests, exactly like eligibility.js's pressureFn.
  * Production callers omit both, and transcribeAudio()/extractFields() fall
  * back to their own real HTTP-backed defaults — correct behavior; this
  * endpoint should fail the same loud, clear way the WhatsApp path would if
- * unconfigured.
+ * unconfigured. `sendMessageFn` is different: it defaults to a no-op (see
+ * above), not the real send — a caller must explicitly opt in to let this
+ * endpoint actually message someone on WhatsApp.
  *
  * @param {Object} [deps]
  * @param {Function} [deps.transcribeFn]
  * @param {Function} [deps.extractFn]
+ * @param {Function} [deps.sendMessageFn] - defaults to a no-op, not the real send.
  */
-export function createOnboardingUploadHandler({ transcribeFn, extractFn } = {}) {
+export function createOnboardingUploadHandler({ transcribeFn, extractFn, sendMessageFn = noopSendMessage } = {}) {
   return async function handleOnboardingUpload(req, res) {
     try {
       if (!req.file) {
@@ -139,6 +158,7 @@ export function createOnboardingUploadHandler({ transcribeFn, extractFn } = {}) 
         extraFields,
         transcribeFn,
         extractFn,
+        sendMessageFn,
       });
 
       if (!result.applied) {
