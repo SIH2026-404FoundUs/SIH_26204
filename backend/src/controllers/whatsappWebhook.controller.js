@@ -54,9 +54,11 @@
 // processing runs in the background; failures are logged, never surfaced
 // back to Meta (the response has already gone out by then).
 
+import Business from "../models/business.model.js";
 import { fetchWhatsAppMedia } from "../services/onboarding/mediaDownload.js";
 import { processInboundAudio, isDuplicateMessage } from "../services/onboarding/processInboundAudio.js";
 import { processInboundImage } from "../services/onboarding/processInboundImage.js";
+import { processDraftConfirmReply } from "../services/onboarding/draftConfirm.js";
 
 /**
  * GET /api/webhook/whatsapp — Meta's one-time verification handshake.
@@ -167,6 +169,36 @@ async function processWebhookMessage(message, { fetchFn, transcribeFn, extractFn
   } else if (type === "text") {
     const text = message?.text?.body ?? null;
     console.log("Inbound WhatsApp text message:", { from, messageId, text });
+
+    if (!from || !messageId || !text) {
+      console.error("Inbound WhatsApp text message missing from/id/text.body — cannot process:", {
+        from,
+        messageId,
+        text,
+      });
+      return;
+    }
+
+    if (await isDuplicateMessage(from, messageId)) {
+      console.log("WhatsApp text message is a replay of already-processed messageId — skipping:", {
+        from,
+        messageId,
+      });
+      return;
+    }
+
+    const business = await Business.findOne({ ownerPhone: from });
+    if (business && business.onboardingState === "DRAFT_CONFIRM") {
+      const result = await processDraftConfirmReply({
+        ownerPhone: from,
+        text,
+        messageId,
+        sendMessageFn,
+        extractFn,
+        language: business.transcriptLang,
+      });
+      console.log("WhatsApp DRAFT_CONFIRM text message processed:", result);
+    }
   } else {
     console.log("Inbound WhatsApp message of unhandled type:", { from, messageId, type });
   }

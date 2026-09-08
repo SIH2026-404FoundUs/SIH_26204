@@ -26,6 +26,7 @@ import {
 import { parseAvailabilityDates, parseUnitCount, generateDateRange } from "./dateParser.js";
 import { sendWhatsAppMessage } from "./sendMessage.js";
 import { resolveDestId } from "./destinationResolver.js";
+import { buildDraftConfirmationMessage, processDraftConfirmReply } from "./draftConfirm.js";
 
 /**
  * Advances an in-memory draft state from `startState` through every
@@ -335,12 +336,12 @@ export async function processInboundAudio({
       { new: true, runValidators: true, context: "query" }
     );
 
-    // Send confirmation message
+    // Send draft confirmation listing summary message
     try {
-      const confirmMsg = getAvailabilityConfirmedMessage(detectedLanguage);
-      await sendWhatsAppMessage(ownerPhone, confirmMsg, sendMessageFn);
+      const summaryMsg = await buildDraftConfirmationMessage(saved._id, detectedLanguage, { includeIntro: true });
+      await sendWhatsAppMessage(ownerPhone, summaryMsg, sendMessageFn);
     } catch (err) {
-      console.error(`processInboundAudio: failed to send availability confirmed message: ${err.message}`);
+      console.error(`processInboundAudio: failed to send draft confirmation message: ${err.message}`);
     }
 
     return {
@@ -357,6 +358,24 @@ export async function processInboundAudio({
         units: unitsParsed,
         resourceType,
       },
+    };
+  }
+ 
+  // DRAFT_CONFIRM — Section 1.1: provider confirms or corrects their listing.
+  if (currentState === "DRAFT_CONFIRM") {
+    const replyResult = await processDraftConfirmReply({
+      ownerPhone,
+      text: transcript,
+      messageId: attemptMessageId,
+      sendMessageFn,
+      extractFn,
+      language: detectedLanguage,
+    });
+    return {
+      ...replyResult,
+      transcript,
+      detectedLanguage,
+      appliedHops: replyResult.onboardingState === "LIVE" ? ["LIVE"] : [],
     };
   }
 
