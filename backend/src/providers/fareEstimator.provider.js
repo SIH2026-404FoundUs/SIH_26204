@@ -5,7 +5,8 @@ import fares from '../seeds/fares.json' with { type: 'json' };
 // and under-quotes the fare. Callers that can supply a trip duration
 // (e.g. from a routes/directions leg) should always pass it.
 function estimate(city, mode, distanceKm, durationMin = 0) {
-  const cityRates = fares[city.toLowerCase()];
+  let cityRates = fares[city.toLowerCase()];
+  let usedGenericFallback = false;
 
   // Unknown city -> generic labelled default rather than a hard failure
   // (spec: "unknown cities must NOT hard-fail"). Still an honest estimate,
@@ -51,8 +52,11 @@ function estimate(city, mode, distanceKm, durationMin = 0) {
     return fail(`Unknown mode: ${mode}`, { source: 'fareEstimator' });
   }
 
-  // this is always an estimate, never a live price — mark it as such
-  const meta = { source: 'fareEstimator', estimate: true, confidence: 'high' };
+  // this is always an estimate, never a live price — mark it as such.
+  // A generic-fallback rate isn't calibrated to this city, so it's honestly
+  // lower confidence than a city-specific rate.
+  const meta = { source: 'fareEstimator', estimate: true, confidence: usedGenericFallback ? 'low' : 'high' };
+  if (usedGenericFallback) meta.usedGenericFallback = true;
 
   // A cab priced with no duration got only the distance component, so the
   // number is a floor, not a full estimate. Flag it here so consumers can
