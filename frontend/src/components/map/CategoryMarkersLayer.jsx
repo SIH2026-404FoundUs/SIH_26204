@@ -107,18 +107,20 @@ export default function CategoryMarkersLayer({
 
           let marker;
           const openInfoWindow = () => {
+            const categoryLabel = style?.label || categoryKey.toUpperCase();
+            const categoryColor = style?.bg || '#4F46E5';
+
             const contentString = `
-              <div style="padding:10px; max-width:220px; font-family:sans-serif;">
+              <div style="padding:10px; max-width:230px; font-family:system-ui, -apple-system, sans-serif;">
                 <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-                  <span style="font-size:16px;">${style.emoji}</span>
-                  <span style="font-size:11px; font-weight:700; color:${style.bg}; text-transform:uppercase;">${style.label}</span>
+                  <span style="font-size:10px; font-weight:700; color:${categoryColor}; background:${categoryColor}18; padding:3px 8px; border-radius:12px; text-transform:uppercase; letter-spacing:0.5px;">${categoryLabel}</span>
                 </div>
-                <h4 style="margin:0 0 4px 0; font-size:14px; font-weight:700; color:#0F172A;">${item.name}</h4>
+                <h4 style="margin:0 0 6px 0; font-size:14px; font-weight:700; color:#0F172A;">${item.name || 'Tourist Spot'}</h4>
                 <div style="font-size:12px; color:#475569; margin-bottom:4px;">
                   <strong>Capacity:</strong> ${item.capacity ?? 'Available'}
                 </div>
                 <div style="font-size:12px; color:#475569;">
-                  <strong>Price:</strong> ${item.price || (item.priceRangeINR ? `₹${item.priceRangeINR.min} - ₹${item.priceRangeINR.max}` : 'Standard')}
+                  <strong>Price:</strong> ${item.price || (item.priceRangeINR ? `₹${item.priceRangeINR.min} - ₹${item.priceRangeINR.max}` : 'Free Entry')}
                 </div>
               </div>
             `;
@@ -129,8 +131,8 @@ export default function CategoryMarkersLayer({
           if (hasAdvancedMarkers) {
             const img = document.createElement('img');
             img.src = iconUrl;
-            img.width = 34;
-            img.height = 40;
+            img.width = 26;
+            img.height = 31;
             img.style.cursor = 'pointer';
 
             marker = new mapsSDK.marker.AdvancedMarkerElement({
@@ -149,8 +151,8 @@ export default function CategoryMarkersLayer({
               title: item.name,
               icon: {
                 url: iconUrl,
-                scaledSize: new mapsSDK.Size(34, 40),
-                anchor: new mapsSDK.Point(17, 40)
+                scaledSize: new mapsSDK.Size(26, 31),
+                anchor: new mapsSDK.Point(13, 31)
               }
             });
 
@@ -163,9 +165,9 @@ export default function CategoryMarkersLayer({
         });
       });
 
-      // Fit map bounds to encompass all visible markers
+      // Fit map bounds to encompass visible category markers if no route active
       if (totalMarkers > 0 && map && typeof map.fitBounds === 'function') {
-        map.fitBounds(bounds);
+        map.fitBounds(bounds, { top: 170, bottom: 100, left: 60, right: 60 });
       }
     }).catch((err) => {
       console.error('[CategoryMarkersLayer] Error rendering markers:', err);

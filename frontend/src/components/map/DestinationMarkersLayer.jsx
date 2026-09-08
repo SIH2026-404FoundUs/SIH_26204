@@ -65,16 +65,16 @@ export default function DestinationMarkersLayer({ map, mapsSDK, selectedDestId, 
 
       const isSelected = (dest._id || dest.id) === selectedDestId;
 
-      // Custom SVG Pin for Destination Pointer
+      // Custom SVG Pin with Lucide MapPin shape for Destination Pointer
       const pinColor = isSelected ? '#4F46E5' : '#E11D48'; // Indigo when selected, Rose when default
       const svgPin = `
-        <svg width="30" height="38" viewBox="0 0 30 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <filter id="sd" x="0" y="0" width="30" height="38" filterUnits="userSpaceOnUse">
+        <svg width="20" height="26" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <filter id="sd" x="0" y="0" width="24" height="28" filterUnits="userSpaceOnUse">
             <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.35"/>
           </filter>
           <g filter="url(#sd)">
-            <path d="M15 0C6.71573 0 0 6.71573 0 15C0 25 15 34 15 34C15 34 30 25 30 15C30 6.71573 23.2843 0 15 0Z" fill="${pinColor}"/>
-            <circle cx="15" cy="14" r="6" fill="white"/>
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" fill="${pinColor}" stroke="white" stroke-width="2"/>
+            <circle cx="12" cy="10" r="3.5" fill="white"/>
           </g>
         </svg>
       `.trim();
@@ -120,8 +120,8 @@ export default function DestinationMarkersLayer({ map, mapsSDK, selectedDestId, 
       if (hasAdvanced) {
         const img = document.createElement('img');
         img.src = iconUrl;
-        img.width = 30;
-        img.height = 38;
+        img.width = 20;
+        img.height = 26;
         img.style.cursor = 'pointer';
 
         marker = new mapsSDK.marker.AdvancedMarkerElement({
@@ -140,8 +140,8 @@ export default function DestinationMarkersLayer({ map, mapsSDK, selectedDestId, 
           title: dest.displayName,
           icon: {
             url: iconUrl,
-            scaledSize: new mapsSDK.Size(30, 38),
-            anchor: new mapsSDK.Point(15, 38)
+            scaledSize: new mapsSDK.Size(20, 26),
+            anchor: new mapsSDK.Point(10, 26)
           }
         });
 
