@@ -19,8 +19,13 @@ export const AUTH_COOKIE_OPTIONS = {
   secure: isSecureContext,
 };
 
-export const generateToken = (userId, res) => {
-  const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+// tokenVersion travels inside the JWT itself and is checked against the
+// user's current tokenVersion on every request (auth.middleware.js). A plain
+// JWT has no server-side revocation otherwise -- bumping tokenVersion on
+// password reset/change (auth spec §12/§16) makes every token issued before
+// that moment stop working, without needing a session store.
+export const generateToken = (userId, tokenVersion, res) => {
+  const token = jwt.sign({ userId, tokenVersion }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
 

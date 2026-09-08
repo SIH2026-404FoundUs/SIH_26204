@@ -1,1 +1,0 @@
-{"message":"date query param required (YYYY-MM-DD)"}

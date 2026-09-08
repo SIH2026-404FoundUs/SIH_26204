@@ -32,6 +32,17 @@ export const protectRoute = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // A password reset or change bumps user.tokenVersion so every token
+    // issued before that moment stops working (auth spec §12/§16) -- a
+    // mismatch here means this cookie predates the user's most recent
+    // credential change. Sessions from before this feature shipped (no
+    // tokenVersion in the token at all) also fail this check by design: a
+    // one-time forced re-login is the correct, safe outcome for a token this
+    // check can't otherwise vouch for.
+    if (decoded.tokenVersion !== user.tokenVersion) {
+      return res.status(401).json({ message: "Unauthorized - Session no longer valid, please sign in again" });
+    }
+
     req.user = user;
 
     next();
