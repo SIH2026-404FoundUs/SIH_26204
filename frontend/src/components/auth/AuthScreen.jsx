@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Loader2, LockKeyhole, Mail, UserRound } from 'lucide-react'
+import { Loader2, Mail, UserRound } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
+import { isPasswordValid } from '../../lib/passwordPolicy'
 import Alert from '../ui/Alert'
 import FormField, { inputClass } from '../ui/FormField'
+import PasswordField from './PasswordField'
+import PasswordStrengthChecklist from './PasswordStrengthChecklist'
+
+// Where each role lands right after authenticating (auth spec §7/§20) --
+// the frontend never lets anyone pick this, it only reads what the backend
+// already decided.
+const ROLE_HOME = { traveller: '/home', operator: '/operator', authority: '/authority' }
 
 /**
  * Landing + Sign in are one screen (UI/UX doc Page 1): a static dark isobar
@@ -11,7 +19,7 @@ import FormField, { inputClass } from '../ui/FormField'
  * with a single centred paper card holding the form -- the one screen in the
  * product where centred alignment is correct, since there is no data
  * hierarchy to express yet (§3.3). Sign up (Page 2) reuses the identical
- * shell with one more field.
+ * shell with a few more fields.
  */
 export default function AuthScreen({ mode }) {
   const isLogin = mode === 'login'
@@ -19,12 +27,16 @@ export default function AuthScreen({ mode }) {
 
   const signup = useAuthStore((state) => state.signup)
   const login = useAuthStore((state) => state.login)
+  const resendVerification = useAuthStore((state) => state.resendVerification)
   const clearError = useAuthStore((state) => state.clearError)
   const error = useAuthStore((state) => state.error)
+  const unverifiedEmail = useAuthStore((state) => state.unverifiedEmail)
   const isPending = useAuthStore((state) => (isLogin ? state.isLoggingIn : state.isSigningUp))
 
-  const [form, setForm] = useState({ fullName: '', email: '', password: '' })
+  const [form, setForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '' })
+  const [passwordTouched, setPasswordTouched] = useState(false)
   const [localError, setLocalError] = useState(null)
+  const [resendState, setResendState] = useState({ sending: false, message: null })
 
   useEffect(() => clearError, [mode, clearError])
 
@@ -33,17 +45,35 @@ export default function AuthScreen({ mode }) {
   async function handleSubmit(event) {
     event.preventDefault()
     setLocalError(null)
-    // Matches the backend's own 6-character rule (auth.controller.js) so the
-    // error is caught before a round trip, not after a 400 comes back.
-    if (!isLogin && form.password.length < 6) {
-      setLocalError('Password must be at least 6 characters')
+
+    if (!isLogin) {
+      // Caught before a round trip -- the backend enforces the same policy
+      // independently either way (auth spec §2: "Do NOT rely only on
+      // frontend validation").
+      if (!isPasswordValid(form.password)) {
+        setLocalError('Password does not meet the requirements below')
+        return
+      }
+      if (form.password !== form.confirmPassword) {
+        setLocalError('Passwords do not match')
+        return
+      }
+      const result = await signup(form)
+      if (result) navigate('/verify-email', { state: { email: result.email, pending: true } })
       return
     }
-    const ok = isLogin ? await login({ email: form.email, password: form.password }) : await signup(form)
-    // On success, go straight to the trip planner -- no separate "welcome"
-    // interstitial (Page 2: "the product's first real moment should be the
-    // pressure question, not a marketing welcome screen").
-    if (ok) navigate('/home')
+
+    const ok = await login({ email: form.email, password: form.password })
+    if (ok) {
+      const role = useAuthStore.getState().authUser?.role
+      navigate(ROLE_HOME[role] || '/home')
+    }
+  }
+
+  async function handleResend() {
+    setResendState({ sending: true, message: null })
+    const result = await resendVerification(unverifiedEmail)
+    setResendState({ sending: false, message: result.message })
   }
 
   return (
@@ -80,12 +110,44 @@ export default function AuthScreen({ mode }) {
               </div>
             </FormField>
             <FormField label="Password">
-              <div className="relative">
-                <LockKeyhole size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ash" aria-hidden="true" />
-                <input required type="password" placeholder="••••••••" value={form.password} onChange={update('password')} className={`${inputClass} pl-10`} />
-              </div>
+              <PasswordField
+                value={form.password}
+                onChange={update('password')}
+                onFocus={() => setPasswordTouched(true)}
+                required
+              />
             </FormField>
-            {(localError || error) && <Alert tone="error">{localError || error}</Alert>}
+            {!isLogin && <PasswordStrengthChecklist password={form.password} touched={passwordTouched} />}
+
+            {!isLogin && (
+              <FormField label="Confirm password" error={form.confirmPassword && form.password !== form.confirmPassword ? 'Passwords do not match' : undefined}>
+                <PasswordField value={form.confirmPassword} onChange={update('confirmPassword')} required />
+              </FormField>
+            )}
+
+            {isLogin && (
+              <div className="text-right">
+                <Link to="/forgot-password" className="text-xs font-medium text-pressure hover:underline">Forgot password?</Link>
+              </div>
+            )}
+
+            {(localError || error) && (
+              <Alert tone="error">
+                <div>{localError || error}</div>
+                {unverifiedEmail && (
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resendState.sending}
+                    className="mt-1 text-xs font-semibold underline disabled:opacity-60"
+                  >
+                    {resendState.sending ? 'Sending…' : 'Resend verification email'}
+                  </button>
+                )}
+                {resendState.message && <div className="mt-1 text-xs">{resendState.message}</div>}
+              </Alert>
+            )}
+
             <button
               type="submit"
               disabled={isPending}
