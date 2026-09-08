@@ -147,7 +147,16 @@ const businessSchema = new mongoose.Schema({
     type: String,
     select: false,
   },
-});
+  // createdAt/updatedAt, added by Mongoose's own `timestamps` option
+  // below, not a manual field on this schema. Checked before adding: no
+  // manual createdAt/updatedAt exists anywhere in this schema, so nothing
+  // to collide with. businessAvailability.model.js and
+  // destinationDemand.model.js do define their own manual `updatedAt`
+  // (default: Date.now), but those are separate schemas/collections
+  // entirely, unaffected by this change.
+  },
+  { timestamps: true }
+);
 
 const Business = mongoose.model("Business", businessSchema);
 
