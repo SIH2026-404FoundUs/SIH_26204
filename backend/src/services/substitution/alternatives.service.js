@@ -100,10 +100,20 @@ function buildPlaceResponse(ranked, dStar) {
 function buildDateResponse(dateResult) {
   if (!dateResult || !Array.isArray(dateResult.dates)) return [];
 
+  // Spec: "never hide the fact that the relief is modest" — dateSubstitution.js
+  // already computes this at attemptLevel 3 (the ladder bottomed out at the
+  // lowest-pressure date even though it didn't clear either relief threshold);
+  // that label was being computed and then dropped here before reaching the
+  // API response, silently making a modest result look like a normal one.
+  // Additive-only field, so the documented {startDate,pressure,savingINR}
+  // shape is unchanged for any consumer that doesn't read it.
+  const isModest = dateResult.attemptLevel === 3;
+
   return dateResult.dates.map((d) => ({
     startDate: d.date,
     pressure: d.pressure,
-    savingINR: d.savingINR ?? 0
+    savingINR: d.savingINR ?? 0,
+    ...(isModest ? { note: dateResult.labels?.[d.date] ?? 'Modest relief' } : {}),
   }));
 }
 

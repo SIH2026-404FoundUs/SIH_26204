@@ -255,7 +255,8 @@ async def plan_trip(req: PlanTripRequest):
     # The agent is deliberately not run on this branch. Building a plan for a
     # destination we are about to suggest replacing wastes a full agent run,
     # and the traveller's answer decides what gets planned.
-    trip_draft_id = trip_drafts.save_draft(
+    trip_draft_id = await run_in_threadpool(
+        trip_drafts.save_draft,
         request=req.model_dump(),
         pressure=pressure,
         alternatives=alternatives,
@@ -332,7 +333,7 @@ def shift_end_date(start: str, end: str, new_start: str) -> str:
 
 @app.post("/api/plan-trip/confirm")
 async def confirm_trip(req: ConfirmTripRequest):
-    draft = trip_drafts.get_draft(req.tripDraftId)
+    draft = await run_in_threadpool(trip_drafts.get_draft, req.tripDraftId)
     if draft is None:
         raise HTTPException(
             status_code=404, detail=f"no trip draft {req.tripDraftId!r}"
@@ -394,5 +395,5 @@ async def confirm_trip(req: ConfirmTripRequest):
         "redistribution": redistribution,
         "alternativesOffered": True,
     }
-    trip_drafts.save_trip(req.tripDraftId, record)
+    await run_in_threadpool(trip_drafts.save_trip, req.tripDraftId, record)
     return record

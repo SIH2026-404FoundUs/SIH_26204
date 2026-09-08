@@ -69,9 +69,15 @@ export function calculateBudget(tripData = {}) {
   const hotelCost = pricePerNight * nights * rooms;
   const hotelSourceInfo = resolveCategorySource(tripData.hotel?.source);
 
-  // 3. Food cost & source
+  // 3. Food cost & source. Locked formula (spec): days*mealsPerDay*cityMealIndex*travellers.
+  // mealsPerDay/cityMealIndex are optional and additive: when a caller only sends
+  // pricePerPersonPerDay (the pre-existing, documented, tested shape), they default
+  // to 1 and pricePerPersonPerDay respectively, so the old behavior is unchanged;
+  // supplying both richer fields activates the exact spec formula.
   const pricePerPersonPerDay = Number(tripData.food?.pricePerPersonPerDay) || 0;
-  const foodCost = pricePerPersonPerDay * travellers * days;
+  const mealsPerDay = tripData.food?.mealsPerDay !== undefined ? Number(tripData.food.mealsPerDay) || 0 : 1;
+  const cityMealIndex = tripData.food?.cityMealIndex !== undefined ? Number(tripData.food.cityMealIndex) || 0 : pricePerPersonPerDay;
+  const foodCost = days * mealsPerDay * cityMealIndex * travellers;
   const foodSourceInfo = resolveCategorySource(tripData.food?.source);
 
   // 4. Activities cost & source
@@ -101,8 +107,13 @@ export function calculateBudget(tripData = {}) {
     activitiesHaveUnlabelled = true;
   }
 
-  // 5. Local Transport cost & source
-  const localTransportCost = Number(tripData.localTransport?.estimatedCost) || 0;
+  // 5. Local Transport cost & source. Locked formula (spec): sum(localLegEstimates).
+  // Additive: a `legs` array (one estimate per local leg) sums per the spec formula;
+  // the pre-existing single `estimatedCost` number (the documented, tested shape)
+  // still works unchanged when `legs` isn't supplied.
+  const localTransportCost = Array.isArray(tripData.localTransport?.legs)
+    ? tripData.localTransport.legs.reduce((sum, leg) => sum + (Number(leg?.estimatedCost) || 0), 0)
+    : Number(tripData.localTransport?.estimatedCost) || 0;
   const localTransportSourceInfo = resolveCategorySource(tripData.localTransport?.source);
 
   // Compile costBreakdown with 2-decimal rounding and source labels
