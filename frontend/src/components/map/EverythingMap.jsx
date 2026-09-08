@@ -1,28 +1,39 @@
 import { useEffect, useRef, useState } from 'react';
 import { loadGoogleMaps } from '../../lib/googleMapsLoader';
+import PressureHeatmapLayer from './PressureHeatmapLayer';
+import MapControls from './MapControls';
 
 /**
  * EverythingMap - Base Canvas component for the "Everything on One Map" feature.
- * Asynchronously initializes Google Maps JS SDK via `googleMapsLoader`.
+ * Integrates Google Maps JS SDK, floating layer controls, and toggleable HeatmapLayer.
  *
  * Props:
  * - center: { lat, lng } (Default: India center { lat: 20.5937, lng: 78.9629 })
  * - zoom: number (Default: 5)
  * - className: string (CSS class overrides)
  * - mapOptions: object (Custom google.maps.MapOptions)
- * - onMapLoad: function(mapInstance, mapsSDK) (Callback when map finishes initialization)
+ * - defaultHeatmap: boolean (Default: false)
+ * - date: string (Default: '2026-12-26')
+ * - onMapLoad: function(mapInstance, mapsSDK)
  */
 export default function EverythingMap({
   center = { lat: 20.5937, lng: 78.9629 },
   zoom = 5,
-  className = 'h-[500px] w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200',
+  className = 'h-[550px] w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200',
   mapOptions = {},
+  defaultHeatmap = false,
+  date: initialDate = '2026-12-26',
   onMapLoad
 }) {
   const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
+  const [mapInstance, setMapInstance] = useState(null);
+  const [mapsSDK, setMapsSDK] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Layer & Control States
+  const [heatmapVisible, setHeatmapVisible] = useState(defaultHeatmap);
+  const [selectedDate, setSelectedDate] = useState(initialDate);
 
   useEffect(() => {
     let isMounted = true;
@@ -31,11 +42,11 @@ export default function EverythingMap({
       .then((googleMaps) => {
         if (!isMounted || !mapRef.current) return;
 
-        if (!mapInstanceRef.current) {
+        if (!mapInstance) {
           const defaultOptions = {
             center,
             zoom,
-            mapId: 'DEMO_MAP_ID', // Enables modern vector styling if available
+            mapId: 'DEMO_MAP_ID',
             zoomControl: true,
             mapTypeControl: false,
             streetViewControl: false,
@@ -50,11 +61,12 @@ export default function EverythingMap({
             ...mapOptions
           };
 
-          const mapInstance = new googleMaps.Map(mapRef.current, defaultOptions);
-          mapInstanceRef.current = mapInstance;
+          const instance = new googleMaps.Map(mapRef.current, defaultOptions);
+          setMapInstance(instance);
+          setMapsSDK(googleMaps);
 
           if (typeof onMapLoad === 'function') {
-            onMapLoad(mapInstance, googleMaps);
+            onMapLoad(instance, googleMaps);
           }
         }
 
@@ -71,33 +83,54 @@ export default function EverythingMap({
     return () => {
       isMounted = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update center when prop changes dynamically
+  // Sync center prop updates
   useEffect(() => {
-    if (mapInstanceRef.current && center) {
-      mapInstanceRef.current.panTo(center);
+    if (mapInstance && center) {
+      mapInstance.panTo(center);
     }
-  }, [center?.lat, center?.lng]);
+  }, [center, mapInstance]);
 
-  // Update zoom when prop changes
+  // Sync zoom prop updates
   useEffect(() => {
-    if (mapInstanceRef.current && typeof zoom === 'number') {
-      mapInstanceRef.current.setZoom(zoom);
+    if (mapInstance && typeof zoom === 'number') {
+      mapInstance.setZoom(zoom);
     }
-  }, [zoom]);
+  }, [zoom, mapInstance]);
 
   return (
     <div className={`relative ${className}`}>
-      {/* Map Container Ref */}
+      {/* Floating Control Overlay */}
+      {!loading && !error && (
+        <MapControls
+          heatmapVisible={heatmapVisible}
+          onToggleHeatmap={setHeatmapVisible}
+          date={selectedDate}
+          onChangeDate={setSelectedDate}
+        />
+      )}
+
+      {/* Map Container Canvas */}
       <div ref={mapRef} className="h-full w-full bg-slate-100" />
+
+      {/* Pressure Heatmap Layer */}
+      {mapInstance && mapsSDK && (
+        <PressureHeatmapLayer
+          map={mapInstance}
+          mapsSDK={mapsSDK}
+          date={selectedDate}
+          visible={heatmapVisible}
+        />
+      )}
 
       {/* Loading Overlay */}
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-slate-50/80 backdrop-blur-xs">
           <div className="flex flex-col items-center gap-2">
             <div className="h-8 w-8 animate-spin rounded-full border-3 border-indigo-600 border-t-transparent" />
-            <span className="text-xs font-semibold text-slate-600">Initializing Interactive Map...</span>
+            <span className="text-xs font-semibold text-slate-600">Loading Map Layers...</span>
           </div>
         </div>
       )}

@@ -18,6 +18,7 @@ import OffersWaitlist from './components/trust/OffersWaitlist'
 import Alerts from './components/trust/Alerts'
 import Safety from './components/trust/Safety'
 import Businesses from './components/trust/Businesses'
+import MapPreview from './pages/MapPreview'
 
 // Sahyatri's application shell (§53-58 of the frontend spec): a public
 // experience (landing/signin, signup, explore, destination detail,
@@ -47,6 +48,7 @@ function App() {
           <Route path="/signin" element={authUser ? <Navigate to="/home" replace /> : <AuthScreen mode="login" />} />
           <Route path="/signup" element={authUser ? <Navigate to="/home" replace /> : <AuthScreen mode="signup" />} />
           <Route path="/explore" element={<Page wide><PressureHeatmap /></Page>} />
+          <Route path="/map-preview" element={<MapPreview />} />
           <Route path="/explore/:destId" element={<Page><DestinationDetail /></Page>} />
           <Route path="/businesses" element={<Page><Businesses /></Page>} />
           {/* Public safety advisory read (spec §3.3) -- also reachable from
