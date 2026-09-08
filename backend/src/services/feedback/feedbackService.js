@@ -8,6 +8,8 @@
  * - Produces actionable business improvement recommendations (action, effort, impact).
  */
 
+import { translateFeedbackReviews } from "./translationService.js";
+
 export const MIN_FEEDBACK_THRESHOLD = 5;
 export const MIN_THEME_MENTIONS_THRESHOLD = 3;
 export const VALID_CATEGORIES = ["hotel", "restaurant", "attraction", "transport", "service"];
@@ -138,6 +140,36 @@ export function extractFeedbackThemesAndActions(reviews) {
 }
 
 /**
+ * Spec §3.2: "one Qwen3 call, strict JSON". No Qwen3 access exists anywhere
+ * in this codebase (no SDK, no key, no endpoint) -- this calls the real LLM
+ * access that IS wired and working (Gemini, via ai-service's
+ * /internal/ai/feedback-themes), behind the same adapter boundary. Falls
+ * back to the keyword heuristic above -- honestly, not silently -- if the
+ * AI service is unreachable or returns something that fails validation.
+ *
+ * @param {Array<Object>} reviews - Already-English review documents.
+ * @param {Object} [options] - { aiServiceUrl, fetchClient } as used by translationService.js.
+ * @returns {Promise<{ themes, actions, source: "llm"|"heuristic-fallback" }>}
+ */
+export async function extractFeedbackThemesViaLLM(reviews, options = {}) {
+  const { aiServiceUrl, fetchClient } = options;
+  if (aiServiceUrl && typeof fetchClient === "function") {
+    try {
+      const response = await fetchClient(`${aiServiceUrl}/internal/ai/feedback-themes`, {
+        reviews: reviews.map((r) => ({ comment: r.comment, rating: r.rating })),
+      });
+      if (response && Array.isArray(response.themes) && Array.isArray(response.actions)) {
+        return { themes: response.themes, actions: response.actions, source: "llm" };
+      }
+    } catch (err) {
+      console.warn("[Feedback Warning] AI theme service unavailable, using heuristic fallback:", err.message);
+    }
+  }
+  const { themes, actions } = extractFeedbackThemesAndActions(reviews);
+  return { themes, actions, source: "heuristic-fallback" };
+}
+
+/**
  * Submit tourist feedback for a business or experience.
  *
  * @param {Object} feedbackData - Feedback details.
@@ -229,9 +261,10 @@ export async function submitTouristFeedback(feedbackData, models = {}) {
  *
  * @param {string} businessId - Target business ID.
  * @param {Object} [models] - Database models (FeedbackModel, BusinessModel, AuditLogModel).
+ * @param {Object} [aiOptions] - { aiServiceUrl, fetchClient } for translation + LLM theme extraction.
  * @returns {Promise<Object>} Processing summary result.
  */
-export async function processBusinessFeedback(businessId, models = {}) {
+export async function processBusinessFeedback(businessId, models = {}, aiOptions = {}) {
   const { FeedbackModel, BusinessModel, AuditLogModel } = models;
 
   if (!businessId) {
@@ -261,8 +294,13 @@ export async function processBusinessFeedback(businessId, models = {}) {
     };
   }
 
-  // Extract themes & actions (mentions >= 3 threshold enforced inside extractor)
-  const { themes, actions } = extractFeedbackThemesAndActions(reviews);
+  // Step 1 (spec §3.2): translate non-English reviews to English first.
+  const translated = await translateFeedbackReviews(reviews, aiOptions);
+
+  // Step 2: one LLM call for theme/sentiment extraction (mentions >= 3
+  // threshold enforced inside), falling back to the keyword heuristic if the
+  // AI service is unreachable.
+  const { themes, actions, source: themeSource } = await extractFeedbackThemesViaLLM(translated, aiOptions);
 
   const avgRating =
     reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / reviews.length;
@@ -290,7 +328,7 @@ export async function processBusinessFeedback(businessId, models = {}) {
       action: "feedback.ai_summary.processed",
       target: String(businessId),
       reasonCode: "FEEDBACK_THEMES_EXTRACTED",
-      meta: { reviewCount: reviews.length, themeCount: themes.length, actionCount: actions.length },
+      meta: { reviewCount: reviews.length, themeCount: themes.length, actionCount: actions.length, themeSource },
       at: now,
     }).catch(() => {});
   }
@@ -303,6 +341,7 @@ export async function processBusinessFeedback(businessId, models = {}) {
     averageRating: Math.round(avgRating * 10) / 10,
     themes,
     actions,
+    themeSource, // "llm" (real Gemini call) or "heuristic-fallback" (AI service unreachable) -- never mislabeled
     processedAt: now,
   };
 }

@@ -12,13 +12,16 @@
 # standard high-throughput CTranslate2 quantization for GPU); falls back to
 # CPU (int8) if CUDA isn't usable for any reason, rather than failing to
 # start the service entirely.
+#
+# Endpoint registration lives in app/main.py as a direct @app.post
+# decorator (matching that file's convention for /api/plan-trip and
+# /api/plan-trip/confirm) — this module exposes only the model and the
+# plain transcription function main.py's endpoint calls into, not a router.
 
 import io
 import logging
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
 from faster_whisper import WhisperModel
-from starlette.concurrency import run_in_threadpool
 
 logger = logging.getLogger(__name__)
 
@@ -45,27 +48,14 @@ def _load_model() -> WhisperModel:
 # Loaded at import time, not lazily on first request — see module docstring.
 _model = _load_model()
 
-router = APIRouter()
 
-
-def _run_transcription(audio_bytes: bytes) -> dict:
-    # language=None (the default) -> auto-detect, per Section 1.2.
-    segments, info = _model.transcribe(io.BytesIO(audio_bytes))
-    transcript = "".join(segment.text for segment in segments).strip()
-    return {"transcript": transcript, "detectedLanguage": info.language}
-
-
-@router.post("/transcribe")
-async def transcribe_endpoint(audio: UploadFile = File(...)) -> dict:
+def run_transcription(audio_bytes: bytes) -> dict:
     """
     Real contract this must satisfy, matching
     backend/src/services/onboarding/transcription.js's transcribeFn:
     given raw audio bytes, return { transcript: string, detectedLanguage: string }.
     """
-    audio_bytes = await audio.read()
-    try:
-        # transcribe() is blocking CPU/GPU work — run it off the event loop
-        # so one in-flight transcription doesn't stall every other request.
-        return await run_in_threadpool(_run_transcription, audio_bytes)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"transcription failed: {exc}") from exc
+    # language=None (the default) -> auto-detect, per Section 1.2.
+    segments, info = _model.transcribe(io.BytesIO(audio_bytes))
+    transcript = "".join(segment.text for segment in segments).strip()
+    return {"transcript": transcript, "detectedLanguage": info.language}

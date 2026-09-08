@@ -16,7 +16,7 @@
   },
   "trackingTier": "tracked",
   "attrs": {
-    "snow": 1.0,
+    "snow": 1,
     "trek": 0.9,
     "riverside": 0.8,
     "heritage": 0.4,
@@ -27,7 +27,7 @@
   },
   "nearestRailhead": "CDG",
   "railheadDistanceKm": 280,
-  "railSignalConfidence": 0.25,
+  "railSignalConfidence": 0.08,
   "roadAccess": {
     "operators": [
       "HRTC",
@@ -44,5 +44,6 @@
     "roadSeatsAvail": 15,
     "hotelMedianINR": 4200
   },
-  "seededAt": "2026-09-05T16:16:25.121046Z"
+  "seededAt": "2026-09-05T16:16:25.121046Z",
+  "demoCorridor": true
 }

@@ -45,7 +45,8 @@ async function computeScore(candidate, requestedDest, dStar, pressureFn, date, b
 
   if (candObj.pressure === undefined && typeof pressureFn === 'function') {
     const candId = candObj._id || candObj.id;
-    candObj.pressure = await pressureFn(candId, date);
+    const res = await pressureFn(candId, date);
+    candObj.pressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
   }
 
   const savingINR = await estimateSaving(requestedDest, candObj, date, budgetFn);
@@ -83,7 +84,17 @@ async function rankCandidates(candidates, requestedDest, dStar, date, pressureFn
   for (const cand of processedCandidates) {
     if (cand.pressure === undefined && typeof pressureFn === 'function') {
       const candId = cand._id || cand.id;
-      cand.pressure = await pressureFn(candId, date);
+      const res = await pressureFn(candId, date);
+      cand.pressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
+    }
+    if (typeof budgetFn === 'function') {
+      const candId = cand._id || cand.id;
+      const bRes = await budgetFn(candId, date);
+      if (bRes) {
+        cand.stayCost = bRes.stayCost || 0;
+        cand.transportCost = bRes.transportCost || 0;
+        cand.totalCost = bRes.total || 0;
+      }
     }
     cand.savingINR = await estimateSaving(requestedDest, cand, date, budgetFn);
   }

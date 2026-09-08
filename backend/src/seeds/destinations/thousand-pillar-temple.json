@@ -16,18 +16,18 @@
   },
   "trackingTier": "tracked",
   "attrs": {
-    "snow": 0.0,
+    "snow": 0,
     "trek": 0.1,
     "riverside": 0.1,
-    "heritage": 1.0,
+    "heritage": 1,
     "nightlife": 0.2,
     "food": 0.7,
     "wildlife": 0.1,
-    "spiritual": 1.0
+    "spiritual": 1
   },
   "nearestRailhead": "KZJ",
   "railheadDistanceKm": 6,
-  "railSignalConfidence": 0.85,
+  "railSignalConfidence": 0.6,
   "roadAccess": {
     "operators": [
       "TSRTC"

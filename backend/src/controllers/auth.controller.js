@@ -35,6 +35,7 @@ export const signup = async (req, res) => {
         _id: newUser._id,
         fullName: newUser.fullName,
         email: newUser.email,
+        role: newUser.role,
       });
     } else {
       res.status(400).json({ message: "Invalid user data" });
@@ -50,7 +51,10 @@ export const login = async (req, res) => {
   try {
     const user = await User.findOne({ email });
 
-    if (!user) {
+    // A user with no passwordHash (e.g. inserted directly into Mongo rather
+    // than through /signup) must fail like any other bad credential, not
+    // crash — bcrypt.compare throws on a non-string hash.
+    if (!user || !user.passwordHash) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
@@ -65,6 +69,7 @@ export const login = async (req, res) => {
       _id: user._id,
       fullName: user.fullName,
       email: user.email,
+      role: user.role,
     });
   } catch (error) {
     console.log("Error in login controller", error.message);

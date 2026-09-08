@@ -17,3 +17,10 @@ def post(path: str, body: dict) -> dict:
         return response.json()
     except Exception as e:
         return {"ok": False, "error": str(e)}
+
+def patch(path: str, body: dict) -> dict:
+    try:
+        response = requests.patch(f"{BACKEND_URL}{path}", json=body, timeout=5)
+        return response.json()
+    except Exception as e:
+        return {"ok": False, "error": str(e)}

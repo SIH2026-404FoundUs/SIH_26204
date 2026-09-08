@@ -1,25 +1,60 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { applyAllFilters } from './filters.js';
 import { rankCandidates } from './ranking.js';
 import { findDateAlternatives } from './dateSubstitution.js';
-import { Destination } from '../../models/destination.model.js';
+import { getTrackedDestinations, getDestinationById } from './standardize.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const HISTOGRAM_PATH = path.join(__dirname, '../../../../build/distance-histogram.json');
+
+function getCalibratedDStar() {
+  try {
+    if (fs.existsSync(HISTOGRAM_PATH)) {
+      const data = JSON.parse(fs.readFileSync(HISTOGRAM_PATH, 'utf8'));
+      if (typeof data.calibratedDStar === 'number') {
+        return data.calibratedDStar;
+      }
+    }
+  } catch (e) {
+    // fallback
+  }
+  return 1.15;
+}
 
 /**
  * Retrieves details, pressure score, and breakdown for the requested destination.
  */
 async function getRequestedInfo(destId, date, pressureFn) {
-  const dest = await Destination.findById(destId);
-  const pressure = typeof pressureFn === 'function' ? await pressureFn(destId, date) : 0;
+  const dest = getDestinationById(destId);
+  const result = typeof pressureFn === 'function' ? await pressureFn(destId, date) : null;
 
-  const breakdown = {
-    access: 0.85,
-    stay: 0.92,
-    calendar: 0.95,
-    weather: 0.80,
-    capacity: 0.90
-  };
+  const pressure = typeof result === 'number' ? result : (result?.score ?? 0.5);
+
+  let breakdown = null;
+  if (result && typeof result === 'object' && result.components) {
+    const comps = result.components;
+    breakdown = {
+      access: comps.access?.value ?? 0.5,
+      stay: comps.stay?.value ?? 0.5,
+      calendar: comps.calendar?.value ?? 0.5,
+      weather: comps.weather?.value ?? 0.5,
+      capacity: comps.capacity?.value ?? 0.5
+    };
+  } else {
+    breakdown = {
+      access: 0.5,
+      stay: 0.5,
+      calendar: 0.5,
+      weather: 0.5,
+      capacity: 0.5
+    };
+  }
 
   return {
-    destId: dest?._id || destId,
+    destId: dest?._id || dest?.id || destId,
     displayName: dest?.displayName || destId,
     pressure,
     breakdown
@@ -30,10 +65,9 @@ async function getRequestedInfo(destId, date, pressureFn) {
  * Fetches all tracked candidate destinations excluding the requested destination.
  */
 async function getCandidateDests(requestedDestId) {
-  return await Destination.find({
-    trackingTier: 'tracked',
-    _id: { $ne: requestedDestId }
-  });
+  return getTrackedDestinations().filter(
+    (d) => (d._id || d.id) !== requestedDestId
+  );
 }
 
 /**
@@ -49,6 +83,11 @@ function buildPlaceResponse(ranked, dStar) {
     dStar: dStar,
     pressure: candidate.pressure,
     travelTimeRatio: candidate.travelTimeRatio,
+    travelTimeHours: candidate.travelTime ?? candidate.travelTimeHours ?? 0,
+    requestedTimeHours: candidate.requestedTimeHours ?? 0,
+    stayCost: candidate.stayCost ?? 0,
+    transportCost: candidate.transportCost ?? 0,
+    totalCost: candidate.totalCost ?? candidate.total ?? 0,
     savingINR: candidate.savingINR ?? 0,
     discountSourceBusinessId: candidate.discountSourceBusinessId || null,
     rank: candidate.rank
@@ -61,10 +100,20 @@ function buildPlaceResponse(ranked, dStar) {
 function buildDateResponse(dateResult) {
   if (!dateResult || !Array.isArray(dateResult.dates)) return [];
 
+  // Spec: "never hide the fact that the relief is modest" — dateSubstitution.js
+  // already computes this at attemptLevel 3 (the ladder bottomed out at the
+  // lowest-pressure date even though it didn't clear either relief threshold);
+  // that label was being computed and then dropped here before reaching the
+  // API response, silently making a modest result look like a normal one.
+  // Additive-only field, so the documented {startDate,pressure,savingINR}
+  // shape is unchanged for any consumer that doesn't read it.
+  const isModest = dateResult.attemptLevel === 3;
+
   return dateResult.dates.map((d) => ({
     startDate: d.date,
     pressure: d.pressure,
-    savingINR: d.savingINR ?? 0
+    savingINR: d.savingINR ?? 0,
+    ...(isModest ? { note: dateResult.labels?.[d.date] ?? 'Modest relief' } : {}),
   }));
 }
 
@@ -72,14 +121,14 @@ function buildDateResponse(dateResult) {
  * Main Orchestrator: Receives substitution request, fetches requested info and candidates,
  * applies filters, ranks places, calculates date alternatives, and formats response.
  */
-async function getAlternatives(request, pressureFn, travelTimeFn, budgetFn, dStar = 0.65) {
+async function getAlternatives(request, pressureFn, travelTimeFn, budgetFn, dStar = getCalibratedDStar()) {
   const { destId, startDate, origin, interests } = request;
 
   // Step 1: Get requested destination info
   const requested = await getRequestedInfo(destId, startDate, pressureFn);
 
   // Step 2: Fetch full requested destination document for distance calculation
-  const requestedDestDoc = await Destination.findById(destId);
+  const requestedDestDoc = getDestinationById(destId);
   const requestedDestObj = requestedDestDoc || { _id: destId, displayName: requested.displayName };
 
   // Step 3: Get candidate destinations

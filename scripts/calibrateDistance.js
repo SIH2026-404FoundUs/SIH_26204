@@ -1,33 +1,27 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-import { Destination } from '../backend/src/models/destination.model.js';
-import { calculateDistance, computeWeights } from '../backend/src/services/substitution/distance.js';
-import { getStats } from '../backend/src/services/substitution/standardize.js';
+import dotenv from '../backend/node_modules/dotenv/lib/main.js';
 import { connectDB } from '../backend/src/lib/db.js';
+import { getPressure } from '../backend/src/services/pressure/service.js';
+import { computeWeights, weightedEuclidean } from '../backend/src/services/substitution/distance.js';
+import { getStats, getTrackedDestinations, zScore } from '../backend/src/services/substitution/standardize.js';
 import { applyAllFilters } from '../backend/src/services/substitution/filters.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables
-dotenv.config({ path: path.join(__dirname, '../backend/.env') });
-dotenv.config({ path: path.join(__dirname, './backend/.env') });
-dotenv.config();
-
 /**
- * Connects to MongoDB and fetches all tracked destinations.
+ * Loads all tracked destinations from seed JSON files.
  */
 async function loadDestinations() {
-  await connectDB();
-  const destinations = await Destination.find({ trackingTier: 'tracked' });
-  console.log(`Loaded ${destinations.length} tracked destinations from database.`);
+  const destinations = getTrackedDestinations();
+  console.log(`Loaded ${destinations.length} tracked destinations from JSON seed files.`);
   return destinations;
 }
 
 /**
- * Computes pairwise distances across all destinations using uniform attribute weights.
+ * Computes pairwise distances across all destinations using uniform attribute weights (weighted Euclidean).
  */
 async function computePairwiseDistances(destinations) {
   const n = destinations.length;
@@ -35,13 +29,21 @@ async function computePairwiseDistances(destinations) {
   const flatDistances = [];
   const weights = computeWeights(null); // Uniform weights (1/8 for each attribute)
 
+  const zScores = {};
+  for (const dest of destinations) {
+    const key = dest._id || dest.id;
+    zScores[key] = await zScore(dest);
+  }
+
   for (let i = 0; i < n; i++) {
+    const idI = destinations[i]._id || destinations[i].id;
     for (let j = 0; j < n; j++) {
       if (i === j) {
         matrix[i][j] = 0;
         continue;
       }
-      const dist = await calculateDistance(destinations[i], destinations[j], weights);
+      const idJ = destinations[j]._id || destinations[j].id;
+      const dist = weightedEuclidean(zScores[idI], zScores[idJ], weights);
       matrix[i][j] = dist;
       if (i < j) {
         flatDistances.push(dist);
@@ -101,28 +103,74 @@ function reportDistribution(counts, total) {
 }
 
 /**
- * Tunes dStar by testing threshold values from 0.1 to 2.0 to hit target median matches (5-15% of total pool).
+ * Tunes dStar by evaluating candidate survival across the FULL PIPELINE (all 3 filters)
+ * on peak date 2026-12-26 for high-pressure destinations (P > 0.65).
+ * Selects dStar where average surviving alternatives >= 2.0 and as close to 2.5 as possible.
  */
-function tuneDStar(matrix, total) {
-  const targetFraction = 0.10; // Target ~10% candidate match pool
-  const targetCount = targetFraction * total;
-  let bestDStar = 0.65;
-  let minDiff = Infinity;
+async function tuneDStarForFullPipeline(destinations, pressureFn, travelTimeFn) {
+  const dateStr = '2026-12-26';
+  const targetAvg = 2.5;
 
-  for (let d = 0.1; d <= 2.05; d += 0.01) {
-    const dStarVal = Number(d.toFixed(2));
-    const counts = computeMatchCounts(matrix, dStarVal);
-    const med = getPercentile(counts, 0.5);
-    const diff = Math.abs(med - targetCount);
-
-    if (diff < minDiff) {
-      minDiff = diff;
-      bestDStar = dStarVal;
+  const hpDests = [];
+  for (const d of destinations) {
+    const id = d._id || d.id;
+    const pRes = await pressureFn(id, dateStr);
+    const p = typeof pRes === 'number' ? pRes : (pRes?.score ?? 0.5);
+    if (p > 0.65) {
+      hpDests.push({ dest: d, pressure: p });
     }
   }
 
-  console.log(`Calibrated dStar: ${bestDStar} (Target match count ~ ${targetCount.toFixed(1)} destinations)`);
-  return bestDStar;
+  const activeHpDests = hpDests.length > 0 ? hpDests : destinations.map(d => ({ dest: d, pressure: 0.7 }));
+
+  console.log(`Evaluating full pipeline calibration across ${activeHpDests.length} high-pressure destinations (P > 0.65) on ${dateStr}...`);
+
+  let bestDStarWithMin2 = null;
+  let minDiffWithMin2 = Infinity;
+
+  let fallbackDStar = 0.70;
+  let minDiffFallback = Infinity;
+
+  for (let d = 0.70; d <= 1.30 + 1e-5; d += 0.05) {
+    const dStarVal = Number(d.toFixed(2));
+    let totalSurviving = 0;
+
+    for (const hp of activeHpDests) {
+      const candidates = destinations.filter(c => (c._id || c.id) !== (hp.dest._id || hp.dest.id));
+      const res = await applyAllFilters(
+        candidates,
+        hp.dest,
+        'delhi',
+        dateStr,
+        dStarVal,
+        {},
+        pressureFn,
+        travelTimeFn
+      );
+      totalSurviving += res.filtered.length;
+    }
+
+    const avgSurviving = totalSurviving / activeHpDests.length;
+    const diff = Math.abs(avgSurviving - targetAvg);
+
+    console.log(`  dStar = ${dStarVal.toFixed(2)} => Avg Surviving Alternatives: ${avgSurviving.toFixed(2)}`);
+
+    if (avgSurviving >= 2.0) {
+      if (diff < minDiffWithMin2) {
+        minDiffWithMin2 = diff;
+        bestDStarWithMin2 = dStarVal;
+      }
+    }
+
+    if (diff < minDiffFallback) {
+      minDiffFallback = diff;
+      fallbackDStar = dStarVal;
+    }
+  }
+
+  const calibratedDStar = bestDStarWithMin2 !== null ? bestDStarWithMin2 : fallbackDStar;
+  console.log(`Calibrated Full-Pipeline dStar: ${calibratedDStar}`);
+  return calibratedDStar;
 }
 
 /**
@@ -204,6 +252,9 @@ async function runCalibration() {
   console.log('=== Starting Distance Calibration ===\n');
 
   try {
+    dotenv.config({ path: path.join(__dirname, '../backend/.env') });
+    await connectDB();
+
     const destinations = await loadDestinations();
     if (destinations.length === 0) {
       console.log('No tracked destinations found in database to calibrate.');
@@ -213,19 +264,14 @@ async function runCalibration() {
     await getStats();
     const { matrix, flatDistances } = await computePairwiseDistances(destinations);
 
-    const dStar = tuneDStar(matrix, destinations.length);
+    const travelTimeStub = async () => 10;
+    const dStar = await tuneDStarForFullPipeline(destinations, getPressure, travelTimeStub);
+
     const counts = computeMatchCounts(matrix, dStar);
     const distribution = reportDistribution(counts, destinations.length);
     const histogram = createHistogram(flatDistances);
 
-    // Stubs for peak date survival check
-    const pressureStub = async (destId) => {
-      const id = typeof destId === 'object' ? destId._id || destId.id : destId;
-      return id === 'manali' ? 0.90 : 0.40;
-    };
-    const travelTimeStub = async () => 10;
-
-    const peakSurvival = await checkPeakDateSurvival(destinations, dStar, pressureStub, travelTimeStub);
+    const peakSurvival = await checkPeakDateSurvival(destinations, dStar, getPressure, travelTimeStub);
 
     const results = {
       timestamp: new Date().toISOString(),

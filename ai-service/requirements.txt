@@ -1,12 +1,10 @@
 # ai-service/requirements.txt
-#
-# Did not exist before this. Scoped for now to what
-# backend/src/services/onboarding/transcription.js's real transcribeFn
-# needs (bharani-tasks.md Section 1.2) — fastapi/uvicorn versions pinned to
-# what's already installed and working in this dev environment. Nishith's
-# agent stack (google-adk, google-genai, etc.) isn't declared here yet;
-# add it alongside these when that piece gets its own requirements pass.
 
-fastapi==0.115.0
-uvicorn==0.30.6
+google-adk==2.8.0
+google-genai==2.22.0
+python-dotenv==1.2.2
+requests==2.33.0
+pydantic==2.13.5
+fastapi==0.141.1
+uvicorn==0.52.4
 faster-whisper==1.2.1

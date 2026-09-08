@@ -19,7 +19,8 @@ async function scanDates(destId, requestedDate, pressureFn) {
 
     let pressure = 0;
     if (typeof pressureFn === 'function') {
-      pressure = await pressureFn(destId, dateString);
+      const res = await pressureFn(destId, dateString);
+      pressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
     }
 
     dates.push({ date: dateString, pressure });
@@ -126,7 +127,8 @@ async function findDateAlternatives(requestedDest, requestedDate, pressureFn, bu
   let basePressure = 0;
 
   if (typeof pressureFn === 'function') {
-    basePressure = await pressureFn(destId, requestedDate);
+    const res = await pressureFn(destId, requestedDate);
+    basePressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
   }
 
   const allDates = await scanDates(destId, requestedDate, pressureFn);

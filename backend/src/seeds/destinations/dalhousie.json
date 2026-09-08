@@ -27,7 +27,7 @@
   },
   "nearestRailhead": "PTK",
   "railheadDistanceKm": 80,
-  "railSignalConfidence": 0.5,
+  "railSignalConfidence": 0.3,
   "roadAccess": {
     "operators": [
       "HRTC"
