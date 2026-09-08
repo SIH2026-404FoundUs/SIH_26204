@@ -10,6 +10,7 @@ let mongod;
 beforeAll(async () => {
   mongod = await MongoMemoryServer.create();
   await mongoose.connect(mongod.getUri());
+  await Business.init();
 });
 
 afterAll(async () => {

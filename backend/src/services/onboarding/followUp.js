@@ -55,6 +55,26 @@ const QUESTIONS = {
   },
 };
 
+export const DATES_QUESTIONS = {
+  en: "Please tell us which dates your property will be open and available for guests.",
+  hi: "कृपया बताएं कि आपकी संपत्ति किन तिथियों पर मेहमानों के लिए खुली और उपलब्ध रहेगी।",
+};
+
+export const INVALID_DATES_QUESTIONS = {
+  en: "We couldn't clearly understand your availability dates. Please tell us your open dates (for example, 'October 10 to October 20').",
+  hi: "हम आपकी उपलब्धता तिथियों को स्पष्ट रूप से समझ नहीं पाए। कृपया अपनी खुली तिथियां बताएं (उदाहरण के लिए, '10 अक्टूबर से 20 अक्टूबर')।",
+};
+
+export const MISSING_UNITS_QUESTIONS = {
+  en: "Please tell us how many rooms or units are available for those dates.",
+  hi: "कृपया बताएं कि उन तिथियों के लिए कितने कमरे या इकाइयां उपलब्ध हैं।",
+};
+
+export const AVAILABILITY_CONFIRMED_MESSAGES = {
+  en: "Your availability dates and units have been recorded. Your listing is now ready for the confirmation step.",
+  hi: "आपकी उपलब्धता तिथियां और इकाइयां दर्ज कर ली गई हैं। आपकी लिस्टिंग अब पुष्टिकरण चरण के लिए तैयार है।",
+};
+
 // Fail loudly at import time, not silently at call time, if
 // REQUIRED_FIELDS_FOR_LIVE and QUESTIONS ever drift apart (e.g. a future
 // field added to one list but not the other).
@@ -117,3 +137,45 @@ export function getNextFollowUpQuestion(currentFields, language) {
   const field = getNextMissingRequiredField(currentFields);
   return field ? questionText(field, language) : null;
 }
+
+/**
+ * Returns the follow-up prompt for AWAITING_DATES in the operator's language,
+ * falling back to English.
+ *
+ * @param {string} [language]
+ * @returns {string}
+ */
+export function getDatesFollowUpQuestion(language) {
+  return DATES_QUESTIONS[language] ?? DATES_QUESTIONS[DEFAULT_LANGUAGE];
+}
+
+/**
+ * Returns the clarification prompt when dates are invalid or ambiguous.
+ *
+ * @param {string} [language]
+ * @returns {string}
+ */
+export function getInvalidDatesQuestion(language) {
+  return INVALID_DATES_QUESTIONS[language] ?? INVALID_DATES_QUESTIONS[DEFAULT_LANGUAGE];
+}
+
+/**
+ * Returns the clarification prompt when unit count is missing or ambiguous.
+ *
+ * @param {string} [language]
+ * @returns {string}
+ */
+export function getMissingUnitsQuestion(language) {
+  return MISSING_UNITS_QUESTIONS[language] ?? MISSING_UNITS_QUESTIONS[DEFAULT_LANGUAGE];
+}
+
+/**
+ * Returns the confirmation message sent after availability is successfully recorded.
+ *
+ * @param {string} [language]
+ * @returns {string}
+ */
+export function getAvailabilityConfirmedMessage(language) {
+  return AVAILABILITY_CONFIRMED_MESSAGES[language] ?? AVAILABILITY_CONFIRMED_MESSAGES[DEFAULT_LANGUAGE];
+}
+

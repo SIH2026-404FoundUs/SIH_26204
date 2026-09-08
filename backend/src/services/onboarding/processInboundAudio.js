@@ -11,11 +11,19 @@
 
 import crypto from "crypto";
 import Business from "../../models/business.model.js";
+import BusinessAvailability from "../../models/businessAvailability.model.js";
 import { transcribeAudio } from "./transcription.js";
 import { extractFields } from "./extractFields.js";
 import { validateExtractionShape, checkExtractionHonesty } from "./extraction.js";
 import { transitionDraft, ONBOARDING_STATES } from "./stateMachine.js";
-import { getNextFollowUpQuestion, getNextMissingRequiredField } from "./followUp.js";
+import {
+  getNextFollowUpQuestion,
+  getNextMissingRequiredField,
+  getInvalidDatesQuestion,
+  getMissingUnitsQuestion,
+  getAvailabilityConfirmedMessage,
+} from "./followUp.js";
+import { parseAvailabilityDates, parseUnitCount, generateDateRange } from "./dateParser.js";
 import { sendWhatsAppMessage } from "./sendMessage.js";
 import { resolveDestId } from "./destinationResolver.js";
 
@@ -240,6 +248,117 @@ export async function processInboundAudio({
   }
 
   const { transcript, detectedLanguage } = await transcribeAudio(audioBuffer, transcribeFn);
+
+  // AWAITING_DATES — Section 1.1: provider sends their availability dates and units.
+  // Parses dates and units, creates BusinessAvailability documents, transitions
+  // to DRAFT_CONFIRM, and sends confirmation or follow-up clarification message.
+  if (currentState === "AWAITING_DATES") {
+    const datesParsed = parseAvailabilityDates(transcript);
+    const unitsParsed = parseUnitCount(transcript);
+
+    if (!datesParsed) {
+      const question = getInvalidDatesQuestion(detectedLanguage);
+      try {
+        await sendWhatsAppMessage(ownerPhone, question, sendMessageFn);
+      } catch (err) {
+        console.error(`processInboundAudio: failed to send invalid dates question: ${err.message}`);
+      }
+      return {
+        applied: false,
+        reason: "invalid_dates",
+        businessId: existing._id,
+        onboardingState: currentState,
+        transcript,
+        detectedLanguage,
+      };
+    }
+
+    if (unitsParsed === null) {
+      const question = getMissingUnitsQuestion(detectedLanguage);
+      try {
+        await sendWhatsAppMessage(ownerPhone, question, sendMessageFn);
+      } catch (err) {
+        console.error(`processInboundAudio: failed to send missing units question: ${err.message}`);
+      }
+      return {
+        applied: false,
+        reason: "missing_units",
+        businessId: existing._id,
+        onboardingState: currentState,
+        transcript,
+        detectedLanguage,
+      };
+    }
+
+    // Both dates and units successfully parsed — create/update BusinessAvailability records
+    const dateList = generateDateRange(datesParsed.startDate, datesParsed.endDate);
+    const resourceType = "room";
+    const pricePerNight = existing.priceRangeINR?.min ?? 0;
+
+    for (const d of dateList) {
+      const yyyy = d.getUTCFullYear();
+      const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+      const dd = String(d.getUTCDate()).padStart(2, "0");
+      const dateStr = `${yyyy}${mm}${dd}`;
+      const availId = `avail_${existing._id}_${dateStr}`;
+
+      await BusinessAvailability.findOneAndUpdate(
+        { businessId: existing._id, date: d, resourceType },
+        {
+          $set: {
+            units: { total: unitsParsed, available: unitsParsed },
+            pricePerNight,
+            isOpen: true,
+            source: "business_declared",
+            updatedAt: new Date(),
+          },
+          $setOnInsert: {
+            _id: availId,
+          },
+        },
+        { upsert: true, new: true, runValidators: true }
+      );
+    }
+
+    // Transition state: AWAITING_DATES -> DRAFT_CONFIRM
+    const transition = transitionDraft(existing, "DRAFT_CONFIRM", attemptMessageId);
+    const nextState = transition.applied ? transition.state : "DRAFT_CONFIRM";
+
+    const saved = await Business.findOneAndUpdate(
+      { _id: existing._id },
+      {
+        $set: {
+          onboardingState: nextState,
+          lastWhatsAppMessageId: attemptMessageId,
+        },
+      },
+      { new: true, runValidators: true, context: "query" }
+    );
+
+    // Send confirmation message
+    try {
+      const confirmMsg = getAvailabilityConfirmedMessage(detectedLanguage);
+      await sendWhatsAppMessage(ownerPhone, confirmMsg, sendMessageFn);
+    } catch (err) {
+      console.error(`processInboundAudio: failed to send availability confirmed message: ${err.message}`);
+    }
+
+    return {
+      applied: true,
+      businessId: saved._id,
+      onboardingState: saved.onboardingState,
+      appliedHops: ["DRAFT_CONFIRM"],
+      transcript,
+      detectedLanguage,
+      availability: {
+        startDate: datesParsed.startDate,
+        endDate: datesParsed.endDate,
+        recordCount: dateList.length,
+        units: unitsParsed,
+        resourceType,
+      },
+    };
+  }
 
   // extractedFields omitted entirely (undefined) is the real WhatsApp
   // case: no placeholder was given, so actually call the real extraction
