@@ -16,6 +16,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "seed": "node src/seeds/seedDatabase.js",
     "prepare-hooks": "git config core.hooksPath ../.githooks",
