@@ -1,9 +1,24 @@
 import { describe, test, expect, beforeAll, afterAll, afterEach, jest } from "@jest/globals";
 import express from "express";
+import http from "http";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import Business from "../models/business.model.js";
 import { uploadAudioMiddleware, createOnboardingUploadHandler } from "./onboarding.controller.js";
+
+// Same technique as transcription.test.js's getUnreachableUrl(): claim a
+// real free port, then close it immediately -- reliably simulating "no
+// ai-service is reachable" regardless of whether a real ai-service
+// happens to be running on the hardcoded default port (localhost:8000)
+// during this test run. Without this, a test relying on transcribeAudio's
+// unconfigured default would flake whenever ai-service is actually up.
+async function getUnreachableTranscribeUrl() {
+  const probe = http.createServer();
+  await new Promise((resolve) => probe.listen(0, resolve));
+  const { port } = probe.address();
+  await new Promise((resolve) => probe.close(resolve));
+  return `http://127.0.0.1:${port}/onboarding/transcribe`;
+}
 
 let mongod;
 
@@ -232,6 +247,13 @@ describe("POST /upload (onboarding internal fallback)", () => {
   });
 
   test("without an injected transcribeFn, the endpoint fails loudly rather than silently succeeding", async () => {
+    const originalUrl = process.env.TRANSCRIBE_SERVICE_URL;
+    // Force the real, unconfigured transcribeAudio default to hit a
+    // guaranteed-unreachable port, not whatever localhost:8000 happens to
+    // be doing on this machine right now (it could be a real ai-service,
+    // making this test flake rather than exercise the failure path).
+    process.env.TRANSCRIBE_SERVICE_URL = await getUnreachableTranscribeUrl();
+
     const app = createTestApp(undefined); // no override — falls through to the real HTTP backend
     const server = app.listen(0);
 
@@ -243,7 +265,7 @@ describe("POST /upload (onboarding internal fallback)", () => {
         messageId: "upload-unconfigured-1",
       });
 
-      // No ai-service running in this test environment, so the real
+      // No ai-service reachable at the URL this test forced, so the real
       // transcribeFn correctly fails loudly rather than silently
       // succeeding or returning garbage — it just doesn't happen to be
       // "not implemented" anymore now that the real backend exists.
@@ -255,6 +277,7 @@ describe("POST /upload (onboarding internal fallback)", () => {
       expect(saved).toBeNull();
     } finally {
       server.close();
+      process.env.TRANSCRIBE_SERVICE_URL = originalUrl;
     }
   });
 

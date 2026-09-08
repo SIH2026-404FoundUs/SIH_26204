@@ -13,6 +13,18 @@
 # CPU (int8) if CUDA isn't usable for any reason, rather than failing to
 # start the service entirely.
 #
+# "Usable" is verified, not assumed from construction succeeding: CTranslate2
+# defers binding CUDA runtime libraries (e.g. cuBLAS) until the first real
+# compute call, not model construction (confirmed against a real production
+# failure — WhisperModel(..., device="cuda") constructed and the service
+# started fine, but the first actual transcribe() call threw "Library
+# cublas64_12.dll is not found or cannot be loaded", entirely outside this
+# function's original try/except). So after constructing the CUDA candidate,
+# _load_model() now forces one throwaway transcription (1 second of silence,
+# no network/file dependency) to trigger that same encode step immediately,
+# while still inside the try/except — a broken CUDA runtime is caught here,
+# once, at import time, rather than surfacing as a 500 on a real request.
+#
 # Endpoint registration lives in app/main.py as a direct @app.post
 # decorator (matching that file's convention for /api/plan-trip and
 # /api/plan-trip/confirm) — this module exposes only the model and the
@@ -21,11 +33,17 @@
 import io
 import logging
 
+import numpy as np
 from faster_whisper import WhisperModel
 
 logger = logging.getLogger(__name__)
 
 MODEL_NAME = "distil-large-v3"
+
+# 1 second of silence at 16kHz (Whisper's expected sample rate) — enough to
+# force the model's encode/language-detection step without needing any real
+# audio file or network call.
+_PROBE_AUDIO = np.zeros(16000, dtype=np.float32)
 
 
 def _load_model() -> WhisperModel:
@@ -34,7 +52,17 @@ def _load_model() -> WhisperModel:
 
         if ctranslate2.get_cuda_device_count() > 0:
             logger.info("onboarding.transcribe: loading %s on CUDA (float16)", MODEL_NAME)
-            return WhisperModel(MODEL_NAME, device="cuda", compute_type="float16")
+            candidate = WhisperModel(MODEL_NAME, device="cuda", compute_type="float16")
+
+            # Construction succeeding does not prove CUDA actually works —
+            # see module docstring. Force the real encode step now, still
+            # inside this try/except, so a broken CUDA runtime falls through
+            # to the CPU branch below instead of only failing later, on a
+            # real request, outside this function entirely.
+            segments, _info = candidate.transcribe(_PROBE_AUDIO)
+            list(segments)  # segments is a lazy generator; force full consumption
+
+            return candidate
     except Exception as exc:  # pragma: no cover - depends on the runtime GPU/driver
         logger.warning("onboarding.transcribe: GPU path unavailable (%s), falling back to CPU int8", exc)
 
