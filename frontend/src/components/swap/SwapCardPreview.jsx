@@ -73,7 +73,7 @@ export default function SwapCardPreview() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 sm:p-8">
+    <div className="min-h-screen bg-paper-dim p-4 sm:p-8">
       <SwapCard
         data={sampleData}
         onAcceptPlace={handleAcceptPlace}

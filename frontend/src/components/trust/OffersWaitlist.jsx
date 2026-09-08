@@ -39,7 +39,7 @@ export default function OffersWaitlist() {
       {marketError && <div className="mb-4"><Alert tone="error">{marketError}</Alert></div>}
 
       <Card className="mb-8">
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">Open offers</h2>
+        <h2 className="mb-3 text-sm font-semibold text-ink">Open offers</h2>
         <form onSubmit={loadOffers} className="mb-4 flex items-end gap-3">
           <div className="flex-1"><FormField label="Destination"><DestinationSelect value={destId} onChange={setDestId} /></FormField></div>
           <Button type="submit" variant="primary" icon={Search} loading={isLoadingOffers}>Search</Button>
@@ -52,12 +52,12 @@ export default function OffersWaitlist() {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {offers.map((offer) => (
-              <div key={offer._id} className="rounded-xl border border-slate-200 p-4">
+              <div key={offer._id} className="rounded-xl border border-paper-dim p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-800">{offer.businessId}</span>
+                  <span className="text-sm font-medium text-ink">{offer.businessId}</span>
                   <Badge tone="success">-{offer.discountPct}%</Badge>
                 </div>
-                <p className="mt-1 text-xs text-slate-500">{new Date(offer.date).toLocaleDateString()} · ₹{offer.effectivePrice}</p>
+                <p className="mt-1 text-xs text-ash">{new Date(offer.date).toLocaleDateString()} · ₹{offer.effectivePrice}</p>
                 <Button variant="primary" size="sm" fullWidth className="mt-3" onClick={() => claimOffer(offer._id)}>Claim</Button>
               </div>
             ))}
@@ -66,7 +66,7 @@ export default function OffersWaitlist() {
       </Card>
 
       <Card className="mb-8">
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">Join the waitlist</h2>
+        <h2 className="mb-3 text-sm font-semibold text-ink">Join the waitlist</h2>
         <form onSubmit={handleJoin} className="grid grid-cols-1 gap-3 sm:grid-cols-4">
           <FormField label="From"><input required type="date" value={joinForm.windowFrom} onChange={(e) => setJoinForm((p) => ({ ...p, windowFrom: e.target.value }))} className={inputClass} /></FormField>
           <FormField label="To"><input required type="date" value={joinForm.windowTo} onChange={(e) => setJoinForm((p) => ({ ...p, windowTo: e.target.value }))} className={inputClass} /></FormField>
@@ -76,7 +76,7 @@ export default function OffersWaitlist() {
       </Card>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">Your waitlist entries</h2>
+        <h2 className="mb-3 text-sm font-semibold text-ink">Your waitlist entries</h2>
         {isLoadingWaitlists ? (
           <LoadingState label="Loading your waitlist entries…" />
         ) : waitlists.length === 0 ? (
@@ -86,13 +86,13 @@ export default function OffersWaitlist() {
             {waitlists.map((w) => {
               const state = waitlistState(w.state)
               return (
-                <div key={w._id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
+                <div key={w._id} className="flex items-center justify-between rounded-xl border border-paper-dim bg-white px-4 py-3">
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="font-medium text-slate-800">{getDestinationLabel(w.destId)}</span>
-                    <span className="text-slate-400">{new Date(w.window.from).toLocaleDateString()} – {new Date(w.window.to).toLocaleDateString()}</span>
+                    <span className="font-medium text-ink">{getDestinationLabel(w.destId)}</span>
+                    <span className="text-ash">{new Date(w.window.from).toLocaleDateString()} – {new Date(w.window.to).toLocaleDateString()}</span>
                     <Badge tone={state.tone}>{state.label}</Badge>
                   </div>
-                  <button type="button" onClick={() => cancelWaitlist(w._id)} className="text-slate-400 transition hover:text-rose-600" aria-label="Cancel this waitlist entry">
+                  <button type="button" onClick={() => cancelWaitlist(w._id)} className="text-ash transition hover:text-pressure" aria-label="Cancel this waitlist entry">
                     <X size={16} />
                   </button>
                 </div>

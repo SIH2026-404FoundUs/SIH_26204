@@ -13,11 +13,11 @@ export default function DeclineButton({ onDecline, requestedName = 'this destina
         <Button variant="secondary" onClick={() => setOpen(true)}>
           Keep my original plan
         </Button>
-        <p className="text-xs text-slate-400">Continue with {requestedName} without switching</p>
+        <p className="text-xs text-ash">Continue with {requestedName} without switching</p>
       </div>
 
       <Modal open={open} onClose={() => setOpen(false)} title="Continue with the crowded date?">
-        <div className="mt-3 flex items-start gap-2.5 rounded-xl bg-amber-50 p-3.5 text-sm text-amber-800">
+        <div className="mt-3 flex items-start gap-2.5 rounded-xl bg-pressure/10 p-3.5 text-sm text-pressure">
           <TriangleAlert size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
           <p><strong>{requestedName}</strong> is showing high demand for these dates — expect more crowds and less room availability than usual.</p>
         </div>

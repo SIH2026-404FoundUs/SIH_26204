@@ -1,5 +1,5 @@
 import { TriangleAlert, Clock, MinusCircle } from 'lucide-react'
-import { scoreColor } from './scoreColor'
+import PressureBadge from './PressureBadge'
 import { getDestinationLabel } from '../../lib/destinations'
 import Card from '../ui/Card'
 import Badge from '../ui/Badge'
@@ -23,15 +23,12 @@ export default function PressureCard({ row }) {
   return (
     <Card>
       <div className="flex items-baseline justify-between">
-        <h3 className="font-semibold text-slate-900">{getDestinationLabel(row.destId)}</h3>
-        <span className="text-sm text-slate-500">{row.date}</span>
+        <h3 className="font-display text-lg text-ink">{getDestinationLabel(row.destId)}</h3>
+        <span className="font-mono text-sm text-ash">{row.date}</span>
       </div>
 
-      <div className="mt-1 flex items-center gap-2">
-        <span className="text-3xl font-bold" style={{ color: scoreColor(row.score) }}>
-          {row.score == null ? 'Unknown' : `${Math.round(row.score * 100)}%`}
-        </span>
-        <span className="text-xs text-slate-500">estimated crowding</span>
+      <div className="mt-1">
+        <PressureBadge score={row.score} size="lg" />
       </div>
 
       {(lowConfidence || stale || degraded.length > 0) && (
@@ -42,20 +39,20 @@ export default function PressureCard({ row }) {
         </div>
       )}
 
-      <dl className="mt-3 space-y-1.5 border-t border-slate-100 pt-3">
+      <dl className="mt-3 space-y-1.5 border-t border-paper-dim pt-3">
         {Object.keys(COMPONENT_LABELS).map((key) => {
           const c = components[key]
           const isDropped = dropped.includes(key)
           return (
             <div key={key} className="flex items-center justify-between text-sm">
-              <dt className="text-slate-600">{COMPONENT_LABELS[key]}</dt>
-              <dd className="tabular-nums">
+              <dt className="text-ink/60">{COMPONENT_LABELS[key]}</dt>
+              <dd className="font-mono tabular-nums">
                 {isDropped ? (
-                  <span className="text-slate-400">No data</span>
+                  <span className="text-ash">No data</span>
                 ) : c ? (
-                  <span className="font-medium text-slate-900">{pct(c.value)}</span>
+                  <span className="font-medium text-ink">{pct(c.value)}</span>
                 ) : (
-                  <span className="text-slate-400">—</span>
+                  <span className="text-ash">—</span>
                 )}
               </dd>
             </div>

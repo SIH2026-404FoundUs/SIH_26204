@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import axios from 'axios'
+import { useAuthStore } from './useAuthStore'
 
 // The agent orchestrator runs as its own service (ai-service/app/main.py),
 // separate from the Express backend -- not proxied through /api like every
@@ -42,8 +43,11 @@ export const usePlannerStore = create((set, get) => ({
 
   submitTrip: async (form) => {
     set({ isPlanning: true, error: null, plan: null })
+    // Real authUser id so the trip is attributable -- otherwise every plan
+    // saves under the literal string "guest" and the My Trips page (which
+    // reads GET /api/v1/trips?userId=<authUser._id>) would always be empty.
     const request = {
-      userId: form.userId || 'guest',
+      userId: useAuthStore.getState().authUser?._id || form.userId || 'guest',
       origin: form.origin,
       destId: form.destId,
       startDate: form.startDate,
