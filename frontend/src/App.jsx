@@ -4,6 +4,9 @@ import { useAuthStore } from './store/useAuthStore'
 import Header, { FullPageLoader } from './components/shell/Header'
 import { Page, RequireAuth, RequireAuthBare, RequireRole } from './components/shell/Guards'
 import AuthScreen from './components/auth/AuthScreen'
+import VerifyEmail from './components/auth/VerifyEmail'
+import ForgotPassword from './components/auth/ForgotPassword'
+import ResetPassword from './components/auth/ResetPassword'
 import PressureHeatmap from './components/pressure/PressureHeatmap'
 import { SwapPage, TripConfirmation } from './components/swap'
 import TripPlanner from './components/planner/TripPlanner'
@@ -20,13 +23,19 @@ import Safety from './components/trust/Safety'
 import Businesses from './components/trust/Businesses'
 import MapPreview from './pages/MapPreview'
 
+// Where each role lands after authenticating (auth spec §7/§20) -- mirrors
+// AuthScreen's own ROLE_HOME, used here for the post-refresh/direct-URL
+// case (AuthScreen only handles the moment of submitting the login form).
+const ROLE_HOME = { traveller: '/home', operator: '/operator', authority: '/authority' }
+const roleHome = (authUser) => ROLE_HOME[authUser?.role] || '/home'
+
 // Sahyatri's application shell (§53-58 of the frontend spec): a public
 // experience (landing/signin, signup, explore, destination detail,
-// businesses) and an authenticated experience behind a persistent header/nav
-// that exposes every implemented feature -- nothing reachable only via a
-// hidden URL. Role-specific routes (operator/authority) are gated in the UI
-// only; the backend remains the real authority on every call these pages
-// make (§56).
+// businesses, and the auth-recovery pages) and an authenticated experience
+// behind a persistent header/nav that exposes every implemented feature --
+// nothing reachable only via a hidden URL. Role-specific routes
+// (operator/authority) are gated in the UI only; the backend remains the
+// real authority on every call these pages make (§56).
 function App() {
   const authUser = useAuthStore((state) => state.authUser)
   const isCheckingAuth = useAuthStore((state) => state.isCheckingAuth)
@@ -44,9 +53,16 @@ function App() {
         <Header />
         <Routes>
           {/* Public experience (§53) */}
-          <Route path="/" element={authUser ? <Navigate to="/home" replace /> : <AuthScreen mode="login" />} />
-          <Route path="/signin" element={authUser ? <Navigate to="/home" replace /> : <AuthScreen mode="login" />} />
-          <Route path="/signup" element={authUser ? <Navigate to="/home" replace /> : <AuthScreen mode="signup" />} />
+          <Route path="/" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <AuthScreen mode="login" />} />
+          <Route path="/signin" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <AuthScreen mode="login" />} />
+          <Route path="/signup" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <AuthScreen mode="signup" />} />
+          {/* Auth-recovery routes are never gated on auth state (§19: "Do
+              not protect public authentication routes unnecessarily") -- a
+              logged-in user following a stale reset link from an old email
+              should still be able to use it. */}
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/explore" element={<Page wide><PressureHeatmap /></Page>} />
           <Route path="/map-preview" element={<MapPreview />} />
           <Route path="/explore/:destId" element={<Page><DestinationDetail /></Page>} />
@@ -75,7 +91,7 @@ function App() {
           <Route path="/pressure" element={<Navigate to="/explore" replace />} />
           <Route path="/planner" element={<Navigate to="/home" replace />} />
 
-          <Route path="*" element={<Navigate to={authUser ? '/home' : '/'} replace />} />
+          <Route path="*" element={<Navigate to={authUser ? roleHome(authUser) : '/'} replace />} />
         </Routes>
       </div>
     </BrowserRouter>

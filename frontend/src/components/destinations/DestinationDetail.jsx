@@ -31,18 +31,23 @@ export default function DestinationDetail() {
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
-    api.get(`/v1/pressure/${destId}`, { params: { date } })
-      .then((res) => { if (!cancelled) setRow(res.data) })
-      .catch((err) => {
+    async function loadPressure() {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const res = await api.get(`/v1/pressure/${destId}`, { params: { date } })
+        if (!cancelled) setRow(res.data)
+      } catch (err) {
         if (cancelled) return
         // A destination genuinely not tracked yet is a 404, not a fault --
         // show the same honest "unavailable" state either way (§8).
         setRow(null)
         setError(getErrorMessage(err, 'Pressure data unavailable for this date'))
-      })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+      } finally {
+        if (!cancelled) setIsLoading(false)
+      }
+    }
+    loadPressure()
     return () => { cancelled = true }
   }, [destId, date])
 

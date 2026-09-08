@@ -1,19 +1,22 @@
 # ai-service/app/main.py
+import asyncio
 import json
 import logging
 import os
+import re
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from google import genai
 from google.adk.runners import InMemoryRunner
 from google.genai import types
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # Load the service-local .env before importing the agent. The Agent is created
@@ -21,6 +24,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 from app.agents.travel_agent import travel_agent
+from app.onboarding.transcribe import run_transcription
 from app.services import trip_drafts
 from app.tools.alternatives import find_alternatives
 from app.tools.pressure import get_pressure
@@ -43,20 +47,43 @@ PLAN_FAILED_MESSAGE = (
 # point, so it has to fire on every request that crosses the line.
 PRESSURE_GATE = 0.60
 
+# QA finding (brutal-qa-report.md, P0): a full agent run makes several
+# backend-dependent tool calls, each individually bounded to 5s
+# (backend_client.py), but nothing previously bounded the run AS A WHOLE --
+# confirmed live, a run degraded into a 30s+, then a further 15s+, hang with
+# zero response when its backend dependency dropped mid-run. This is a hard
+# ceiling on the entire agent execution, independent of and in addition to
+# the per-call timeouts and the Connection: close fix in backend_client.py --
+# whatever the exact internal cause, a request must fail by this deadline
+# rather than hang indefinitely.
+AGENT_RUN_TIMEOUT_S = 45
+
 # The frontend dev server origin, as documented by CLIENT_URL in
 # backend/.env.example (Vite's default 5173). Overridable so a deployed
-# frontend doesn't need a code change.
-CLIENT_URL = os.environ.get("CLIENT_URL", "http://localhost:5173")
+# frontend doesn't need a code change. Comma-separated to match the Express
+# backend's own CLIENT_URL handling (a single deployed URL, or that plus
+# localhost for testing a deployed service from a local frontend).
+CLIENT_URLS = [
+    origin.strip()
+    for origin in os.environ.get("CLIENT_URL", "http://localhost:5173").split(",")
+    if origin.strip()
+]
 
 app = FastAPI(title="AI Travel Service")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[CLIENT_URL],
+    allow_origins=CLIENT_URLS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/health")
+def health():
+    """Render's health check (and anyone's uptime monitor)."""
+    return {"status": "ok"}
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -76,15 +103,57 @@ async def http_exception_handler(request, exc: StarletteHTTPException):
 runner = InMemoryRunner(agent=travel_agent, app_name=APP_NAME)
 
 
+# QA findings (brutal-qa-report.md):
+# - travellers<=0 reached the full agent pipeline (and burned an LLM call)
+#   before failing with a 503 -- ge=1 rejects it at the request boundary
+#   instead, as a fast, free 422.
+# - travellers=999999 was accepted outright; the run "succeeded" but with no
+#   costBreakdown and an LLM-authored "not feasible" summary standing in for
+#   real validation. le=20 is a generous but real ceiling for a single trip
+#   booking, not a load-bearing business rule -- raise it if a real use case
+#   needs more.
+# - budgetINR<=0 hit the same masked-by-quota 500 path as the above; gt=0
+#   makes the rejection explicit and immediate regardless of quota state.
+# - startDate/endDate were plain strings with no format check at all --
+#   "notadate" reached the pressure gate and got a fabricated-looking 200
+#   back from the backend (see pressure.controller.js's own fix), which then
+#   persisted a corrupted TRIPS draft. Validated here too so the rejection
+#   happens before any backend call, not just after.
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _parse_calendar_date(value: str, field_name: str) -> str:
+    if not _DATE_RE.match(value):
+        raise ValueError(f"{field_name} must be in YYYY-MM-DD format")
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError:
+        raise ValueError(f"{field_name} must be a real calendar date")
+    if parsed.isoformat() != value:
+        raise ValueError(f"{field_name} must be a real calendar date")
+    return value
+
+
 class PlanTripRequest(BaseModel):
     userId: str
     origin: str
     destId: str
     startDate: str
     endDate: str
-    travellers: int
-    budgetINR: float
+    travellers: int = Field(ge=1, le=20)
+    budgetINR: float = Field(gt=0)
     interests: Dict[str, float] = Field(default_factory=dict)
+
+    @field_validator("startDate", "endDate")
+    @classmethod
+    def _valid_calendar_date(cls, value: str, info) -> str:
+        return _parse_calendar_date(value, info.field_name)
+
+    @model_validator(mode="after")
+    def _end_not_before_start(self):
+        if date.fromisoformat(self.endDate) < date.fromisoformat(self.startDate):
+            raise ValueError("endDate must not be before startDate")
+        return self
 
 
 class ChosenAlternative(BaseModel):
@@ -207,7 +276,16 @@ async def run_travel_agent(req: PlanTripRequest) -> dict:
 async def plan_or_500(req: PlanTripRequest) -> dict:
     """Run the agent, translating its failures into HTTP errors."""
     try:
-        return await run_travel_agent(req)
+        return await asyncio.wait_for(run_travel_agent(req), timeout=AGENT_RUN_TIMEOUT_S)
+    except asyncio.TimeoutError as exc:
+        logger.warning("plan timed out after %ss", AGENT_RUN_TIMEOUT_S)
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": PLAN_FAILED_MESSAGE,
+                "detail": f"agent run exceeded {AGENT_RUN_TIMEOUT_S}s and was cancelled",
+            },
+        ) from exc
     except LookupError as exc:
         # The run completed but produced nothing usable: a transient dead end,
         # not a broken request, so 503 rather than 500.
@@ -230,8 +308,7 @@ async def plan_or_500(req: PlanTripRequest) -> dict:
         ) from exc
 
 
-@app.post("/api/plan-trip")
-async def plan_trip(req: PlanTripRequest):
+async def _run_plan_trip(req: PlanTripRequest) -> dict:
     # get_pressure and find_alternatives are blocking `requests` calls, so they
     # go to a worker thread instead of stalling the event loop for every other
     # in-flight plan.
@@ -268,6 +345,21 @@ async def plan_trip(req: PlanTripRequest):
         "pressure": pressure,
         "alternatives": alternatives,
     }
+
+
+@app.post("/api/plan-trip")
+async def plan_trip(req: PlanTripRequest):
+    try:
+        return await asyncio.wait_for(_run_plan_trip(req), timeout=AGENT_RUN_TIMEOUT_S)
+    except asyncio.TimeoutError as exc:
+        logger.warning("plan-trip pre-agent phase exceeded %ss", AGENT_RUN_TIMEOUT_S)
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": PLAN_FAILED_MESSAGE,
+                "detail": f"request exceeded {AGENT_RUN_TIMEOUT_S}s and was cancelled",
+            },
+        ) from exc
 
 
 def match_offer(
@@ -397,3 +489,123 @@ async def confirm_trip(req: ConfirmTripRequest):
     }
     await run_in_threadpool(trip_drafts.save_trip, req.tripDraftId, record)
     return record
+
+
+@app.post("/onboarding/transcribe")
+async def transcribe_endpoint(audio: UploadFile = File(...)) -> dict:
+    """
+    bharani-tasks.md Section 1.2/1.6 -- real contract this must satisfy,
+    matching backend/src/services/onboarding/transcription.js's
+    transcribeFn: given raw audio bytes, return
+    { transcript: string, detectedLanguage: string }.
+    """
+    audio_bytes = await audio.read()
+    try:
+        # transcribe() is blocking CPU/GPU work — run it off the event loop
+        # so one in-flight transcription doesn't stall every other request
+        # (plan_trip/confirm_trip already follow this same pattern above).
+        return await run_in_threadpool(run_transcription, audio_bytes)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"transcription failed: {exc}") from exc
+
+
+# bharani-tasks.md Section 1.3 -- structured extraction from a transcript.
+# Deliberately NOT built on the ADK Agent/tools framework travel_agent.py
+# uses: this is a single structured-output call (transcript in, one strict
+# JSON object out), not a multi-step tool-calling run, so a raw
+# google.genai client call is the right-sized tool here.
+#
+# response_json_schema (not response_schema) + reading response.text is
+# the pattern verified directly against this repo's actual pinned
+# google-genai==2.22.0 source (github.com/googleapis/python-genai, tag
+# v2.22.0) -- response_schema/.parsed exist in some SDK versions/docs but
+# were not independently confirmed for this exact pinned version, so this
+# uses only what was verified working.
+
+
+class PriceRangeINR(BaseModel):
+    min: int
+    max: int
+
+
+class ExtractionResult(BaseModel):
+    """
+    Exactly the schema already validated on the Node side by
+    validateExtractionShape() (services/onboarding/extraction.js) --
+    this is the contract, not a suggestion; keep both sides in sync.
+    """
+
+    name: Optional[str] = None
+    type: Optional[Literal["homestay", "guesthouse", "guide", "driver", "cook"]] = None
+    capacity: Optional[int] = None
+    priceRangeINR: Optional[PriceRangeINR] = None
+    amenities: List[str] = Field(default_factory=list)
+    meals: List[str] = Field(default_factory=list)
+    nearestLandmark: Optional[str] = None
+    languages: List[str] = Field(default_factory=list)
+    seasonalNotes: Optional[str] = None
+
+
+class ExtractRequest(BaseModel):
+    transcript: str
+    language: Optional[str] = None
+
+
+EXTRACTION_MODEL = os.environ.get("MODEL", "gemini-2.5-flash")
+
+# genai.Client() with no args reads GOOGLE_API_KEY (falling back to
+# GEMINI_API_KEY) from the environment automatically -- verified against
+# the pinned google-genai==2.22.0 source (_api_client.py's
+# get_env_api_key()), same as how travel_agent's ADK Agent picks up
+# credentials. Constructed once at import time, not per-request, matching
+# the `runner` pattern above.
+genai_client = genai.Client()
+
+# The critical rule from the spec, stated explicitly rather than left
+# implicit: an LLM asked to "extract details" will happily infer a
+# plausible capacity or price range from context/typical-homestay
+# knowledge unless told not to. checkExtractionHonesty() on the Node side
+# exists to catch exactly this if it slips through, but the prompt itself
+# should already be trying hard not to need that safety net.
+EXTRACTION_PROMPT_TEMPLATE = """You are extracting structured business-listing details from a transcript of a homestay/guesthouse/guide/driver/cook owner describing their business, for bharani-tasks.md Section 1.3's voice onboarding flow.
+
+Transcript language: {language}
+Transcript: {transcript}
+
+Extract ONLY what is explicitly and unambiguously stated in the transcript above. Return null (or an empty list, for list fields) for anything not explicitly stated in the transcript -- do not infer, guess, estimate, or fill in a plausible-sounding value for any field, even if it seems like a reasonable assumption for this kind of business. The transcript is the ONLY source of truth; do not use outside knowledge of typical homestays/guesthouses/guides to fill gaps. If in doubt about whether something was actually said, return null rather than a guess."""
+
+
+@app.post("/onboarding/extract")
+async def extract_endpoint(req: ExtractRequest) -> dict:
+    """
+    bharani-tasks.md Section 1.3 -- real contract this must satisfy,
+    matching backend/src/services/onboarding/extraction.js's extractFn:
+    given a transcript (+ detected language), return the strict JSON
+    object shape ExtractionResult above.
+    """
+    prompt = EXTRACTION_PROMPT_TEMPLATE.format(
+        language=req.language or "unknown",
+        transcript=req.transcript,
+    )
+    try:
+        # generate_content() is a blocking network call -- off the event
+        # loop, same reasoning as run_transcription() above.
+        response = await run_in_threadpool(
+            genai_client.models.generate_content,
+            model=EXTRACTION_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_json_schema=ExtractionResult.model_json_schema(),
+            ),
+        )
+        parsed = ExtractionResult.model_validate_json(response.text)
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"extraction failed: Gemini's output did not match the expected schema: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"extraction failed: {exc}") from exc
+
+    return parsed.model_dump()
