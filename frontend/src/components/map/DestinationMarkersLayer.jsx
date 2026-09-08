@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import api from '../../lib/api';
+import { useEffect, useRef } from 'react';
+import { useDestinationsStore } from '../../store/useDestinationsStore';
 
 /**
  * DestinationMarkersLayer - Renders map markers for all 36 tracked destinations across India.
@@ -14,7 +14,8 @@ import api from '../../lib/api';
 export default function DestinationMarkersLayer({ map, mapsSDK, selectedDestId, onSelectDestination }) {
   const markersRef = useRef([]);
   const infoWindowRef = useRef(null);
-  const [destinations, setDestinations] = useState([]);
+  const destinations = useDestinationsStore((state) => state.destinations);
+  const fetchDestinations = useDestinationsStore((state) => state.fetchDestinations);
 
   // Clear existing markers
   const clearMarkers = () => {
@@ -27,24 +28,9 @@ export default function DestinationMarkersLayer({ map, mapsSDK, selectedDestId, 
     markersRef.current = [];
   };
 
-  // Step 1: Load all 36 destinations
   useEffect(() => {
-    let isMounted = true;
-
-    api.get('/destinations')
-      .then((res) => {
-        if (!isMounted) return;
-        const dests = res.data?.data || res.data || [];
-        setDestinations(dests);
-      })
-      .catch((err) => {
-        console.error('[DestinationMarkersLayer] Error loading destinations:', err);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    fetchDestinations().catch((err) => console.error('[DestinationMarkersLayer] Error loading destinations:', err));
+  }, [fetchDestinations]);
 
   // Step 2: Render markers for all 36 destinations
   useEffect(() => {

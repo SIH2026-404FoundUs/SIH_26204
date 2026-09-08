@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import api from '../../lib/api';
+import { useDestinationsStore } from '../../store/useDestinationsStore';
 import { getCategoryMarkerIconSvg, CATEGORY_STYLES } from './markerIcons';
 
 /**
@@ -21,6 +22,8 @@ export default function CategoryMarkersLayer({
 }) {
   const markersRef = useRef([]);
   const infoWindowRef = useRef(null);
+  const destinations = useDestinationsStore((state) => state.destinations);
+  const fetchDestinations = useDestinationsStore((state) => state.fetchDestinations);
 
   // Helper to clear existing markers (handles both Marker and AdvancedMarkerElement)
   const clearMarkers = () => {
@@ -38,6 +41,10 @@ export default function CategoryMarkersLayer({
 
   useEffect(() => {
     if (!map || !mapsSDK || !destId) return;
+    if (destinations.length === 0) {
+      fetchDestinations().catch(() => {});
+      return;
+    }
 
     let isMounted = true;
 
@@ -47,15 +54,13 @@ export default function CategoryMarkersLayer({
 
     // Step 1: Fetch destination center and businesses for destId
     Promise.all([
-      api.get('/destinations').catch(() => ({ data: [] })),
       api.get(`/v1/businesses/search?destId=${destId}`).catch(() => ({ data: [] }))
-    ]).then(([destsRes, bizRes]) => {
+    ]).then(([bizRes]) => {
       if (!isMounted) return;
 
       clearMarkers();
 
-      const dests = destsRes.data?.data || destsRes.data || [];
-      const currentDest = dests.find((d) => (d._id || d.id) === destId) || dests[0];
+      const currentDest = destinations.find((d) => (d._id || d.id) === destId) || destinations[0];
       const baseLat = currentDest?.location?.lat || 32.2432;
       const baseLng = currentDest?.location?.lng || 77.1892;
 
@@ -177,7 +182,7 @@ export default function CategoryMarkersLayer({
       isMounted = false;
       clearMarkers();
     };
-  }, [map, mapsSDK, destId, visibleCategories]);
+  }, [map, mapsSDK, destId, visibleCategories, destinations, fetchDestinations]);
 
   return null;
 }

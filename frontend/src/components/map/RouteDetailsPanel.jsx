@@ -1,4 +1,4 @@
-import { X, Navigation, Clock, IndianRupee, MapPin } from 'lucide-react';
+import { X, Navigation, Clock, IndianRupee } from 'lucide-react';
 import { TRAVEL_MODES } from './TravelModeSelector';
 
 /**
@@ -25,6 +25,9 @@ export default function RouteDetailsPanel({ routeInfo, onClose }) {
     distanceKm = 0,
     durationMinutes = 0,
     fareINR = null,
+    isEstimated = false,
+    isUnavailable = false,
+    estimateNote = null,
     travelMode = 'DRIVE',
   } = routeInfo;
 
@@ -32,12 +35,12 @@ export default function RouteDetailsPanel({ routeInfo, onClose }) {
   const ModeIcon = modeConfig.icon;
 
   // Format duration into "Xh Ym"
-  const hours = Math.floor(durationMinutes / 60);
-  const mins = Math.round(durationMinutes % 60);
-  const formattedDuration = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  const hours = durationMinutes == null ? 0 : Math.floor(durationMinutes / 60);
+  const mins = durationMinutes == null ? 0 : Math.round(durationMinutes % 60);
+  const formattedDuration = durationMinutes == null ? 'N/A' : hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 
   // Format distance
-  const formattedDistance = typeof distanceKm === 'number' ? `${distanceKm.toFixed(1)} km` : `${distanceKm} km`;
+  const formattedDistance = typeof distanceKm === 'number' ? `${distanceKm.toFixed(1)} km` : 'N/A';
 
   return (
     <div className="absolute bottom-6 left-6 z-10 w-80 sm:w-96 rounded-2xl border border-slate-200/90 bg-white/95 p-3.5 shadow-xl backdrop-blur-md transition-all animate-in fade-in slide-in-from-left-4 duration-300">
@@ -55,7 +58,7 @@ export default function RouteDetailsPanel({ routeInfo, onClose }) {
             </h4>
             <p className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
               <ModeIcon size={12} className="text-indigo-500" />
-              <span>{modeConfig.label} Mode Route</span>
+              <span>{isUnavailable ? modeConfig.label : `${modeConfig.label} Mode Route`}</span>
             </p>
           </div>
         </div>
@@ -71,6 +74,7 @@ export default function RouteDetailsPanel({ routeInfo, onClose }) {
       </div>
 
       {/* Metrics Grid (Distance, Duration, Estimated Fare) */}
+      {estimateNote && <p className="mt-3 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] font-semibold text-amber-800">{estimateNote}</p>}
       <div className="grid grid-cols-3 gap-2 pt-3">
         {/* 1. Distance Metric */}
         <div className="flex flex-col items-center justify-center rounded-xl bg-slate-50 p-2.5 text-center border border-slate-100">
@@ -97,7 +101,7 @@ export default function RouteDetailsPanel({ routeInfo, onClose }) {
             <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Est. Fare</span>
           </div>
           <span className="text-sm font-extrabold text-indigo-700">
-            {fareINR !== null && fareINR !== undefined
+            {isEstimated || isUnavailable ? 'N/A' : fareINR !== null && fareINR !== undefined
               ? fareINR === 0
                 ? 'Free'
                 : `₹${Number(fareINR).toLocaleString('en-IN')}`

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import api from '../../lib/api';
+import { useDestinationsStore } from '../../store/useDestinationsStore';
 
 /**
  * PressureHeatmapLayer - Renders crowd pressure density across 36 destinations.
@@ -21,7 +22,14 @@ export default function PressureHeatmapLayer({ map, mapsSDK, date = '2026-12-26'
   const heatmapRef = useRef(null);
   const circlesRef = useRef([]);
   const [pressureData, setPressureData] = useState([]);
-  const [destinationsMap, setDestinationsMap] = useState({});
+  const destinations = useDestinationsStore((state) => state.destinations);
+  const fetchDestinations = useDestinationsStore((state) => state.fetchDestinations);
+  const destinationsMap = destinations.reduce((result, d) => {
+    if (d.location?.lat && d.location?.lng) {
+      result[d._id || d.id] = { ...d.location, displayName: d.displayName };
+    }
+    return result;
+  }, {});
 
   // Helper to clear density circles
   const clearCircles = () => {
@@ -31,34 +39,9 @@ export default function PressureHeatmapLayer({ map, mapsSDK, date = '2026-12-26'
     circlesRef.current = [];
   };
 
-  // Step 1: Load destination coordinates baseline once
   useEffect(() => {
-    let isMounted = true;
-
-    api.get('/destinations')
-      .then((res) => {
-        if (!isMounted) return;
-        const dests = res.data?.data || res.data || [];
-        const mapById = {};
-        dests.forEach((d) => {
-          if (d.location?.lat && d.location?.lng) {
-            mapById[d._id || d.id] = {
-              lat: d.location.lat,
-              lng: d.location.lng,
-              displayName: d.displayName
-            };
-          }
-        });
-        setDestinationsMap(mapById);
-      })
-      .catch((err) => {
-        console.error('[PressureHeatmapLayer] Failed to load destination coordinates:', err);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    fetchDestinations().catch((err) => console.error('[PressureHeatmapLayer] Failed to load destinations:', err));
+  }, [fetchDestinations]);
 
   // Step 2: Load date-specific pressure scores whenever `date` changes
   useEffect(() => {

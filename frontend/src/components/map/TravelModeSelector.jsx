@@ -1,4 +1,4 @@
-import { Car, Bus, Train, Plane, Bike, Footprints } from 'lucide-react';
+import { Car, Bus, Train, Bike, Footprints } from 'lucide-react';
 
 /**
  * TravelModeSelector - UI selector component for travel modes.
@@ -18,7 +18,6 @@ export const TRAVEL_MODES = [
   { key: 'DRIVE', label: 'Car', icon: Car, emoji: '🚗', fareMode: 'cab' },
   { key: 'TRANSIT', label: 'Bus', icon: Bus, emoji: '🚌', fareMode: 'bus' },
   { key: 'TRAIN', label: 'Train', icon: Train, emoji: '🚆', fareMode: 'train' },
-  { key: 'FLIGHT', label: 'Flight', icon: Plane, emoji: '✈️', fareMode: 'flight' },
   { key: 'TWO_WHEELER', label: 'Bike', icon: Bike, emoji: '🛵', fareMode: 'auto' },
   { key: 'WALK', label: 'Walk', icon: Footprints, emoji: '🚶', fareMode: 'walk' },
 ];

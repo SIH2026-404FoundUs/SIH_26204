@@ -68,6 +68,10 @@ export default function RoutePolylineLayer({ map, mapsSDK, routeData }) {
   };
 
   useEffect(() => {
+    if (routeData?.isEstimated || routeData?.isUnavailable) {
+      clearLayer();
+      return;
+    }
     if (!map || !mapsSDK || !routeData?.originCoords || !routeData?.destCoords) {
       clearLayer();
       return;

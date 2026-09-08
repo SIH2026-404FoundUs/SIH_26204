@@ -7,6 +7,15 @@ import CategoryMarkersLayer from './CategoryMarkersLayer';
 import RoutePolylineLayer from './RoutePolylineLayer';
 import RouteDetailsPanel from './RouteDetailsPanel';
 import MapControls from './MapControls';
+import { useDestinationsStore } from '../../store/useDestinationsStore';
+
+function estimateIntercityDistanceKm(origin, destination) {
+  const radians = (value) => (value * Math.PI) / 180;
+  const latDelta = radians(destination.lat - origin.lat);
+  const lngDelta = radians(destination.lng - origin.lng);
+  const a = Math.sin(latDelta / 2) ** 2 + Math.cos(radians(origin.lat)) * Math.cos(radians(destination.lat)) * Math.sin(lngDelta / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 /**
  * EverythingMap - Base Canvas component for the "Everything on One Map" feature.
@@ -46,6 +55,7 @@ export default function EverythingMap({
 
   // Search & Selector States
   const [source, setSource] = useState(initialSource);
+  const [debouncedSource, setDebouncedSource] = useState(initialSource);
   const [selectedDestId, setSelectedDestId] = useState(initialDestId);
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [travelMode, setTravelMode] = useState(initialTravelMode);
@@ -54,6 +64,8 @@ export default function EverythingMap({
   const [routeData, setRouteData] = useState(null);
   const [isFetchingRoute, setIsFetchingRoute] = useState(false);
   const [routeError, setRouteError] = useState(null);
+  const destinations = useDestinationsStore((state) => state.destinations);
+  const fetchDestinations = useDestinationsStore((state) => state.fetchDestinations);
 
   // Layer Toggles (OFF by default per user specification)
   const [heatmapVisible, setHeatmapVisible] = useState(defaultHeatmap);
@@ -122,27 +134,29 @@ export default function EverythingMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSource(source), 500);
+    return () => window.clearTimeout(timer);
+  }, [source]);
+
+  useEffect(() => {
+    fetchDestinations().catch((err) => console.error('[EverythingMap] Failed to load destinations:', err));
+  }, [fetchDestinations]);
+
   // Sync destination selection -> pan map to destination coordinates if selected (only when no route is active)
   useEffect(() => {
     if (!mapInstance || !selectedDestId || routeData) return;
 
-    api.get('/destinations')
-      .then((res) => {
-        const dests = res.data?.data || res.data || [];
-        const dest = dests.find((d) => (d._id || d.id) === selectedDestId);
-        if (dest?.location?.lat && dest?.location?.lng) {
-          mapInstance.panTo({ lat: dest.location.lat, lng: dest.location.lng });
-          mapInstance.setZoom(11);
-        }
-      })
-      .catch((err) => {
-        console.error('[EverythingMap] Failed to pan to destination coordinates:', err);
-      });
-  }, [selectedDestId, mapInstance, routeData]);
+    const dest = destinations.find((d) => (d._id || d.id) === selectedDestId);
+    if (dest?.location?.lat && dest?.location?.lng) {
+      mapInstance.panTo({ lat: dest.location.lat, lng: dest.location.lng });
+      mapInstance.setZoom(11);
+    }
+  }, [selectedDestId, mapInstance, routeData, destinations]);
 
   // Handle "Get Route" -> Geocode + POST /api/routes + GET /api/fare
-  const handleFetchRoute = async () => {
-    if (!source || !selectedDestId) {
+  const handleFetchRoute = async (sourceOverride = source) => {
+    if (!sourceOverride || !selectedDestId) {
       setRouteData(null);
       return;
     }
@@ -152,30 +166,39 @@ export default function EverythingMap({
 
     try {
       // 1. Geocode origin address -> { lat, lng }
-      const geoRes = await api.get('/geocode', { params: { address: source } });
+      const geoRes = await api.get('/geocode', { params: { address: sourceOverride } });
       const originCoords = geoRes.data?.data;
       if (!originCoords?.lat || !originCoords?.lng) {
-        throw new Error(`Could not find location for '${source}'`);
+        throw new Error(`Could not find location for '${sourceOverride}'`);
       }
 
       // 2. Fetch destination list -> find destination lat/lng & name
-      const destsRes = await api.get('/destinations');
-      const dests = destsRes.data?.data || destsRes.data || [];
-      const dest = dests.find((d) => (d._id || d.id) === selectedDestId);
+      const dest = destinations.find((d) => (d._id || d.id) === selectedDestId);
       if (!dest?.location?.lat || !dest?.location?.lng) {
         throw new Error(`Destination coordinates missing for '${selectedDestId}'`);
       }
       const destCoords = { lat: dest.location.lat, lng: dest.location.lng };
       const destName = dest.displayName || dest.name || dest._id;
 
-      // 3. Map mode for Google Routes API (POST /api/routes)
+      const city = dest.city || dest.cityName || dest.name || dest.displayName || dest._id;
+      const fareModeMap = { DRIVE: 'cab', TRANSIT: 'bus', TWO_WHEELER: 'auto' };
+
+      if (travelMode === 'TRAIN') {
+        setRouteData({ sourceName: originCoords.formattedAddress || sourceOverride, destName, originCoords: { lat: originCoords.lat, lng: originCoords.lng }, destCoords, polyline: null, distanceKm: estimateIntercityDistanceKm(originCoords, destCoords), durationMinutes: null, fareINR: null, travelMode, isEstimated: true, estimateNote: 'Estimated intercity distance only — not an actual rail route.' });
+        return;
+      }
+
+      if (travelMode === 'FLIGHT') {
+        setRouteData({ travelMode, isUnavailable: true, estimateNote: 'Flight distance/time not available — no flight data source is currently integrated.' });
+        return;
+      }
+
+      // Google Routes is used only for supported approximations.
       const apiModeMap = {
         DRIVE: 'DRIVE',
         TRANSIT: 'TRANSIT',
         WALK: 'WALK',
-        TWO_WHEELER: 'TWO_WHEELER',
-        TRAIN: 'TRANSIT',
-        FLIGHT: 'DRIVE'
+        TWO_WHEELER: 'TWO_WHEELER'
       };
       const routeModeParam = apiModeMap[travelMode] || 'DRIVE';
 
@@ -187,33 +210,48 @@ export default function EverythingMap({
         mode: routeModeParam
       });
 
+      if (routeRes.data?.ok !== true || !routeRes.data?.data) {
+        setRouteData({
+          sourceName: originCoords.formattedAddress || sourceOverride,
+          destName,
+          originCoords: { lat: originCoords.lat, lng: originCoords.lng },
+          destCoords,
+          distanceKm: null,
+          durationMinutes: null,
+          fareINR: null,
+          travelMode,
+          isUnavailable: true,
+          estimateNote: 'No route data available for this mode over this distance.'
+        });
+        return;
+      }
+
       const routeInfoData = routeRes.data?.data || {};
-      const distanceKm = routeInfoData.distanceKm || 0;
-      const durationMinutes = routeInfoData.durationMinutes || 0;
+      const distanceKm = routeInfoData.distanceKm;
+      const durationMinutes = routeInfoData.durationMinutes;
 
       // 4. Calculate realistic Inter-City Fares (in ₹ INR)
       let fareINR = null;
-      if (travelMode === 'WALK') {
-        fareINR = 0;
-      } else if (travelMode === 'TRANSIT') {
-        // Inter-city Bus fare (~₹1.5 per km)
-        fareINR = Math.round(distanceKm * 1.5);
-      } else if (travelMode === 'TRAIN') {
-        // Express/Sleeper Train fare
-        fareINR = Math.round(distanceKm * 0.9 + 120);
-      } else if (travelMode === 'FLIGHT') {
-        // Flight fare
-        fareINR = distanceKm > 200 ? Math.round(distanceKm * 3.5 + 1800) : 2500;
-      } else if (travelMode === 'TWO_WHEELER') {
-        // Bike fuel cost (~₹3.2 per km)
-        fareINR = Math.round(distanceKm * 3.2);
+      let fareMeta = null;
+      let fareUnavailableMessage = null;
+      const fareMode = fareModeMap[travelMode];
+      if (fareMode) {
+        try {
+          const fareRes = await api.get('/fare', { params: { city, mode: fareMode, distanceKm, durationMin: durationMinutes } });
+          fareMeta = fareRes.data?.meta || null;
+          if (fareRes.data?.ok === true && !fareMeta?.usedGenericFallback) {
+            fareINR = fareRes.data?.data?.fareINR ?? null;
+          } else {
+            fareUnavailableMessage = 'Fare estimate unavailable for this destination.';
+          }
+        } catch {
+          fareUnavailableMessage = 'Fare estimate unavailable for this destination.';
+        }
       } else {
-        // Car / Cab fare (~₹12 per km)
-        fareINR = Math.round(distanceKm * 12 + 200);
+        fareUnavailableMessage = 'Fare estimate unavailable for this mode.';
       }
-
       setRouteData({
-        sourceName: originCoords.formattedAddress || source,
+        sourceName: originCoords.formattedAddress || sourceOverride,
         destName,
         originCoords: { lat: originCoords.lat, lng: originCoords.lng },
         destCoords,
@@ -221,7 +259,10 @@ export default function EverythingMap({
         distanceKm,
         durationMinutes,
         fareINR,
-        travelMode
+        fareMeta,
+        travelMode,
+        fareMode,
+        estimateNote: fareUnavailableMessage
       });
     } catch (err) {
       console.error('[EverythingMap] Failed to fetch route:', err);
@@ -233,13 +274,14 @@ export default function EverythingMap({
 
   // Auto-calculate route whenever destination, source, or travelMode changes
   useEffect(() => {
-    if (source && selectedDestId) {
-      handleFetchRoute();
+    if (debouncedSource && selectedDestId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      handleFetchRoute(debouncedSource);
     } else {
       setRouteData(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDestId, travelMode, source]);
+  }, [selectedDestId, travelMode, debouncedSource, destinations]);
 
   // Sync center prop updates
   useEffect(() => {

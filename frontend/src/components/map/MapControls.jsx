@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Flame, Calendar, MapPin, Navigation, Filter, Route, Loader2, Hotel, Utensils, Camera, Bus, Wrench } from 'lucide-react';
-import api from '../../lib/api';
+import { useDestinationsStore } from '../../store/useDestinationsStore';
 import { CATEGORY_STYLES } from './markerIcons';
 import TravelModeSelector from './TravelModeSelector';
 
@@ -25,7 +25,8 @@ export default function MapControls({
   visibleCategories = { stays: false, food: false, attractions: false, transport: false, localServices: false },
   onToggleCategory
 }) {
-  const [destinations, setDestinations] = useState([]);
+  const destinations = useDestinationsStore((state) => state.destinations);
+  const fetchDestinations = useDestinationsStore((state) => state.fetchDestinations);
 
   const CATEGORIES = [
     { key: 'stays', label: 'Stays', icon: Hotel },
@@ -35,33 +36,15 @@ export default function MapControls({
     { key: 'localServices', label: 'Services', icon: Wrench }
   ];
 
-  // Fetch all 36 destinations dynamically
   useEffect(() => {
-    let isMounted = true;
+    fetchDestinations().catch(() => {});
+  }, [fetchDestinations]);
 
-    api.get('/destinations')
-      .then((res) => {
-        if (!isMounted) return;
-        const raw = res.data?.data || res.data || [];
-        const formatted = raw.map((d) => ({
-          id: d._id || d.id,
-          label: d.displayName || d.name || d._id,
-          state: d.state || ''
-        }));
-        if (formatted.length > 0) {
-          setDestinations(formatted);
-        }
-      })
-      .catch((err) => {
-        console.error('[MapControls] Failed to fetch destinations:', err);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const dropdownItems = destinations.length > 0 ? destinations : [
+  const dropdownItems = destinations.length > 0 ? destinations.map((d) => ({
+    id: d._id || d.id,
+    label: d.displayName || d.name || d._id,
+    state: d.state || ''
+  })) : [
     { id: 'manali', label: 'Manali, Himachal Pradesh' },
     { id: 'shimla', label: 'Shimla, Himachal Pradesh' },
     { id: 'dharamshala', label: 'Dharamshala, Himachal Pradesh' },
