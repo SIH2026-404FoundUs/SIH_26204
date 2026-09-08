@@ -2,15 +2,48 @@ import { generateToken, AUTH_COOKIE_OPTIONS } from "../lib/jwt.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 
+// QA finding (brutal-qa-report.md, P1): {"fullName":123,"email":[],"password":{}}
+// crashed signup with a 500 -- `!fullName` etc. only checks presence, not
+// type, so a non-string password reached bcrypt.hash() unguarded (it throws
+// on a non-string input). Also closes two P2 findings from the same report:
+// no email-format check (an account was created with email:"not-an-email"),
+// and no upper bound on any field (a 5000-character password was accepted).
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_FULLNAME_LEN = 200;
+const MAX_EMAIL_LEN = 254; // RFC 5321
+const MAX_PASSWORD_LEN = 128;
+
+function validateSignupFields(fullName, email, password) {
+  if (!fullName || !email || !password) {
+    return "All fields are required";
+  }
+  if (typeof fullName !== "string" || typeof email !== "string" || typeof password !== "string") {
+    return "fullName, email, and password must all be strings";
+  }
+  if (!fullName.trim() || !email.trim() || !password.trim()) {
+    return "All fields are required";
+  }
+  if (fullName.length > MAX_FULLNAME_LEN) {
+    return `fullName must be ${MAX_FULLNAME_LEN} characters or fewer`;
+  }
+  if (email.length > MAX_EMAIL_LEN || !EMAIL_RE.test(email)) {
+    return "Please provide a valid email address";
+  }
+  if (password.length < 6) {
+    return "Password must be at least 6 characters";
+  }
+  if (password.length > MAX_PASSWORD_LEN) {
+    return `Password must be ${MAX_PASSWORD_LEN} characters or fewer`;
+  }
+  return null;
+}
+
 export const signup = async (req, res) => {
   const { fullName, email, password } = req.body;
   try {
-    if (!fullName || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    const validationError = validateSignupFields(fullName, email, password);
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
     }
 
     const user = await User.findOne({ email });
@@ -21,7 +54,7 @@ export const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const newUser = new User({
-      fullName,
+      fullName: fullName.trim(),
       email,
       passwordHash: hashedPassword,
     });
@@ -49,6 +82,13 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   const { email, password } = req.body;
   try {
+    // Same class of bug as signup: bcrypt.compare() throws on a non-string
+    // password, so a type-confused body must be rejected before it gets
+    // there rather than crashing to a 500.
+    if (typeof email !== "string" || typeof password !== "string" || !email.trim() || !password.trim()) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
     const user = await User.findOne({ email });
 
     // A user with no passwordHash (e.g. inserted directly into Mongo rather

@@ -1,7 +1,9 @@
 # ai-service/app/main.py
+import asyncio
 import json
 import logging
 import os
+import re
 from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
@@ -14,7 +16,7 @@ from fastapi.responses import JSONResponse
 from google import genai
 from google.adk.runners import InMemoryRunner
 from google.genai import types
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, field_validator, model_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # Load the service-local .env before importing the agent. The Agent is created
@@ -44,6 +46,17 @@ PLAN_FAILED_MESSAGE = (
 # redistributing demand away from crowded destinations is the product's whole
 # point, so it has to fire on every request that crosses the line.
 PRESSURE_GATE = 0.60
+
+# QA finding (brutal-qa-report.md, P0): a full agent run makes several
+# backend-dependent tool calls, each individually bounded to 5s
+# (backend_client.py), but nothing previously bounded the run AS A WHOLE --
+# confirmed live, a run degraded into a 30s+, then a further 15s+, hang with
+# zero response when its backend dependency dropped mid-run. This is a hard
+# ceiling on the entire agent execution, independent of and in addition to
+# the per-call timeouts and the Connection: close fix in backend_client.py --
+# whatever the exact internal cause, a request must fail by this deadline
+# rather than hang indefinitely.
+AGENT_RUN_TIMEOUT_S = 45
 
 # The frontend dev server origin, as documented by CLIENT_URL in
 # backend/.env.example (Vite's default 5173). Overridable so a deployed
@@ -90,15 +103,57 @@ async def http_exception_handler(request, exc: StarletteHTTPException):
 runner = InMemoryRunner(agent=travel_agent, app_name=APP_NAME)
 
 
+# QA findings (brutal-qa-report.md):
+# - travellers<=0 reached the full agent pipeline (and burned an LLM call)
+#   before failing with a 503 -- ge=1 rejects it at the request boundary
+#   instead, as a fast, free 422.
+# - travellers=999999 was accepted outright; the run "succeeded" but with no
+#   costBreakdown and an LLM-authored "not feasible" summary standing in for
+#   real validation. le=20 is a generous but real ceiling for a single trip
+#   booking, not a load-bearing business rule -- raise it if a real use case
+#   needs more.
+# - budgetINR<=0 hit the same masked-by-quota 500 path as the above; gt=0
+#   makes the rejection explicit and immediate regardless of quota state.
+# - startDate/endDate were plain strings with no format check at all --
+#   "notadate" reached the pressure gate and got a fabricated-looking 200
+#   back from the backend (see pressure.controller.js's own fix), which then
+#   persisted a corrupted TRIPS draft. Validated here too so the rejection
+#   happens before any backend call, not just after.
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _parse_calendar_date(value: str, field_name: str) -> str:
+    if not _DATE_RE.match(value):
+        raise ValueError(f"{field_name} must be in YYYY-MM-DD format")
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError:
+        raise ValueError(f"{field_name} must be a real calendar date")
+    if parsed.isoformat() != value:
+        raise ValueError(f"{field_name} must be a real calendar date")
+    return value
+
+
 class PlanTripRequest(BaseModel):
     userId: str
     origin: str
     destId: str
     startDate: str
     endDate: str
-    travellers: int
-    budgetINR: float
+    travellers: int = Field(ge=1, le=20)
+    budgetINR: float = Field(gt=0)
     interests: Dict[str, float] = Field(default_factory=dict)
+
+    @field_validator("startDate", "endDate")
+    @classmethod
+    def _valid_calendar_date(cls, value: str, info) -> str:
+        return _parse_calendar_date(value, info.field_name)
+
+    @model_validator(mode="after")
+    def _end_not_before_start(self):
+        if date.fromisoformat(self.endDate) < date.fromisoformat(self.startDate):
+            raise ValueError("endDate must not be before startDate")
+        return self
 
 
 class ChosenAlternative(BaseModel):
@@ -221,7 +276,16 @@ async def run_travel_agent(req: PlanTripRequest) -> dict:
 async def plan_or_500(req: PlanTripRequest) -> dict:
     """Run the agent, translating its failures into HTTP errors."""
     try:
-        return await run_travel_agent(req)
+        return await asyncio.wait_for(run_travel_agent(req), timeout=AGENT_RUN_TIMEOUT_S)
+    except asyncio.TimeoutError as exc:
+        logger.warning("plan timed out after %ss", AGENT_RUN_TIMEOUT_S)
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": PLAN_FAILED_MESSAGE,
+                "detail": f"agent run exceeded {AGENT_RUN_TIMEOUT_S}s and was cancelled",
+            },
+        ) from exc
     except LookupError as exc:
         # The run completed but produced nothing usable: a transient dead end,
         # not a broken request, so 503 rather than 500.
@@ -244,8 +308,7 @@ async def plan_or_500(req: PlanTripRequest) -> dict:
         ) from exc
 
 
-@app.post("/api/plan-trip")
-async def plan_trip(req: PlanTripRequest):
+async def _run_plan_trip(req: PlanTripRequest) -> dict:
     # get_pressure and find_alternatives are blocking `requests` calls, so they
     # go to a worker thread instead of stalling the event loop for every other
     # in-flight plan.
@@ -282,6 +345,21 @@ async def plan_trip(req: PlanTripRequest):
         "pressure": pressure,
         "alternatives": alternatives,
     }
+
+
+@app.post("/api/plan-trip")
+async def plan_trip(req: PlanTripRequest):
+    try:
+        return await asyncio.wait_for(_run_plan_trip(req), timeout=AGENT_RUN_TIMEOUT_S)
+    except asyncio.TimeoutError as exc:
+        logger.warning("plan-trip pre-agent phase exceeded %ss", AGENT_RUN_TIMEOUT_S)
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": PLAN_FAILED_MESSAGE,
+                "detail": f"request exceeded {AGENT_RUN_TIMEOUT_S}s and was cancelled",
+            },
+        ) from exc
 
 
 def match_offer(

@@ -1,0 +1,1 @@
+{"detail":[{"type":"missing","loc":["body","destId"],"msg":"Field required","input":{"userId":"qa-test","origin":"Delhi","startDate":"2026-09-15","endDate":"2026-09-18","travellers":2,"budgetINR":30000,"interests":{}}}]}

@@ -163,7 +163,10 @@ export default function Header() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  useEffect(() => setMobileOpen(false), [location.pathname])
+  useEffect(() => {
+    const closeMobileMenu = () => setMobileOpen(false)
+    closeMobileMenu()
+  }, [location.pathname])
 
   const { primary, more } = authUser ? navForRole(authUser.role) : { primary: PUBLIC_NAV, more: [] }
 
