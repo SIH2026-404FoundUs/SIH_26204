@@ -47,18 +47,30 @@ PRESSURE_GATE = 0.60
 
 # The frontend dev server origin, as documented by CLIENT_URL in
 # backend/.env.example (Vite's default 5173). Overridable so a deployed
-# frontend doesn't need a code change.
-CLIENT_URL = os.environ.get("CLIENT_URL", "http://localhost:5173")
+# frontend doesn't need a code change. Comma-separated to match the Express
+# backend's own CLIENT_URL handling (a single deployed URL, or that plus
+# localhost for testing a deployed service from a local frontend).
+CLIENT_URLS = [
+    origin.strip()
+    for origin in os.environ.get("CLIENT_URL", "http://localhost:5173").split(",")
+    if origin.strip()
+]
 
 app = FastAPI(title="AI Travel Service")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[CLIENT_URL],
+    allow_origins=CLIENT_URLS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/health")
+def health():
+    """Render's health check (and anyone's uptime monitor)."""
+    return {"status": "ok"}
 
 
 @app.exception_handler(StarletteHTTPException)

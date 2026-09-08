@@ -27,6 +27,7 @@ import businessesRoutes from "./routes/businesses.route.js";
 import usersRoutes from "./routes/users.route.js";
 import safetyRoutes from "./routes/safety.route.js";
 import tripsRoutes from "./routes/trips.route.js";
+import { startAlertPolling } from "./jobs/scheduler.js";
 
 // dotenv.config() with no path loads .env from process.cwd(), which silently
 // finds nothing (MONGODB_URI etc. come back undefined) if the server is started
@@ -41,12 +42,31 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
+
+// CLIENT_URL may be a single deployed frontend URL or a comma-separated list
+// (e.g. the production Vercel URL plus localhost, for testing a deployed
+// backend from a local frontend) -- one env var covers both single- and
+// multi-origin deployments without needing a second config knob.
+const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+      // No Origin header at all (curl, server-to-server, health checks) --
+      // let it through; credentialed browser requests always send Origin,
+      // so this can't be used to smuggle a cross-site cookie read.
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     credentials: true,
   })
 );
+
+// Render's health check (and anyone's uptime monitor) needs a route that
+// doesn't depend on Mongo being connected.
+app.get("/health", (req, res) => res.status(200).json({ status: "ok" }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/budget", budgetRoutes);
@@ -73,5 +93,5 @@ app.use("/api/v1/trips", tripsRoutes);
 
 app.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);
-  connectDB();
+  connectDB().then(() => startAlertPolling());
 });
