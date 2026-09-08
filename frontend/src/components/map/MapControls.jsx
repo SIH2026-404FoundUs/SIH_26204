@@ -1,60 +1,192 @@
-import { Flame, Calendar } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Flame, Calendar, MapPin, Navigation, Filter } from 'lucide-react';
+import api from '../../lib/api';
+import { CATEGORY_STYLES } from './markerIcons';
 
 /**
- * MapControls - Floating control panel for toggling map layers and settings.
+ * MapControls - Floating control panel overlay on the interactive map.
+ * Provides Source (Origin) input, Destination dropdown (36 cities), Date picker,
+ * and layer toggles (Pressure Heatmap, Category Filters - OFF by default).
  *
  * Props:
- * - heatmapVisible: boolean
- * - onToggleHeatmap: function(boolean)
+ * - source: string (e.g. 'Delhi')
+ * - onChangeSource: function(string)
+ * - destId: string (e.g. 'manali')
+ * - onChangeDestId: function(string)
  * - date: string (YYYY-MM-DD)
  * - onChangeDate: function(string)
+ * - heatmapVisible: boolean (Default: false)
+ * - onToggleHeatmap: function(boolean)
+ * - visibleCategories: { stays: boolean, food: boolean, attractions: boolean, transport: boolean, localServices: boolean }
+ * - onToggleCategory: function(categoryKey, boolean)
  */
 export default function MapControls({
+  source = 'Delhi',
+  onChangeSource,
+  destId = 'manali',
+  onChangeDestId,
+  date = '2026-12-26',
+  onChangeDate,
   heatmapVisible = false,
   onToggleHeatmap,
-  date = '2026-12-26',
-  onChangeDate
+  visibleCategories = { stays: false, food: false, attractions: false, transport: false, localServices: false },
+  onToggleCategory
 }) {
+  const [destinations, setDestinations] = useState([]);
+
+  const CATEGORIES = [
+    { key: 'stays', label: 'Stays', emoji: '🏨' },
+    { key: 'food', label: 'Food', emoji: '🍱' },
+    { key: 'attractions', label: 'Attractions', emoji: '🏔️' },
+    { key: 'transport', label: 'Transport', emoji: '🚌' },
+    { key: 'localServices', label: 'Services', emoji: '🛠️' }
+  ];
+
+  // Fetch all 36 destinations dynamically
+  useEffect(() => {
+    let isMounted = true;
+
+    api.get('/destinations')
+      .then((res) => {
+        if (!isMounted) return;
+        const raw = res.data?.data || res.data || [];
+        const formatted = raw.map((d) => ({
+          id: d._id || d.id,
+          label: d.displayName || d.name || d._id,
+          state: d.state || ''
+        }));
+        if (formatted.length > 0) {
+          setDestinations(formatted);
+        }
+      })
+      .catch((err) => {
+        console.error('[MapControls] Failed to fetch destinations:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const dropdownItems = destinations.length > 0 ? destinations : [
+    { id: 'manali', label: 'Manali, Himachal Pradesh' },
+    { id: 'shimla', label: 'Shimla, Himachal Pradesh' },
+    { id: 'dharamshala', label: 'Dharamshala, Himachal Pradesh' },
+    { id: 'charminar-hyderabad', label: 'Charminar, Hyderabad, Telangana' },
+    { id: 'warangal-fort', label: 'Warangal Fort, Telangana' }
+  ];
+
   return (
-    <div className="absolute top-4 right-4 z-10 flex flex-col gap-2.5 rounded-2xl border border-slate-200/80 bg-white/90 p-3 shadow-md backdrop-blur-md transition-all sm:flex-row sm:items-center">
-      {/* Heatmap Layer Toggle */}
-      <div className="flex items-center justify-between gap-3 px-1">
+    <div className="absolute top-4 right-4 z-10 flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white/95 p-3.5 shadow-md backdrop-blur-md transition-all max-w-[95vw] sm:max-w-none">
+      {/* Top Controls: 3 Inputs (Source, Destination, Date) */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* 1. Source (Travelling From Input) */}
         <div className="flex items-center gap-1.5">
+          <Navigation size={14} className="text-emerald-600 shrink-0" />
+          <span className="text-xs font-semibold text-slate-500 hidden sm:inline">From:</span>
+          <input
+            type="text"
+            value={source}
+            onChange={(e) => onChangeSource && onChangeSource(e.target.value)}
+            placeholder="e.g. Delhi, Hyderabad"
+            className="w-28 sm:w-32 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+          />
+        </div>
+
+        <div className="hidden h-5 w-px bg-slate-200 sm:block" />
+
+        {/* 2. Destination Dropdown (All 36 Destinations) */}
+        <div className="flex items-center gap-1.5">
+          <MapPin size={15} className="text-indigo-600 shrink-0" />
+          <span className="text-xs font-semibold text-slate-500 hidden sm:inline">To:</span>
+          <select
+            value={destId}
+            onChange={(e) => onChangeDestId && onChangeDestId(e.target.value)}
+            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 max-w-[200px] truncate"
+          >
+            <option value="">-- Select Destination --</option>
+            {dropdownItems.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="hidden h-5 w-px bg-slate-200 sm:block" />
+
+        {/* 3. Date Picker */}
+        <div className="flex items-center gap-1.5">
+          <Calendar size={15} className="text-indigo-500 shrink-0" />
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => onChangeDate && onChangeDate(e.target.value)}
+            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+          />
+        </div>
+      </div>
+
+      <div className="h-px w-full bg-slate-200/80" />
+
+      {/* Bottom Controls: Layer Toggles (OFF by default) */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Heatmap Toggle (OFF by default) */}
+        <div className="flex items-center gap-2">
           <Flame
             size={16}
             className={heatmapVisible ? 'text-amber-500 animate-pulse' : 'text-slate-400'}
           />
           <span className="text-xs font-semibold text-slate-700">Pressure Heatmap</span>
+          <button
+            type="button"
+            onClick={() => onToggleHeatmap && onToggleHeatmap(!heatmapVisible)}
+            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+              heatmapVisible ? 'bg-amber-500' : 'bg-slate-300'
+            }`}
+            role="switch"
+            aria-checked={heatmapVisible}
+          >
+            <span
+              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
+                heatmapVisible ? 'translate-x-4' : 'translate-x-0'
+              }`}
+            />
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => onToggleHeatmap && onToggleHeatmap(!heatmapVisible)}
-          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
-            heatmapVisible ? 'bg-amber-500' : 'bg-slate-300'
-          }`}
-          role="switch"
-          aria-checked={heatmapVisible}
-        >
-          <span
-            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
-              heatmapVisible ? 'translate-x-4' : 'translate-x-0'
-            }`}
-          />
-        </button>
-      </div>
+        {/* Category Marker Buttons (OFF by default) */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">
+            <Filter size={12} />
+            <span>Categories:</span>
+          </div>
 
-      <div className="hidden h-5 w-px bg-slate-200 sm:block" />
+          {CATEGORIES.map((cat) => {
+            const isChecked = visibleCategories[cat.key] === true;
+            const style = CATEGORY_STYLES[cat.key];
 
-      {/* Date Selector */}
-      <div className="flex items-center gap-2">
-        <Calendar size={15} className="text-indigo-500 shrink-0" />
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => onChangeDate && onChangeDate(e.target.value)}
-          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-        />
+            return (
+              <button
+                key={cat.key}
+                type="button"
+                onClick={() => onToggleCategory && onToggleCategory(cat.key, !isChecked)}
+                className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold transition-all border ${
+                  isChecked
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                    : 'bg-slate-100 text-slate-500 border-slate-200 opacity-60 hover:opacity-100'
+                }`}
+              >
+                <span className="text-sm leading-none">{cat.emoji}</span>
+                <span>{cat.label}</span>
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: isChecked ? style.bg : '#CBD5E1' }}
+                />
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

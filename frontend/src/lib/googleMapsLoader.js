@@ -41,7 +41,7 @@ export function loadGoogleMaps() {
 
     const script = document.createElement('script');
     script.id = 'google-maps-js-sdk';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization,places&v=3.58`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization,places&v=3.57`;
     script.async = true;
     script.defer = true;
 
@@ -53,7 +53,7 @@ export function loadGoogleMaps() {
       }
     };
 
-    script.onerror = (error) => {
+    script.onerror = () => {
       googleMapsPromise = null;
       reject(new Error('Failed to load Google Maps JavaScript SDK script.'));
     };

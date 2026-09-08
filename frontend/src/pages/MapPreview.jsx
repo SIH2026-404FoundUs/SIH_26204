@@ -20,6 +20,7 @@ export default function MapPreview() {
           <EverythingMap
             zoom={5}
             center={{ lat: 20.5937, lng: 78.9629 }}
+            defaultHeatmap={false}
             className="h-[calc(100vh-220px)] min-h-[500px] w-full rounded-xl overflow-hidden"
           />
         </div>

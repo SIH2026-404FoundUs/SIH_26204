@@ -3,7 +3,7 @@
 // controller is a thin wrapper over these.
 
 import DestinationPressure from "../../models/destinationPressure.model.js";
-import { getDestination, calendarRow } from "./seed.js";
+import { loadDestinations, getDestination, calendarRow } from "./seed.js";
 import { collect } from "./collectors.js";
 import { assembleRow, FORMULA_VERSION } from "./engine.js";
 import { realProviders } from "./realProviders.js";
@@ -64,7 +64,35 @@ export async function getPressure(destId, date) {
 }
 
 // spec §10 /pressure/map — every tracked destination for one date.
+// Dynamically ensures every tracked destination has pressure data for any date.
 export async function getPressureMap(date) {
-  const rows = await DestinationPressure.find({ date }).lean();
-  return rows.map((r) => ({ ...r, stale: !isFresh(r) }));
+  const allDests = loadDestinations();
+  const existingRows = await DestinationPressure.find({ date }).lean();
+  const existingMap = new Map(existingRows.map((r) => [r.destId, r]));
+
+  if (existingMap.size >= allDests.length) {
+    return allDests.map((d) => {
+      const r = existingMap.get(d._id);
+      return { ...r, stale: !isFresh(r) };
+    });
+  }
+
+  const fullRows = await Promise.all(
+    allDests.map(async (d) => {
+      if (existingMap.has(d._id)) {
+        const r = existingMap.get(d._id);
+        return { ...r, stale: !isFresh(r) };
+      }
+      try {
+        const row = await getPressure(d._id, date);
+        if (row) return row;
+      } catch (e) {
+        console.error(`Failed to get pressure for ${d._id} on ${date}:`, e);
+      }
+      const newest = await DestinationPressure.findOne({ destId: d._id }).sort({ date: -1 }).lean();
+      return newest ? { ...newest, date, stale: true } : null;
+    })
+  );
+
+  return fullRows.filter(Boolean);
 }
