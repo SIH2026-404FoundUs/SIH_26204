@@ -1,27 +1,20 @@
 # ai-service/app/services/trip_drafts.py
-"""Stand-in storage for the two trip records that have no model yet.
+"""Real persistence for trip drafts/confirmations, backed by the TRIPS
+collection (spec §6) via the Express backend's /api/v1/trips endpoints.
 
-Both stores are plain process-local dicts. They are lost on restart and are not
-shared between workers, so this is only good enough to build and exercise the
-plan/confirm handshake before the real trips model lands. Every function here
-is a seam: swap the body for a DB call and the callers in main.py do not change.
-
-A draft is written when pressure gating pauses a plan to offer alternatives. It
-holds the original request and what was offered, so that /api/plan-trip/confirm
-can rebuild the plan without trusting the client to echo any of it back.
+This used to be a process-local dict store (lost on restart, not shared
+between workers) -- exactly the seam its own docstring called out: "swap the
+body for a DB call and the callers in main.py do not change." That swap is
+this file. main.py's calls are unchanged; only what's behind them differs, so
+wrap them in run_in_threadpool same as any other blocking network call.
 """
 
 import logging
-import uuid
 from typing import Any, Dict, Optional
 
+from app.services.backend_client import get, patch, post
+
 logger = logging.getLogger(__name__)
-
-# tripDraftId -> {request, pressure, alternatives}
-_DRAFTS: Dict[str, Dict[str, Any]] = {}
-
-# tripDraftId -> the confirmed trip record
-_TRIPS: Dict[str, Dict[str, Any]] = {}
 
 
 def save_draft(
@@ -29,39 +22,84 @@ def save_draft(
     pressure: Dict[str, Any],
     alternatives: Dict[str, Any],
 ) -> str:
-    """Store a paused plan and return its tripDraftId."""
-    trip_draft_id = str(uuid.uuid4())
-    _DRAFTS[trip_draft_id] = {
-        "request": request,
-        "pressure": pressure,
-        "alternatives": alternatives,
+    """Create a TRIPS document in draft state and return its id.
+
+    The trip's own id (a Mongo ObjectId string) IS the tripDraftId -- there is
+    no separate identifier space to keep in sync.
+    """
+    # request is PlanTripRequest.model_dump() -- that pydantic model's fields
+    # are already camelCase (userId, destId, startDate, ...), same as this
+    # service's own body, so no case conversion happens here.
+    body = {
+        "userId": request.get("userId"),
+        "origin": request.get("origin"),
+        "requestedDestId": request.get("destId"),
+        "requestedDates": {
+            "startDate": request.get("startDate"),
+            "endDate": request.get("endDate"),
+        },
+        "travellers": request.get("travellers"),
+        "budgetINR": request.get("budgetINR"),
+        "interests": request.get("interests") or {},
+        "_draftPressure": pressure,
+        "_draftAlternatives": alternatives,
     }
+    result = post("/api/v1/trips", body)
+    trip_id = result.get("_id") if isinstance(result, dict) else None
+    if not trip_id:
+        raise RuntimeError(f"failed to create trip draft: {result}")
     logger.info(
         "trip draft %s saved (destId=%s startDate=%s)",
-        trip_draft_id,
+        trip_id,
         request.get("destId"),
         request.get("startDate"),
     )
-    return trip_draft_id
+    return trip_id
 
 
 def get_draft(trip_draft_id: str) -> Optional[Dict[str, Any]]:
-    """Return a stored draft, or None if there is no draft with that id."""
-    return _DRAFTS.get(trip_draft_id)
+    """Return the stored draft in the {request, pressure, alternatives} shape
+    main.py's confirm handler expects, or None if there is no such trip.
+    """
+    trip = get(f"/api/v1/trips/{trip_draft_id}", {})
+    if not isinstance(trip, dict) or not trip.get("_id"):
+        return None
+    # Rebuilt as PlanTripRequest(**draft["request"]) in main.py, so these keys
+    # must match that model's actual (camelCase) field names.
+    return {
+        "request": {
+            "userId": trip.get("userId"),
+            "origin": trip.get("origin"),
+            "destId": trip.get("requestedDestId"),
+            "startDate": (trip.get("requestedDates") or {}).get("startDate"),
+            "endDate": (trip.get("requestedDates") or {}).get("endDate"),
+            "travellers": trip.get("travellers"),
+            "budgetINR": trip.get("budgetINR"),
+            "interests": trip.get("interests") or {},
+        },
+        "pressure": trip.get("_draftPressure"),
+        "alternatives": trip.get("_draftAlternatives"),
+    }
 
 
 def save_trip(trip_draft_id: str, trip: Dict[str, Any]) -> None:
-    """Persist a confirmed trip.
-
-    STUB: writes to a dict and logs. Replace with the real trips-model write
-    once that model exists; the redistribution block is the field the impact
-    reporting will read, so it is logged explicitly here.
-    """
-    _TRIPS[trip_draft_id] = trip
+    """Attach the confirmed plan to the existing TRIPS document."""
+    redistribution = trip.get("redistribution") or {"kind": "none"}
+    update = {
+        "redirectedToDestId": trip.get("destId") if redistribution.get("kind") != "none" else None,
+        "finalDates": {"startDate": trip.get("startDate"), "endDate": trip.get("endDate")},
+        "itinerary": trip.get("trip"),
+        "redistribution": redistribution,
+        "alternativesOffered": trip.get("alternativesOffered", True),
+        "state": "planned",
+    }
+    result = patch(f"/api/v1/trips/{trip_draft_id}", update)
     logger.info(
         "trip %s written (destId=%s startDate=%s redistribution=%s)",
         trip_draft_id,
         trip.get("destId"),
         trip.get("startDate"),
-        trip.get("redistribution"),
+        redistribution,
     )
+    if not isinstance(result, dict) or not result.get("_id"):
+        logger.warning("trip %s update may not have persisted: %s", trip_draft_id, result)
