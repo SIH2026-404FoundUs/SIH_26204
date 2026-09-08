@@ -6,13 +6,14 @@ import os
 import re
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from google import genai
 from google.adk.runners import InMemoryRunner
 from google.genai import types
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -23,6 +24,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 from app.agents.travel_agent import travel_agent
+from app.onboarding.transcribe import run_transcription
 from app.services import trip_drafts
 from app.tools.alternatives import find_alternatives
 from app.tools.pressure import get_pressure
@@ -487,3 +489,123 @@ async def confirm_trip(req: ConfirmTripRequest):
     }
     await run_in_threadpool(trip_drafts.save_trip, req.tripDraftId, record)
     return record
+
+
+@app.post("/onboarding/transcribe")
+async def transcribe_endpoint(audio: UploadFile = File(...)) -> dict:
+    """
+    bharani-tasks.md Section 1.2/1.6 -- real contract this must satisfy,
+    matching backend/src/services/onboarding/transcription.js's
+    transcribeFn: given raw audio bytes, return
+    { transcript: string, detectedLanguage: string }.
+    """
+    audio_bytes = await audio.read()
+    try:
+        # transcribe() is blocking CPU/GPU work — run it off the event loop
+        # so one in-flight transcription doesn't stall every other request
+        # (plan_trip/confirm_trip already follow this same pattern above).
+        return await run_in_threadpool(run_transcription, audio_bytes)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"transcription failed: {exc}") from exc
+
+
+# bharani-tasks.md Section 1.3 -- structured extraction from a transcript.
+# Deliberately NOT built on the ADK Agent/tools framework travel_agent.py
+# uses: this is a single structured-output call (transcript in, one strict
+# JSON object out), not a multi-step tool-calling run, so a raw
+# google.genai client call is the right-sized tool here.
+#
+# response_json_schema (not response_schema) + reading response.text is
+# the pattern verified directly against this repo's actual pinned
+# google-genai==2.22.0 source (github.com/googleapis/python-genai, tag
+# v2.22.0) -- response_schema/.parsed exist in some SDK versions/docs but
+# were not independently confirmed for this exact pinned version, so this
+# uses only what was verified working.
+
+
+class PriceRangeINR(BaseModel):
+    min: int
+    max: int
+
+
+class ExtractionResult(BaseModel):
+    """
+    Exactly the schema already validated on the Node side by
+    validateExtractionShape() (services/onboarding/extraction.js) --
+    this is the contract, not a suggestion; keep both sides in sync.
+    """
+
+    name: Optional[str] = None
+    type: Optional[Literal["homestay", "guesthouse", "guide", "driver", "cook"]] = None
+    capacity: Optional[int] = None
+    priceRangeINR: Optional[PriceRangeINR] = None
+    amenities: List[str] = Field(default_factory=list)
+    meals: List[str] = Field(default_factory=list)
+    nearestLandmark: Optional[str] = None
+    languages: List[str] = Field(default_factory=list)
+    seasonalNotes: Optional[str] = None
+
+
+class ExtractRequest(BaseModel):
+    transcript: str
+    language: Optional[str] = None
+
+
+EXTRACTION_MODEL = os.environ.get("MODEL", "gemini-2.5-flash")
+
+# genai.Client() with no args reads GOOGLE_API_KEY (falling back to
+# GEMINI_API_KEY) from the environment automatically -- verified against
+# the pinned google-genai==2.22.0 source (_api_client.py's
+# get_env_api_key()), same as how travel_agent's ADK Agent picks up
+# credentials. Constructed once at import time, not per-request, matching
+# the `runner` pattern above.
+genai_client = genai.Client()
+
+# The critical rule from the spec, stated explicitly rather than left
+# implicit: an LLM asked to "extract details" will happily infer a
+# plausible capacity or price range from context/typical-homestay
+# knowledge unless told not to. checkExtractionHonesty() on the Node side
+# exists to catch exactly this if it slips through, but the prompt itself
+# should already be trying hard not to need that safety net.
+EXTRACTION_PROMPT_TEMPLATE = """You are extracting structured business-listing details from a transcript of a homestay/guesthouse/guide/driver/cook owner describing their business, for bharani-tasks.md Section 1.3's voice onboarding flow.
+
+Transcript language: {language}
+Transcript: {transcript}
+
+Extract ONLY what is explicitly and unambiguously stated in the transcript above. Return null (or an empty list, for list fields) for anything not explicitly stated in the transcript -- do not infer, guess, estimate, or fill in a plausible-sounding value for any field, even if it seems like a reasonable assumption for this kind of business. The transcript is the ONLY source of truth; do not use outside knowledge of typical homestays/guesthouses/guides to fill gaps. If in doubt about whether something was actually said, return null rather than a guess."""
+
+
+@app.post("/onboarding/extract")
+async def extract_endpoint(req: ExtractRequest) -> dict:
+    """
+    bharani-tasks.md Section 1.3 -- real contract this must satisfy,
+    matching backend/src/services/onboarding/extraction.js's extractFn:
+    given a transcript (+ detected language), return the strict JSON
+    object shape ExtractionResult above.
+    """
+    prompt = EXTRACTION_PROMPT_TEMPLATE.format(
+        language=req.language or "unknown",
+        transcript=req.transcript,
+    )
+    try:
+        # generate_content() is a blocking network call -- off the event
+        # loop, same reasoning as run_transcription() above.
+        response = await run_in_threadpool(
+            genai_client.models.generate_content,
+            model=EXTRACTION_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_json_schema=ExtractionResult.model_json_schema(),
+            ),
+        )
+        parsed = ExtractionResult.model_validate_json(response.text)
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"extraction failed: Gemini's output did not match the expected schema: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"extraction failed: {exc}") from exc
+
+    return parsed.model_dump()
