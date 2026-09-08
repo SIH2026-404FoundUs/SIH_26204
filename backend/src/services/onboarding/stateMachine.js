@@ -69,14 +69,48 @@ export function isValidTransition(fromState, toState) {
 }
 
 /**
- * Whether every field in REQUIRED_FIELDS_FOR_LIVE is non-null on `fields`.
- * Missing keys count as null (undefined !== present-and-non-null).
+ * Whether `value` counts as a genuinely-present answer for `field`. Plain
+ * `!== null && !== undefined` is correct for every scalar/string field,
+ * but priceRangeINR is a nested Mongoose subdocument ({ min, max }) that
+ * Mongoose auto-instantiates as `{}` the instant a document is created —
+ * even when neither min nor max was ever written to it. `{}` is neither
+ * null nor undefined, so a plain presence check treats a completely
+ * empty price range as "already known," permanently hiding it from both
+ * this LIVE gate and followUp.js's getNextFollowUpQuestion() — confirmed
+ * against a real Mongo document while tracing the FOLLOWUP loop, not
+ * assumed. min/max deliberately stay optional at the schema level (a
+ * draft may have min without max mid-conversation), so this is a
+ * detection-logic fix, not a schema change: min and max must both
+ * actually be numbers for priceRangeINR to count as present.
+ *
+ * propertyAddress has the identical structural quirk (also a nested
+ * object Mongoose defaults to {}) but is not in REQUIRED_FIELDS_FOR_LIVE
+ * and nothing else in this codebase currently checks its
+ * presence/nullness — checked, not assumed — so it has no live bug to
+ * fix today, only the same latent footgun if it's ever checked this way
+ * in the future.
+ *
+ * @param {string} field
+ * @param {*} value
+ * @returns {boolean}
+ */
+export function isRequiredFieldPresent(field, value) {
+  if (field === "priceRangeINR") {
+    return value != null && typeof value.min === "number" && typeof value.max === "number";
+  }
+  return value !== null && value !== undefined;
+}
+
+/**
+ * Whether every field in REQUIRED_FIELDS_FOR_LIVE is genuinely present on
+ * `fields`, per isRequiredFieldPresent(). Missing keys count as absent
+ * (undefined !== present-and-non-null).
  *
  * @param {Object} fields
  * @returns {boolean}
  */
 export function hasRequiredFieldsForLive(fields = {}) {
-  return REQUIRED_FIELDS_FOR_LIVE.every((key) => fields[key] !== null && fields[key] !== undefined);
+  return REQUIRED_FIELDS_FOR_LIVE.every((key) => isRequiredFieldPresent(key, fields[key]));
 }
 
 /**

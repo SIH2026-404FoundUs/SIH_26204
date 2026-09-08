@@ -113,6 +113,32 @@ describe("getNextFollowUpQuestion", () => {
     });
   });
 
+  describe("priceRangeINR — Mongoose {} default regression", () => {
+    // Confirmed while tracing the real FOLLOWUP loop: Mongoose
+    // auto-instantiates priceRangeINR as `{}` on document creation, even
+    // when never explicitly set. `{}` is neither null nor undefined, so
+    // without the fix this silently skipped priceRangeINR's question
+    // entirely, jumping straight to nearestLandmark.
+    test("priceRangeINR: {} is correctly detected as missing, not skipped", () => {
+      const fields = { ...completeFields, priceRangeINR: {} };
+      const question = getNextFollowUpQuestion(fields, "en");
+
+      expect(question).toBe("What is your price range per night, in rupees?");
+    });
+
+    test("priceRangeINR with only min set is still detected as missing", () => {
+      const fields = { ...completeFields, priceRangeINR: { min: 1000 } };
+      expect(getNextFollowUpQuestion(fields, "en")).toBe("What is your price range per night, in rupees?");
+    });
+
+    test("priceRangeINR with both min and max set is correctly treated as answered", () => {
+      const fields = { ...completeFields, priceRangeINR: { min: 1000, max: 2000 } };
+      // nearestLandmark is next in order and is already set in
+      // completeFields, so this should return null (nothing missing).
+      expect(getNextFollowUpQuestion(fields, "en")).toBeNull();
+    });
+  });
+
   test("does not mutate the input currentFields object", () => {
     const fields = { ...completeFields, name: null };
     const snapshot = JSON.parse(JSON.stringify(fields));

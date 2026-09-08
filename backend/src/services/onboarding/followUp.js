@@ -12,8 +12,13 @@
 // destId's schema requirement conditional the same way name/type's is).
 // Reusing it here, rather than a second hardcoded field list, means this
 // module can never drift out of sync with what LIVE actually requires.
+// isRequiredFieldPresent is reused for the same reason: priceRangeINR's
+// Mongoose-nested-object-defaults-to-{} quirk (confirmed for real, see
+// that function's own comment in stateMachine.js) must be detected
+// identically here and at the LIVE gate, not via a second, possibly
+// drifting presence check.
 
-import { REQUIRED_FIELDS_FOR_LIVE } from "./stateMachine.js";
+import { REQUIRED_FIELDS_FOR_LIVE, isRequiredFieldPresent } from "./stateMachine.js";
 
 const DEFAULT_LANGUAGE = "en";
 
@@ -81,14 +86,13 @@ function questionText(field, language) {
  * @param {string} [language] - the operator's detected language (e.g.
  *   "hi", "en"). Falls back to English if omitted or untranslated.
  * @returns {string|null} the next question to ask, or null if every
- *   required field already has a non-null value.
+ *   required field is already genuinely present.
  */
 export function getNextFollowUpQuestion(currentFields, language) {
   const fields = currentFields ?? {};
 
   for (const field of REQUIRED_FIELDS_FOR_LIVE) {
-    const value = fields[field];
-    if (value === null || value === undefined) {
+    if (!isRequiredFieldPresent(field, fields[field])) {
       return questionText(field, language);
     }
   }

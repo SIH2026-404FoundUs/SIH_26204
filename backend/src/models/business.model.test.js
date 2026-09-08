@@ -2,7 +2,8 @@ import { describe, test, expect, beforeAll, afterAll, afterEach } from "@jest/gl
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import Business from "./business.model.js";
-import { REQUIRED_FIELDS_FOR_LIVE } from "../services/onboarding/stateMachine.js";
+import { REQUIRED_FIELDS_FOR_LIVE, hasRequiredFieldsForLive } from "../services/onboarding/stateMachine.js";
+import { getNextFollowUpQuestion } from "../services/onboarding/followUp.js";
 
 let mongod;
 
@@ -161,5 +162,110 @@ describe("Business model", () => {
       expect(saved.propertyAddress.district).toBe("Shimla");
       expect(saved.propertyAddress.village).toBeUndefined();
     });
+  });
+});
+
+describe("priceRangeINR missing-field detection (Mongoose {} default regression)", () => {
+  // Confirmed while tracing the FOLLOWUP loop: Mongoose auto-instantiates
+  // a nested-object schema path (priceRangeINR: { min, max }) as `{}` the
+  // instant a document is created, even when nothing was ever written to
+  // it — a plain `!== null && !== undefined` check therefore treats a
+  // completely empty price range as "already known." These tests prove
+  // the fix (isRequiredFieldPresent in stateMachine.js) against a REAL
+  // Mongoose document, not a hand-constructed plain object that might not
+  // reproduce Mongoose's actual default behavior.
+  test("a freshly-created draft's priceRangeINR really is {} by Mongoose default, not null/undefined", async () => {
+    const saved = await Business.findOneAndUpdate(
+      { _id: "biz_test_pricerange_default" },
+      {
+        $set: {
+          ownerPhone: "+919000000030",
+          destId: "shimla",
+          onboardingState: "EXTRACTING",
+          name: "Test Homestay",
+          type: "homestay",
+          capacity: 4,
+          nearestLandmark: "Main Chowk",
+        },
+      },
+      { upsert: true, new: true, runValidators: true, context: "query" }
+    );
+
+    expect(saved.priceRangeINR).not.toBeNull();
+    expect(saved.priceRangeINR).not.toBeUndefined();
+    expect(saved.priceRangeINR.min).toBeUndefined();
+    expect(saved.priceRangeINR.max).toBeUndefined();
+  });
+
+  test("hasRequiredFieldsForLive correctly reports false for a real document with only a Mongoose-defaulted {} priceRangeINR", async () => {
+    const saved = await Business.findOneAndUpdate(
+      { _id: "biz_test_pricerange_live_gate" },
+      {
+        $set: {
+          ownerPhone: "+919000000031",
+          destId: "shimla",
+          onboardingState: "EXTRACTING",
+          name: "Test Homestay",
+          type: "homestay",
+          capacity: 4,
+          nearestLandmark: "Main Chowk",
+          // priceRangeINR intentionally never set -- Mongoose defaults it.
+        },
+      },
+      { upsert: true, new: true, runValidators: true, context: "query" }
+    );
+
+    // Every OTHER required field really is present -- isolates the
+    // failure to priceRangeINR specifically, not a fixture mistake.
+    expect(saved.name).toBeTruthy();
+    expect(saved.type).toBeTruthy();
+    expect(saved.capacity).toBeTruthy();
+    expect(saved.nearestLandmark).toBeTruthy();
+    expect(saved.destId).toBeTruthy();
+
+    expect(hasRequiredFieldsForLive(saved)).toBe(false);
+  });
+
+  test("hasRequiredFieldsForLive correctly reports true once priceRangeINR genuinely has both min and max", async () => {
+    const saved = await Business.findOneAndUpdate(
+      { _id: "biz_test_pricerange_complete" },
+      {
+        $set: {
+          ownerPhone: "+919000000032",
+          destId: "shimla",
+          onboardingState: "EXTRACTING",
+          name: "Test Homestay",
+          type: "homestay",
+          capacity: 4,
+          nearestLandmark: "Main Chowk",
+          priceRangeINR: { min: 1000, max: 2000 },
+        },
+      },
+      { upsert: true, new: true, runValidators: true, context: "query" }
+    );
+
+    expect(hasRequiredFieldsForLive(saved)).toBe(true);
+  });
+
+  test("getNextFollowUpQuestion correctly asks about priceRangeINR for a real document with the Mongoose-defaulted {} value, not silently skipping it", async () => {
+    const saved = await Business.findOneAndUpdate(
+      { _id: "biz_test_pricerange_followup" },
+      {
+        $set: {
+          ownerPhone: "+919000000033",
+          destId: "shimla",
+          onboardingState: "EXTRACTING",
+          name: "Test Homestay",
+          type: "homestay",
+          capacity: 4,
+          nearestLandmark: "Main Chowk",
+          // priceRangeINR still missing -- everything else required is present.
+        },
+      },
+      { upsert: true, new: true, runValidators: true, context: "query" }
+    );
+
+    const question = getNextFollowUpQuestion(saved, "en");
+    expect(question).toBe("What is your price range per night, in rupees?");
   });
 });
