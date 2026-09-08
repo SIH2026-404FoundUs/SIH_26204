@@ -13,6 +13,7 @@ const completeFields = {
   capacity: 4,
   priceRangeINR: { min: 1000, max: 2000 },
   nearestLandmark: "Main Chowk",
+  destId: "shimla",
 };
 
 describe("ONBOARDING_STATES", () => {
@@ -87,7 +88,7 @@ describe("isValidTransition", () => {
 });
 
 describe("hasRequiredFieldsForLive", () => {
-  test("true when all five required fields are non-null", () => {
+  test("true when every field in REQUIRED_FIELDS_FOR_LIVE is non-null", () => {
     expect(hasRequiredFieldsForLive(completeFields)).toBe(true);
   });
 
@@ -202,13 +203,28 @@ describe("transitionDraft", () => {
     expect(result.state).toBe("DRAFT_CONFIRM");
   });
 
-  test("accepts DRAFT_CONFIRM -> LIVE when all five required fields are non-null", () => {
+  test("accepts DRAFT_CONFIRM -> LIVE when every required field (including destId) is non-null", () => {
     const draft = { onboardingState: "DRAFT_CONFIRM", lastWhatsAppMessageId: "wamid.1", ...completeFields };
 
     const result = transitionDraft(draft, "LIVE", "wamid.2");
 
     expect(result.applied).toBe(true);
     expect(result.state).toBe("LIVE");
+  });
+
+  test("rejects DRAFT_CONFIRM -> LIVE when destId specifically is the only field still null", () => {
+    // destId's schema requirement is now conditional (business.model.js's
+    // requiredUnlessMidOnboarding) — a draft can exist and progress
+    // through TRANSCRIBING/EXTRACTING/etc without one, but must still be
+    // blocked from reaching LIVE without it, exactly like name/type.
+    const { destId, ...withoutDestId } = completeFields;
+    const draft = { onboardingState: "DRAFT_CONFIRM", lastWhatsAppMessageId: "wamid.1", ...withoutDestId };
+
+    const result = transitionDraft(draft, "LIVE", "wamid.2");
+
+    expect(result.applied).toBe(false);
+    expect(result.reason).toBe("missing_required_fields");
+    expect(result.state).toBe("DRAFT_CONFIRM");
   });
 
   test("does not mutate the input draft object", () => {

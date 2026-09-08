@@ -80,21 +80,30 @@ export async function isDuplicateMessage(ownerPhone, messageId) {
  * whole-attempt idempotency against messageId, transcribes, validates and
  * honesty-checks the extraction, advances state accordingly, and persists.
  *
- * destId is required to create a brand-new draft (Business.destId is
- * unconditionally required in the schema) but optional for a draft that
- * already exists — a continuing WhatsApp conversation doesn't need to
- * resupply it. There is currently no way to learn a destId from a WhatsApp
- * message alone (Meta's payload carries no location data, and Qwen3
- * extraction — which might eventually infer one from the transcript —
- * isn't built yet), so a genuinely new draft with no destId available
- * fails clearly here rather than writing an incomplete document or
- * guessing one. This is a real, currently-unbuilt gap, not an oversight.
+ * destId is optional, for both a brand-new draft and a continuing one.
+ * Business.destId's schema requirement is now conditional the same way
+ * name/type's is (business.model.js's requiredUnlessMidOnboarding) — it's
+ * only required once onboardingState reaches LIVE (enforced by
+ * stateMachine.js's REQUIRED_FIELDS_FOR_LIVE, which now includes destId
+ * to keep that gate and the schema in agreement). A brand-new
+ * WhatsApp-originated draft can therefore be created and progress through
+ * TRANSCRIBING/EXTRACTING/etc with destId still null.
+ *
+ * Real extraction now exists (extractFields()), but that is NOT a destId
+ * RESOLUTION step — nothing here turns transcript text like "near the
+ * mall in Shimla" into the canonical slug "shimla". That inference is
+ * separate, unbuilt work; this change only stops the previous hard
+ * failure for a destId-less new draft, it does not add a way to fill
+ * destId in automatically. A draft can now exist and advance without one,
+ * but will simply stay blocked at the LIVE gate (missing_required_fields)
+ * until something — this inference, or a manual/follow-up step — sets it.
  *
  * @param {Object} params
  * @param {Buffer} params.audioBuffer
  * @param {string} params.ownerPhone
  * @param {string} params.messageId
- * @param {string} [params.destId] - required only when no draft exists yet.
+ * @param {string} [params.destId] - optional; a brand-new draft can now be
+ *   created with destId left null (see above).
  * @param {Object|null} [params.extractedFields] - three-way signal, no default:
  *   - omitted entirely (undefined): "no placeholder supplied — actually
  *     attempt real extraction" (the real WhatsApp path, via extractFields()/
@@ -128,13 +137,6 @@ export async function processInboundAudio({
   extractFn,
 }) {
   const existing = await Business.findOne({ ownerPhone });
-
-  if (!existing && !destId) {
-    throw new Error(
-      "processInboundAudio: no existing draft for this ownerPhone and no destId provided — cannot create " +
-        "a new draft without one (destId collection for brand-new WhatsApp-originated drafts is not yet built)."
-    );
-  }
 
   const currentState = existing ? existing.onboardingState ?? null : null;
   const attemptMessageId = messageId || crypto.randomUUID();
@@ -229,11 +231,12 @@ export async function processInboundAudio({
   }
 
   // Upsert without full document validation (runValidators still applies —
-  // enum/shape checks run — but name/type are conditionally required only
-  // once onboardingState reaches LIVE; see business.model.js). destId
-  // remains genuinely required on first insert, enforced above rather than
-  // left to an opaque Mongoose error.
-  const draftId = existing ? existing._id : `biz_${destId}_${crypto.randomUUID()}`;
+  // enum/shape checks run — but name/type/destId are conditionally
+  // required only once onboardingState reaches LIVE; see
+  // business.model.js). destId can be undefined here for a genuinely new
+  // draft now — falls back to a placeholder segment so the generated _id
+  // never embeds the literal string "undefined".
+  const draftId = existing ? existing._id : `biz_${destId || "unresolved-dest"}_${crypto.randomUUID()}`;
   setOnSave.lastWhatsAppMessageId = attemptMessageId;
   const saved = await Business.findOneAndUpdate(
     { _id: draftId },

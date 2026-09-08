@@ -8,8 +8,15 @@
 // and enforces the two hard gates the spec calls out by name:
 //   - idempotency, keyed by lastWhatsAppMessageId (Meta retries webhooks;
 //     a replayed message must not advance state twice)
-//   - the five "Required for LIVE" fields (Section 1.3) must all be
-//     non-null before DRAFT_CONFIRM -> LIVE is allowed
+//   - the "Required for LIVE" fields must all be non-null before
+//     DRAFT_CONFIRM -> LIVE is allowed (Section 1.3 names five: name,
+//     type, capacity, priceRangeINR, nearestLandmark; destId is added as
+//     a sixth here — not in the spec's literal list, but destId's schema
+//     requirement is now conditional the same way name/type's is
+//     (business.model.js's requiredUnlessMidOnboarding), so this gate and
+//     the schema's own requiredness must agree on what LIVE actually
+//     requires, or a transition the state machine calls "applied" could
+//     still fail at the database layer with a raw ValidationError)
 
 export const ONBOARDING_STATES = [
   "AWAITING_CONSENT",
@@ -24,7 +31,8 @@ export const ONBOARDING_STATES = [
 ];
 
 // Section 1.3 — "Required for LIVE: name, type, capacity, priceRangeINR, nearestLandmark."
-export const REQUIRED_FIELDS_FOR_LIVE = ["name", "type", "capacity", "priceRangeINR", "nearestLandmark"];
+// destId is appended beyond the spec's literal list — see module docstring.
+export const REQUIRED_FIELDS_FOR_LIVE = ["name", "type", "capacity", "priceRangeINR", "nearestLandmark", "destId"];
 
 const INITIAL_STATE = ONBOARDING_STATES[0];
 

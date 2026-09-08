@@ -40,19 +40,30 @@ function emptyExtraction() {
 }
 
 describe("processInboundAudio — destId handling", () => {
-  test("a brand-new draft (no existing document) with no destId supplied fails clearly, not silently", async () => {
-    await expect(
-      processInboundAudio({
-        audioBuffer: Buffer.from("audio"),
-        ownerPhone: "919000000001", // no Business document exists for this number
-        messageId: "wamid.1",
-        transcribeFn: stubTranscribe,
-        extractFn: async () => emptyExtraction(),
-      })
-    ).rejects.toThrow(/no existing draft.*no destId provided/i);
+  test("a brand-new draft (no existing document) with no destId supplied now succeeds, reaching TRANSCRIBING/EXTRACTING without one", async () => {
+    // destId's schema requirement is now conditional (business.model.js's
+    // requiredUnlessMidOnboarding, same as name/type) — a genuinely new
+    // WhatsApp-originated draft has no way to supply one on its first
+    // message (no destId RESOLUTION step exists), so this must no longer
+    // throw. It's still not LIVE-eligible without one (see
+    // stateMachine.test.js's destId-in-REQUIRED_FIELDS_FOR_LIVE coverage).
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000001", // no Business document exists for this number
+      messageId: "wamid.1",
+      transcribeFn: stubTranscribe,
+      extractFn: async () => emptyExtraction(),
+    });
+
+    expect(result.applied).toBe(true);
+    expect(result.onboardingState).toBe("EXTRACTING");
 
     const saved = await Business.findOne({ ownerPhone: "919000000001" });
-    expect(saved).toBeNull(); // no partial/invalid document was written
+    expect(saved).not.toBeNull();
+    expect(saved.destId).toBeUndefined();
+    expect(saved.onboardingState).toBe("EXTRACTING");
+    // Generated _id must not embed the literal string "undefined".
+    expect(saved._id).not.toMatch(/undefined/);
   });
 
   test("a brand-new draft WITH destId supplied succeeds normally", async () => {
