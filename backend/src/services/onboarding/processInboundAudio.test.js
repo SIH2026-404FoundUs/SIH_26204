@@ -160,11 +160,17 @@ describe("processInboundAudio — extractedFields: null explicitly opts out of e
       sendMessageFn: stubSendMessage,
     });
 
-    // Already at EXTRACTING, which is past TRANSCRIBING (the walk target)
-    // — not eligible for another transcription-only hop, so this attempt
-    // is correctly rejected outright. The real regression proof is what
-    // happens to the document, checked below regardless of this outcome.
-    expect(result.applied).toBe(false);
+    // Already at EXTRACTING -- since the "second message for an
+    // already-progressed draft" fix, this is now correctly PROCESSED
+    // (not rejected with already_past_target; see
+    // processInboundAudio.test.js's dedicated regression describe block
+    // for that fix). extractedFields: null still means "don't attempt
+    // extraction" though, so the state stays at EXTRACTING and nothing
+    // extraction-related is touched -- the real regression proof here is
+    // still what happens to the document, checked below.
+    expect(result.applied).toBe(true);
+    expect(result.onboardingState).toBe("EXTRACTING");
+    expect(result.extraction).toEqual({ attempted: false });
 
     const saved = await Business.findOne({ _id: "biz_test_no_clobber" });
     expect(saved.name).toBe("Ramesh's Homestay");
@@ -405,5 +411,149 @@ describe("processInboundAudio — FOLLOWUP question send", () => {
     } finally {
       consoleErrorSpy.mockRestore();
     }
+  });
+});
+
+describe("processInboundAudio — a SECOND message for an already-progressed draft (regression)", () => {
+  // Directly reproduces the bug confirmed before this fix: walkStates(...,
+  // "TRANSCRIBING", ...) targets a fixed ceiling, so once a draft reaches
+  // EXTRACTING (which a successful first message does, within the same
+  // call), every subsequent message -- including a real reply to a
+  // getNextFollowUpQuestion() question -- was rejected outright with
+  // already_past_target, before any transcription/extraction/merge. The
+  // EXTRACTING->EXTRACTING self-transition had the identical problem one
+  // level deeper.
+  test("message 2 (a genuinely new messageId) supplying a previously-missing field is correctly merged, not rejected", async () => {
+    const ownerPhone = "919000000020";
+
+    // Message 1: first-ever voice note. Honest extraction, capacity still
+    // unknown -> advances to EXTRACTING within this same call.
+    const message1 = await processInboundAudio({
+      audioBuffer: Buffer.from("audio-1"),
+      ownerPhone,
+      destId: "shimla",
+      messageId: "wamid.followup.1",
+      transcribeFn: async () => ({
+        transcript: "This is Ramesh's Homestay near Golconda Fort.",
+        detectedLanguage: "en",
+      }),
+      extractFn: async () => ({
+        name: "Ramesh's Homestay",
+        type: "homestay",
+        capacity: null,
+        priceRangeINR: null,
+        amenities: [],
+        meals: [],
+        nearestLandmark: "Golconda Fort",
+        languages: [],
+        seasonalNotes: null,
+      }),
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(message1.applied).toBe(true);
+    expect(message1.onboardingState).toBe("EXTRACTING");
+
+    const afterMessage1 = await Business.findOne({ ownerPhone });
+    expect(afterMessage1.onboardingState).toBe("EXTRACTING");
+    expect(afterMessage1.capacity).toBeUndefined();
+
+    // Message 2: the operator's real reply to the "how many guests"
+    // follow-up question -- a genuinely new messageId, not a replay.
+    const message2 = await processInboundAudio({
+      audioBuffer: Buffer.from("audio-2"),
+      ownerPhone,
+      messageId: "wamid.followup.2",
+      transcribeFn: async () => ({ transcript: "We can host six guests.", detectedLanguage: "en" }),
+      extractFn: async () => ({
+        name: null,
+        type: null,
+        capacity: 6,
+        priceRangeINR: null,
+        amenities: [],
+        meals: [],
+        nearestLandmark: null,
+        languages: [],
+        seasonalNotes: null,
+      }),
+      sendMessageFn: stubSendMessage,
+    });
+
+    // The core regression: this must NOT be already_past_target.
+    expect(message2.applied).toBe(true);
+    expect(message2.reason).toBeUndefined();
+    expect(message2.onboardingState).toBe("EXTRACTING");
+    expect(message2.extractionAccepted).toBe(true);
+
+    const afterMessage2 = await Business.findOne({ ownerPhone });
+    expect(afterMessage2.onboardingState).toBe("EXTRACTING");
+    expect(afterMessage2.capacity).toBe(6);
+    // Message 1's fields survive -- the null-filtering merge fix still
+    // applies on this second message (name/type weren't restated).
+    expect(afterMessage2.name).toBe("Ramesh's Homestay");
+    expect(afterMessage2.type).toBe("homestay");
+    expect(afterMessage2.nearestLandmark).toBe("Golconda Fort");
+  });
+
+  test("message 3, replaying message 2's exact messageId, correctly no-ops (idempotency still intact)", async () => {
+    const ownerPhone = "919000000021";
+
+    await processInboundAudio({
+      audioBuffer: Buffer.from("audio-1"),
+      ownerPhone,
+      destId: "shimla",
+      messageId: "wamid.idempotency.1",
+      transcribeFn: async () => ({ transcript: "This is a homestay.", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(),
+      sendMessageFn: stubSendMessage,
+    });
+
+    const transcribeFn2 = jest.fn().mockResolvedValue({ transcript: "We can host six guests.", detectedLanguage: "en" });
+    const extractFn2 = jest.fn().mockResolvedValue({
+      name: null,
+      type: null,
+      capacity: 6,
+      priceRangeINR: null,
+      amenities: [],
+      meals: [],
+      nearestLandmark: null,
+      languages: [],
+      seasonalNotes: null,
+    });
+
+    const message2 = await processInboundAudio({
+      audioBuffer: Buffer.from("audio-2"),
+      ownerPhone,
+      messageId: "wamid.idempotency.2",
+      transcribeFn: transcribeFn2,
+      extractFn: extractFn2,
+      sendMessageFn: stubSendMessage,
+    });
+    expect(message2.applied).toBe(true);
+    expect(message2.onboardingState).toBe("EXTRACTING");
+
+    const afterMessage2 = await Business.findOne({ ownerPhone });
+    expect(afterMessage2.capacity).toBe(6);
+
+    // Message 3: Meta retries the identical delivery -- same messageId as
+    // message 2, not a genuinely new message.
+    const message3 = await processInboundAudio({
+      audioBuffer: Buffer.from("audio-2"),
+      ownerPhone,
+      messageId: "wamid.idempotency.2", // identical to message 2's
+      transcribeFn: transcribeFn2,
+      extractFn: extractFn2,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(message3.applied).toBe(false);
+    expect(message3.reason).toBe("duplicate_message");
+    // No re-transcription, no re-extraction, no re-send for the replay.
+    expect(transcribeFn2).toHaveBeenCalledTimes(1);
+    expect(extractFn2).toHaveBeenCalledTimes(1);
+
+    const afterMessage3 = await Business.findOne({ ownerPhone });
+    expect(afterMessage3.capacity).toBe(6); // untouched, still whatever message 2 set
+    expect(afterMessage3.onboardingState).toBe("EXTRACTING");
   });
 });

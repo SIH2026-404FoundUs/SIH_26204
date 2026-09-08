@@ -164,14 +164,51 @@ export async function processInboundAudio({
     };
   }
 
-  const preCheck = walkStates(currentState, "TRANSCRIBING", attemptMessageId);
-  if (!preCheck.ok) {
+  // Bootstrapping a brand-new draft (or one not yet at TRANSCRIBING) is a
+  // genuinely different case from processing a NEW message for a draft
+  // that has already progressed past TRANSCRIBING (e.g. a real reply to a
+  // FOLLOWUP question, sent after the draft already reached EXTRACTING on
+  // an earlier message). walkStates(..., "TRANSCRIBING", ...) targets a
+  // FIXED ceiling — once currentState is already at or past that ceiling,
+  // calling it again always fails with already_past_target, silently
+  // dropping every message after the first one a draft ever receives.
+  // Confirmed as a real bug via a real test before this fix, not assumed.
+  const TRANSCRIBING_INDEX = ONBOARDING_STATES.indexOf("TRANSCRIBING");
+  const LIVE_INDEX = ONBOARDING_STATES.length - 1;
+  const currentIndex = currentState === null ? -1 : ONBOARDING_STATES.indexOf(currentState);
+
+  let resultState;
+  let appliedHops;
+
+  if (currentIndex < TRANSCRIBING_INDEX) {
+    // Brand-new draft, or one still short of TRANSCRIBING — walk it
+    // forward hop by hop, exactly as before this fix.
+    const preCheck = walkStates(currentState, "TRANSCRIBING", attemptMessageId);
+    if (!preCheck.ok) {
+      return {
+        applied: false,
+        reason: preCheck.reason,
+        businessId: existing?._id ?? null,
+        onboardingState: currentState,
+      };
+    }
+    resultState = preCheck.state;
+    appliedHops = preCheck.appliedHops;
+  } else if (currentIndex >= LIVE_INDEX) {
+    // LIVE is terminal — this pipeline does not reprocess a live business.
     return {
       applied: false,
-      reason: preCheck.reason,
+      reason: "already_past_target",
       businessId: existing?._id ?? null,
       onboardingState: currentState,
     };
+  } else {
+    // Draft already exists at or past TRANSCRIBING (but not LIVE) — this
+    // is a genuinely new message for an already-progressed draft, not a
+    // bootstrap. Do not force another transition; process this message's
+    // content against the draft's CURRENT state as-is.
+    resultState = currentState;
+    appliedHops = [];
   }
 
   const { transcript, detectedLanguage } = await transcribeAudio(audioBuffer, transcribeFn);
@@ -203,26 +240,43 @@ export async function processInboundAudio({
     ownerPhone,
     rawTranscript: transcript,
     transcriptLang: detectedLanguage,
-    onboardingState: preCheck.state, // TRANSCRIBING, unless the EXTRACTING hop below succeeds too
+    onboardingState: resultState, // TRANSCRIBING (or whatever it already was), unless the EXTRACTING merge below applies
     ...extraFields,
   };
   if (destId) {
     setOnSave.destId = destId;
   }
-  let appliedHops = preCheck.appliedHops;
 
   // Only advance past TRANSCRIBING, and only persist the extracted
   // fields, when the extraction was both well-formed and honest. A failed
   // check does not silently drop the rejection — it's reported in full in
   // the return value — but it also must not advance the draft.
   if (extractionAccepted) {
-    const extractStep = transitionDraft(
-      { onboardingState: preCheck.state, lastWhatsAppMessageId: null },
-      "EXTRACTING",
-      `${attemptMessageId}::step_extract`
-    );
-    if (extractStep.applied) {
-      appliedHops = [...appliedHops, "EXTRACTING"];
+    // A draft already sitting at EXTRACTING (a second-or-later message,
+    // e.g. a real reply to a FOLLOWUP question) has the same
+    // already-past-target problem one level deeper: transitionDraft(...,
+    // "EXTRACTING", ...) would reject EXTRACTING -> EXTRACTING as
+    // invalid_transition, since EXTRACTING has no self-loop in
+    // stateMachine.js (unlike FOLLOWUP) — silently dropping this
+    // message's newly-accepted fields the same way the outer
+    // already_past_target bug did. No transition is needed when already
+    // there; just merge.
+    let extractionApplied;
+    if (resultState === "EXTRACTING") {
+      extractionApplied = true;
+    } else {
+      const extractStep = transitionDraft(
+        { onboardingState: resultState, lastWhatsAppMessageId: null },
+        "EXTRACTING",
+        `${attemptMessageId}::step_extract`
+      );
+      extractionApplied = extractStep.applied;
+      if (extractionApplied) {
+        appliedHops = [...appliedHops, "EXTRACTING"];
+      }
+    }
+
+    if (extractionApplied) {
       // Only merge fields the extraction actually made a claim about. A
       // null here means "not stated in this message," not "clear this
       // field" — a real extraction attempt legitimately returns null for
