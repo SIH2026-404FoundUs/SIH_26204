@@ -18,10 +18,18 @@ already set — you only need to fill in the secrets it leaves blank
 `CLOUDINARY_*` (see `backend/.env.example` for the full list). Leave
 `CLIENT_URL` as a placeholder for now — you don't have the Vercel URL yet.
 
-**sahyatri-ai-service**: `GOOGLE_API_KEY`, `BACKEND_URL` (the
-`sahyatri-backend` URL Render just gave you, e.g.
+**sahyatri-ai-service**: `GROQ_API_KEY` (primary provider), `BACKEND_URL`
+(the `sahyatri-backend` URL Render just gave you, e.g.
 `https://sahyatri-backend.onrender.com`). Leave `CLIENT_URL` as a
-placeholder too.
+placeholder too. `MISTRAL_API_KEY` and `GOOGLE_API_KEY` are optional
+fallbacks — trip planning falls through Groq → Mistral → Gemini in that
+order (`app/agents/travel_agent.py`'s `PROVIDER_CHAIN`), skipping whichever
+key is left blank. `GOOGLE_API_KEY` is left blank by default: it was demoted
+from primary to a last-resort fallback after repeatedly hitting its free
+tier's 20-calls/day quota during this feature's own testing, and is only
+worth re-adding once billing is enabled on that Google Cloud project (see
+below). Groq is groq.com (fast inference hosting for open models) — not
+xAI's "Grok" model, a different product despite the near-identical name.
 
 Without a Blueprint, create two Web Services manually with the same
 `rootDir`/build/start commands `render.yaml` specifies.
@@ -65,13 +73,14 @@ automatically on an env var change.
   restrict that key in the Google Cloud Console to HTTP referrers for your
   actual Vercel domain, separately from whatever restrictions the backend's
   own server-side use of a Maps key relies on.
-- **Gemini free-tier quota**: `GOOGLE_API_KEY` on `sahyatri-ai-service` is
-  capped at 20 `generateContent` calls/day on the free tier — the same
-  limit hit repeatedly during local development. Enable billing on that
-  Google Cloud project before a demo where this matters, or the pressure
-  gate's itinerary-generation step will 500 once the quota's gone (the
-  pressure calculation itself is unaffected — it's deterministic Python,
-  not an LLM call).
+- **Gemini free-tier quota**: this is *why* `GOOGLE_API_KEY` is left blank
+  and Gemini sits last in the provider chain rather than primary — capped at
+  20 `generateContent` calls/day on the free tier, which this feature's own
+  testing exhausted repeatedly. Groq (primary) and Mistral (first fallback)
+  don't share that ceiling, so the pressure gate's itinerary-generation step
+  keeps working without it. Only re-add `GOOGLE_API_KEY` once billing is
+  enabled on that Google Cloud project, or it'll just be dead weight at the
+  back of the chain that fails the same way on every call it's ever reached.
 - **MongoDB Atlas network access**: Atlas defaults to an IP allowlist. Add
   `0.0.0.0/0` (or Render's specific outbound IPs, listed in the Render
   dashboard) under Atlas → Network Access, or every DB call from Render

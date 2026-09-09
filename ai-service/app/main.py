@@ -22,7 +22,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 # at import time and the Google SDK reads its credentials during construction.
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-from app.agents.travel_agent import travel_agent
+from app.agents.travel_agent import PROVIDER_CHAIN
 from app.services import trip_drafts
 from app.tools.alternatives import find_alternatives
 from app.tools.pressure import get_pressure
@@ -96,9 +96,20 @@ async def http_exception_handler(request, exc: StarletteHTTPException):
     return JSONResponse(status_code=exc.status_code, content=body, headers=exc.headers)
 
 
-# One runner for the process; sessions are per-request so concurrent plans
-# don't share conversation history.
-runner = InMemoryRunner(agent=travel_agent, app_name=APP_NAME)
+# One runner per configured LLM provider (not one runner overall) -- ADK ties
+# a runner to a single fixed agent/model, and trying Gemini, then Grok, then
+# Mistral in turn (see run_travel_agent below) means each needs its own
+# runner+agent pair. Sessions are still created per-request, so concurrent
+# plans never share conversation history regardless of which provider they
+# land on. RUNNERS is in the same fallback order as PROVIDER_CHAIN.
+RUNNERS = [(name, InMemoryRunner(agent=agent, app_name=APP_NAME)) for name, agent in PROVIDER_CHAIN]
+
+# The overall per-plan budget (AGENT_RUN_TIMEOUT_S) split evenly across
+# however many providers are actually configured, so a single-provider setup
+# keeps the full budget on that one provider (no behaviour change from before
+# this feature existed) while a 3-provider chain gives each attempt a fair
+# slice instead of letting one hang eat the whole budget.
+PROVIDER_TIMEOUT_S = AGENT_RUN_TIMEOUT_S / max(1, len(RUNNERS))
 
 
 # QA findings (brutal-qa-report.md):
@@ -238,8 +249,8 @@ def extract_structured_output(event: Any) -> Optional[dict]:
     return None
 
 
-async def run_travel_agent(req: PlanTripRequest) -> dict:
-    """Run the agent to completion and return its structured TripSummary.
+async def _run_with_runner(runner: InMemoryRunner, req: PlanTripRequest) -> dict:
+    """Run one provider's agent to completion and return its structured TripSummary.
 
     Raises LookupError if the run finished without producing structured output.
     """
@@ -269,6 +280,34 @@ async def run_travel_agent(req: PlanTripRequest) -> dict:
         raise LookupError("agent run produced no structured TripSummary output")
 
     return result
+
+
+async def run_travel_agent(req: PlanTripRequest) -> dict:
+    """Run the trip-planning agent, falling through RUNNERS in order
+    (Gemini -> Grok -> Mistral, whichever are configured) until one succeeds.
+
+    A provider "fails" for this purpose if it raises anything at all (bad/
+    missing API key, rate limit, provider-side 5xx, malformed response...) or
+    exceeds its PROVIDER_TIMEOUT_S slice -- either way it's logged and the
+    next provider gets a turn with a fresh session. Only once every configured
+    provider has failed does this raise, re-raising whichever exception the
+    LAST attempt produced so plan_or_500's existing error translation
+    (TimeoutError/LookupError -> 503, anything else -> 500) still applies
+    unchanged to a fully-exhausted chain.
+    """
+    last_exc: Optional[BaseException] = None
+    for name, runner in RUNNERS:
+        try:
+            result = await asyncio.wait_for(_run_with_runner(runner, req), timeout=PROVIDER_TIMEOUT_S)
+        except Exception as exc:  # noqa: BLE001 -- deliberately broad: any provider failure falls through
+            logger.warning("plan-trip: provider %r failed (%s: %s), trying next", name, type(exc).__name__, exc)
+            last_exc = exc
+            continue
+        if name != RUNNERS[0][0]:
+            logger.warning("plan-trip: recovered via provider %r after an earlier provider failed", name)
+        return result
+
+    raise last_exc if last_exc is not None else LookupError("no LLM provider configured")
 
 
 async def plan_or_500(req: PlanTripRequest) -> dict:
