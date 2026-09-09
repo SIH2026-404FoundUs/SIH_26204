@@ -157,4 +157,25 @@ export const usePlannerStore = create((set, get) => ({
       set({ isPlanning: false })
     }
   },
+
+  // Applies a post-generation swap only after the user has previewed it. The
+  // existing trip is not replaced by the preview; submitTrip regenerates the
+  // complete downstream plan for the chosen destination/date.
+  applySwap: async (swapOffers) => {
+    const request = get().request
+    if (!request || !swapOffers) return false
+    const destinationSwap = swapOffers.destination_swap
+    const dateSwap = swapOffers.date_swap
+    const nextStart = dateSwap?.alternative_dates?.[0] || request.startDate
+    const nextEnd = dateSwap?.alternative_dates?.[1] || request.endDate
+    return get().submitTrip({
+      origin: request.origin,
+      destId: destinationSwap?.alternative_destination || request.destId,
+      startDate: nextStart,
+      endDate: nextEnd,
+      travellers: request.travellers,
+      budgetInr: request.budgetINR,
+      interests: request.interests,
+    })
+  },
 }))

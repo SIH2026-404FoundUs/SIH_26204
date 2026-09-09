@@ -1,6 +1,11 @@
 # app/tools/itinerary.py
 
 DEFAULT_STOP_MINUTES = 60
+TIME_SLOTS = (
+    ("morning", "08:00-11:00"),
+    ("afternoon", "12:00-15:00"),
+    ("evening", "16:00-19:00"),
+)
 
 
 def _as_coordinate(value):
@@ -32,14 +37,14 @@ def optimize_itinerary(stops: list, hotel: dict, days: int) -> dict:
 
     Returns:
         On success, {"days": [...]} where each entry is
-        {"day": 1, "stops": [{"time": "start", "location": hotel}, ...visits...,
-        {"time": "end", "location": hotel}]}. Each visit carries name, lat, lng
-        and estimatedDuration in minutes.
+        {"day": 1, "stops": [{"time": "07:30", "slot": "start",
+        "location": hotel}, ...visits..., {"time": "20:00", "slot": "end",
+        "location": hotel}]}. Visits carry a morning/afternoon/evening slot,
+        a time range, name, coordinates, and estimatedDuration in minutes.
 
-        Days may legitimately hold no visits — with more days than stops, the
-        later days come back with only the hotel start/end pair, and with zero
-        stops every day does. That is a real, correct result, not a failure;
-        report it as a free/unscheduled day.
+        Days may hold fewer than three visits when the provider returned fewer
+        verified places. The planner supplies a destination catalogue fallback
+        before calling this engine when it needs a usable day plan.
 
         On bad input, {"error": ...} instead — for example a days value below 1,
         or a hotel/stop missing its name or coordinates.
@@ -78,6 +83,7 @@ def optimize_itinerary(stops: list, hotel: dict, days: int) -> dict:
             "lat": lat,
             "lng": lng,
             "estimatedDuration": duration,
+            "source": stop.get("source", "places"),
         })
 
     # Spread as evenly as possible, front-loading the remainder:
@@ -90,12 +96,21 @@ def optimize_itinerary(stops: list, hotel: dict, days: int) -> dict:
         count = base + (1 if day_number <= remainder else 0)
         day_visits = visits[cursor:cursor + count]
         cursor += count
+        timed_visits = []
+        for visit_index, visit in enumerate(day_visits):
+            slot_name, slot_time = TIME_SLOTS[min(visit_index, len(TIME_SLOTS) - 1)]
+            timed_visits.append({
+                **visit,
+                "slot": slot_name,
+                "time": slot_time,
+                "activity": "Explore" if slot_name != "evening" else "Relax, dine, or enjoy the local evening",
+            })
         plan.append({
             "day": day_number,
             "stops": (
-                [{"time": "start", "location": anchor}]
-                + day_visits
-                + [{"time": "end", "location": anchor}]
+                [{"time": "07:30", "slot": "start", "location": anchor}]
+                + timed_visits
+                + [{"time": "20:00", "slot": "end", "location": anchor}]
             ),
         })
 

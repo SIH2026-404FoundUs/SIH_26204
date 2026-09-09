@@ -83,7 +83,7 @@ export default function RoutePolylineLayer({ map, mapsSDK, routeData }) {
 
     const isFlight = travelMode === 'FLIGHT';
     const isTrain = travelMode === 'TRAIN';
-    const modeColor = isFlight ? '#0284C7' : isTrain ? '#7C3AED' : '#4F46E5';
+    const modeColor = routeData.variant === 'preview' ? '#059669' : isFlight ? '#0284C7' : isTrain ? '#7C3AED' : '#4F46E5';
 
     const bounds = new mapsSDK.LatLngBounds();
     bounds.extend(originCoords);
