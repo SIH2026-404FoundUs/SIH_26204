@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   Loader2, LogOut, Menu, X, ChevronDown, Compass, MapPinned,
   ShieldCheck, Store, Route, UserRound, Wrench, Landmark,
-  Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users,
+  Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users, BarChart3,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -39,7 +39,7 @@ const TRAVELLER_MORE = [
   { to: '/notifications', label: 'Notifications', icon: Bell },
   { to: '/offers', label: 'Offers & Waitlist', icon: Tag },
 ]
-// Operator primary bar trimmed to exactly the four post-login features, no
+// Operator primary bar trimmed to exactly the five post-login features, no
 // More section (same pattern as Authority below), no Profile (reachable via
 // the account menu like every other role) -- Home, Operator console,
 // Businesses, Explore, Map, and Alerts are no longer operator nav items.
@@ -49,12 +49,16 @@ const TRAVELLER_MORE = [
 // operator has registered at least one (navForRole's hasBusinesses flag,
 // backed by the same useOperatorStore.myBusinesses RegisterBusiness.jsx
 // already populates) -- it did its job, no need for it to keep taking a
-// nav slot every time this operator logs back in.
+// nav slot every time this operator logs back in. Analytics is real
+// aggregate data over Bookings/Visits/Waitlist/Offers for this operator's
+// own businesses (GET /v1/analytics/operator) -- never per-traveller
+// identity, only counts.
 const OPERATOR_PRIMARY_BASE = [
   { to: '/register-business', label: 'Register Business', icon: Store },
   { to: '/hire-people', label: 'Hire People', icon: Users },
   { to: '/operator/waitlist', label: 'Waitlist & Offers', icon: Tag },
   { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
+  { to: '/operator/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 const OPERATOR_MORE = []
 // Authority nav trimmed to exactly two destinations, no More section --
