@@ -2,9 +2,12 @@ import {
   createWaitlistEntry,
   getUserWaitlists,
   cancelWaitlistEntry,
+  getUserOfferNotifications,
+  declineOfferNotification,
 } from "../services/waitlist/waitlistService.js";
 import Waitlist from "../models/waitlist.model.js";
 import Business from "../models/business.model.js";
+import Offer from "../models/offer.model.js";
 
 const models = { WaitlistModel: Waitlist };
 
@@ -57,6 +60,44 @@ export const getBusinessWaitlistController = async (req, res) => {
   } catch (error) {
     console.log("Error in getBusinessWaitlist controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// GET /api/v1/waitlist/notifications -- every offer this traveller was
+// actually notified about via processOfferMatching's fan-out, plus any
+// waitlist entries that have since been fulfilled. Feeds the Notifications
+// page (spec: "notifications must come to traveller for new offers,
+// waitlist"), same underlying data the "Offers & Waitlist" page already
+// has, just reshaped as a notification feed.
+export const getMyOfferNotificationsController = async (req, res) => {
+  try {
+    const notifications = await getUserOfferNotifications(String(req.user._id), {
+      ...models,
+      OfferModel: Offer,
+    });
+    res.status(200).json(notifications);
+  } catch (error) {
+    console.log("Error in getMyOfferNotifications controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// POST /api/v1/waitlist/:id/decline  { offerId } -- the traveller rejects a
+// specific flash offer they were notified about. Accepting reuses the
+// existing POST /v1/offers/:id/claim unchanged; this is the missing other
+// half (spec: "they must accept that offer or reject").
+export const declineOfferNotificationController = async (req, res) => {
+  try {
+    const { offerId } = req.body;
+    if (!offerId) return res.status(400).json({ message: "offerId is required" });
+
+    const updated = await declineOfferNotification(req.params.id, String(req.user._id), offerId, models);
+    if (!updated) return res.status(404).json({ message: "waitlist entry not found" });
+
+    res.status(200).json({ success: true, waitlistId: String(updated._id), offerId, response: "declined" });
+  } catch (error) {
+    console.log("Error in declineOfferNotification controller", error.message);
+    res.status(400).json({ message: error.message });
   }
 };
 

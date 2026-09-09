@@ -59,10 +59,10 @@ export const useTrustStore = create((set, get) => ({
     }
   },
 
-  submitCommunityPlace: async ({ name, lat, lng, description, photos }) => {
+  submitCommunityPlace: async ({ name, lat, lng, description, photos, state }) => {
     set({ isSubmittingPlace: true, communityError: null, communityResult: null })
     try {
-      const res = await api.post('/community/submissions', { name, lat, lng, description, photos })
+      const res = await api.post('/community/submissions', { name, lat, lng, description, photos, state })
       set({ communityResult: res.data })
       return true
     } catch (error) {
@@ -75,6 +75,86 @@ export const useTrustStore = create((set, get) => ({
     }
   },
 
+  // The other half of the review loop: what happened to a place this
+  // traveller already suggested (GET /community/submissions/mine) --
+  // previously a submission just vanished into the queue with no way to
+  // ever check back on it.
+  mySubmissions: [],
+  isLoadingMySubmissions: false,
+
+  fetchMySubmissions: async () => {
+    set({ isLoadingMySubmissions: true })
+    try {
+      const res = await api.get('/community/submissions/mine')
+      set({ mySubmissions: res.data })
+    } catch {
+      // Non-critical for the submit form itself -- leave silently empty.
+    } finally {
+      set({ isLoadingMySubmissions: false })
+    }
+  },
+
+  // Community Forum: approved, anonymized suggestions -- public read
+  // (GET /community/submissions/approved), reused by the Landing page's
+  // "suggested places" section and the trip planner's nearby-suggestion count.
+  forumPosts: [],
+  isLoadingForum: false,
+  forumError: null,
+
+  fetchForumPosts: async ({ state, limit } = {}) => {
+    set({ isLoadingForum: true, forumError: null })
+    try {
+      const res = await api.get('/community/submissions/approved', { params: { state, limit } })
+      set({ forumPosts: res.data })
+    } catch (error) {
+      set({ forumError: getErrorMessage(error, 'Could not load the community forum') })
+    } finally {
+      set({ isLoadingForum: false })
+    }
+  },
+
+  // Like/dislike a forum post -- optimistic update against the local list
+  // (the server response carries the real counts/myReaction right back, so
+  // this settles to the true state within one round trip either way).
+  reactToPost: async (postId, reaction) => {
+    const prevPosts = get().forumPosts
+    set({
+      forumPosts: prevPosts.map((p) => {
+        if (p._id !== postId) return p
+        const prevReaction = p.myReaction
+        const nextReaction = prevReaction === reaction ? null : reaction // clicking the active reaction un-votes
+        let likeCount = p.likeCount || 0
+        let dislikeCount = p.dislikeCount || 0
+        if (prevReaction === 'like') likeCount--
+        if (prevReaction === 'dislike') dislikeCount--
+        if (nextReaction === 'like') likeCount++
+        if (nextReaction === 'dislike') dislikeCount++
+        return { ...p, myReaction: nextReaction, likeCount, dislikeCount }
+      }),
+    })
+    try {
+      const res = await api.post(`/community/submissions/${postId}/react`, { reaction })
+      set({
+        forumPosts: get().forumPosts.map((p) =>
+          p._id === postId ? { ...p, likeCount: res.data.likeCount, dislikeCount: res.data.dislikeCount, myReaction: res.data.myReaction } : p
+        ),
+      })
+    } catch (error) {
+      set({ forumPosts: prevPosts, forumError: getErrorMessage(error, 'Could not save your reaction') }) // roll back on failure
+    }
+  },
+
+  nearbySuggestionCount: null,
+  fetchNearbySuggestionCount: async (destId) => {
+    if (!destId) return
+    try {
+      const res = await api.get('/community/nearby-count', { params: { destId } })
+      set({ nearbySuggestionCount: res.data.count })
+    } catch {
+      set({ nearbySuggestionCount: null })
+    }
+  },
+
   // offers + waitlist
   offers: [],
   waitlists: [],
@@ -82,15 +162,16 @@ export const useTrustStore = create((set, get) => ({
   isLoadingWaitlists: false,
   marketError: null,
 
-  fetchOffers: async (destId) => {
-    set({ isLoadingOffers: true, marketError: null })
+  fetchOffers: async (destId, { silent = false } = {}) => {
+    if (!silent) set({ isLoadingOffers: true })
+    set({ marketError: null })
     try {
       const res = await api.get('/v1/offers', { params: { destId } })
       set({ offers: res.data })
     } catch (error) {
       set({ marketError: getErrorMessage(error, 'Could not load offers') })
     } finally {
-      set({ isLoadingOffers: false })
+      if (!silent) set({ isLoadingOffers: false })
     }
   },
 
@@ -106,15 +187,30 @@ export const useTrustStore = create((set, get) => ({
     }
   },
 
-  fetchMyWaitlists: async () => {
-    set({ isLoadingWaitlists: true, marketError: null })
+  // Reject a specific offer notification from a waitlist entry -- the
+  // other half of "accept or reject" alongside claimOffer above. Also
+  // starts a 7-day re-notify ban for that destination server-side.
+  declineOfferNotification: async (waitlistId, offerId) => {
+    set({ marketError: null })
+    try {
+      await api.post(`/v1/waitlist/${waitlistId}/decline`, { offerId })
+      return true
+    } catch (error) {
+      set({ marketError: getErrorMessage(error, 'Could not decline this offer') })
+      return false
+    }
+  },
+
+  fetchMyWaitlists: async ({ silent = false } = {}) => {
+    if (!silent) set({ isLoadingWaitlists: true })
+    set({ marketError: null })
     try {
       const res = await api.get('/v1/waitlist/mine')
       set({ waitlists: res.data })
     } catch (error) {
       set({ marketError: getErrorMessage(error, 'Could not load your waitlist entries') })
     } finally {
-      set({ isLoadingWaitlists: false })
+      if (!silent) set({ isLoadingWaitlists: false })
     }
   },
 
@@ -190,15 +286,19 @@ export const useTrustStore = create((set, get) => ({
   isReviewing: false,
   moderationError: null,
 
-  fetchQueuedSubmissions: async () => {
-    set({ isLoadingQueue: true, moderationError: null })
+  // silent: true skips the loading spinner -- used by the poll timer so a
+  // new submission arriving doesn't flash "Loading…" over the queue an
+  // authority might already be mid-review of.
+  fetchQueuedSubmissions: async ({ silent = false } = {}) => {
+    if (!silent) set({ isLoadingQueue: true })
+    set({ moderationError: null })
     try {
       const res = await api.get('/community/submissions/queued')
       set({ queuedSubmissions: res.data })
     } catch (error) {
       set({ moderationError: getErrorMessage(error, 'Could not load the review queue') })
     } finally {
-      set({ isLoadingQueue: false })
+      if (!silent) set({ isLoadingQueue: false })
     }
   },
 

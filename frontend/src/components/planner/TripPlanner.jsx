@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, Users, Wallet, Navigation, Compass, Check, X, CalendarClock, Map as MapIcon, CloudSun, Hotel, ShieldCheck, Route as RouteIcon } from 'lucide-react'
 import { usePlannerStore } from '../../store/usePlannerStore'
+import { useTrustStore } from '../../store/useTrustStore'
 import PressureRing from '../pressure/PressureRing'
 import PressureBadge from '../pressure/PressureBadge'
 import { getDestinationLabel } from '../../lib/destinations'
@@ -17,6 +18,15 @@ function TripForm({ onSubmit, isPlanning }) {
     destId: '', startDate: '', endDate: '', origin: '', travellers: 2, budgetInr: 20000,
   })
   const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
+
+  // "How many people have suggested places worth visiting nearby" -- a real
+  // geo-count over approved Suggest a Place submissions within ~30km of
+  // this destination (GET /community/nearby-count), not a fabricated number.
+  const nearbySuggestionCount = useTrustStore((s) => s.nearbySuggestionCount)
+  const fetchNearbySuggestionCount = useTrustStore((s) => s.fetchNearbySuggestionCount)
+  useEffect(() => {
+    if (form.destId) fetchNearbySuggestionCount(form.destId)
+  }, [form.destId, fetchNearbySuggestionCount])
 
   return (
     <form className="grid grid-cols-1 gap-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); onSubmit(form) }}>

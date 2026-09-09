@@ -52,8 +52,10 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SEEDS_DESTINATIONS_DIR = path.join(__dirname, "../../seeds/destinations");
+const ALIASES_FILE = path.join(__dirname, "../../seeds/destinationAliases.json");
 
 let cachedDestinations = null;
+let cachedAliases = null;
 
 function loadDestinations() {
   if (cachedDestinations) {
@@ -70,10 +72,22 @@ function loadDestinations() {
   return cachedDestinations;
 }
 
-function normalize(text) {
+function loadAliases() {
+  if (cachedAliases) {
+    return cachedAliases;
+  }
+  if (!fs.existsSync(ALIASES_FILE)) {
+    cachedAliases = { destinations: {}, regions: {} };
+    return cachedAliases;
+  }
+  cachedAliases = JSON.parse(fs.readFileSync(ALIASES_FILE, "utf-8"));
+  return cachedAliases;
+}
+
+export function normalize(text) {
   return String(text ?? "")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/[^\p{L}\p{M}\p{N}]+/gu, " ")
     .trim();
 }
 
@@ -86,7 +100,7 @@ function containsWholeWordSubstring(normalizedHaystack, normalizedNeedle) {
   return ` ${normalizedHaystack} `.includes(` ${normalizedNeedle} `);
 }
 
-function buildCandidates(destination) {
+function buildCandidates(destination, aliases) {
   const displayNameParts = String(destination.displayName ?? "")
     .split(",")
     .map((part) => part.trim())
@@ -95,6 +109,12 @@ function buildCandidates(destination) {
   const tier1 = new Set();
   if (destination.name) tier1.add(normalize(destination.name));
   if (displayNameParts[0]) tier1.add(normalize(displayNameParts[0]));
+
+  // Destination-specific aliases (English, Hindi, landmark variants) from data layer
+  const destAliases = aliases?.destinations?.[destination._id] ?? [];
+  for (const alias of destAliases) {
+    tier1.add(normalize(alias));
+  }
   tier1.delete("");
 
   const tier2 = new Set();
@@ -102,6 +122,32 @@ function buildCandidates(destination) {
   for (const part of displayNameParts.slice(1)) {
     tier2.add(normalize(part));
   }
+  if (destination.district) {
+    tier2.add(normalize(destination.district));
+  }
+  if (destination.state) {
+    tier2.add(normalize(destination.state));
+  }
+
+  // Add regional aliases that associate with this destination
+  const destDistrictNorm = normalize(destination.district);
+  const destIdNorm = normalize(destination._id.replace(/-/g, " "));
+  const destDisplayNorm = normalize(destination.displayName);
+
+  for (const [regionKey, regionAliases] of Object.entries(aliases?.regions ?? {})) {
+    const keyNorm = normalize(regionKey.replace(/-/g, " "));
+    const isAssociated =
+      destDistrictNorm.includes(keyNorm) ||
+      destIdNorm.includes(keyNorm) ||
+      destDisplayNorm.includes(keyNorm);
+
+    if (isAssociated) {
+      for (const alias of regionAliases) {
+        tier2.add(normalize(alias));
+      }
+    }
+  }
+
   tier2.delete("");
   for (const candidate of tier1) {
     tier2.delete(candidate);
@@ -115,21 +161,39 @@ function buildCandidates(destination) {
  * DESTINATIONS `_id` slug, or null if no confident match is found. See
  * module docstring for the exact matching/confidence rules.
  *
+ * Disambiguation:
+ * - If tier 1 produces exactly 1 match, resolves immediately.
+ * - If tier 1 produces >= 2 matches, returns null (ambiguous).
+ * - If tier 1 produces 0 matches, checks tier 2 (region / district).
+ * - Region matches act as candidate filters. If multiple destinations
+ *   belong to the matched region, context (such as an existing landmark)
+ *   can disambiguate. If still ambiguous, returns null.
+ *
  * @param {string} transcript
+ * @param {Object|string} [context] - Optional draft context (e.g. { landmark } or landmark string)
  * @returns {string|null}
  */
-export function resolveDestId(transcript) {
+export function resolveDestId(transcript, context = {}) {
   const normalizedTranscript = normalize(transcript);
   if (!normalizedTranscript) {
     return null;
   }
 
+  const landmarkContext =
+    typeof context === "string" ? context : context?.landmark ?? context?.nearestLandmark ?? null;
+  const normalizedLandmark = landmarkContext ? normalize(landmarkContext) : null;
+
   const destinations = loadDestinations();
+  const aliases = loadAliases();
+
   const tier1Matches = [];
   const tier2Matches = [];
+  const destinationMap = new Map();
 
   for (const destination of destinations) {
-    const { tier1, tier2 } = buildCandidates(destination);
+    const { tier1, tier2 } = buildCandidates(destination, aliases);
+    destinationMap.set(destination._id, { tier1, tier2 });
+
     if (tier1.some((candidate) => containsWholeWordSubstring(normalizedTranscript, candidate))) {
       tier1Matches.push(destination._id);
     } else if (tier2.some((candidate) => containsWholeWordSubstring(normalizedTranscript, candidate))) {
@@ -140,6 +204,26 @@ export function resolveDestId(transcript) {
   if (tier1Matches.length === 1) return tier1Matches[0];
   if (tier1Matches.length >= 2) return null; // ambiguous even among specific names -- don't guess
 
-  if (tier2Matches.length === 1) return tier2Matches[0];
-  return null; // zero matches, or an ambiguous broader match (e.g. "Hyderabad" alone)
+  // Tier 2: Region / District matches (contextual filters)
+  if (tier2Matches.length === 1) {
+    return tier2Matches[0];
+  }
+
+  if (tier2Matches.length >= 2 && normalizedLandmark) {
+    // Attempt landmark disambiguation among the candidate destinations
+    const landmarkDisambiguated = tier2Matches.filter((id) => {
+      const { tier1 } = destinationMap.get(id);
+      return tier1.some(
+        (c) =>
+          containsWholeWordSubstring(normalizedLandmark, c) ||
+          containsWholeWordSubstring(c, normalizedLandmark)
+      );
+    });
+
+    if (landmarkDisambiguated.length === 1) {
+      return landmarkDisambiguated[0];
+    }
+  }
+
+  return null; // zero matches, or an ambiguous broader match (e.g. "Hyderabad" alone, "Kullu" alone)
 }
