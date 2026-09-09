@@ -52,7 +52,12 @@ const businessSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["homestay", "guesthouse", "guide", "driver", "cook"],
+    // hotel/restaurant added for the operator "Register Business" web form
+    // (POST /v1/businesses) alongside the original WhatsApp-onboarding set --
+    // same field, same enum, just a wider vocabulary now that a business can
+    // register itself directly instead of only ever arriving via the audio
+    // pipeline.
+    enum: ["homestay", "guesthouse", "hotel", "restaurant", "guide", "driver", "cook"],
     required: requiredUnlessMidOnboarding,
   },
   ownerPhone: {
