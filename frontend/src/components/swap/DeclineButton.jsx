@@ -11,9 +11,9 @@ export default function DeclineButton({ onDecline, requestedName = 'this destina
     <>
       <div className="flex flex-col items-center gap-1.5 pt-4">
         <Button variant="secondary" onClick={() => setOpen(true)}>
-          Keep my original plan
+          Keep original plan ({requestedName})
         </Button>
-        <p className="text-xs text-ash">Continue with {requestedName} without switching</p>
+        <p className="text-xs text-ash">Decline overcrowding relief and continue with the original itinerary</p>
       </div>
 
       <Modal open={open} onClose={() => setOpen(false)} title="Continue with the crowded date?">

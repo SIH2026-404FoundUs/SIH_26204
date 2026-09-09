@@ -22,6 +22,11 @@
 }
 
 :root {
+  /* Every Tailwind text-* utility (text-sm, text-xs, text-lg, ...) is
+     rem-based, so setting the root size here scales all of them
+     proportionally across every page in one place, instead of hand-editing
+     text-* classes file by file. */
+  font-size: 17px;
   font-family: var(--font-sans);
   color: var(--color-ink);
   background: var(--color-paper);
@@ -107,6 +112,27 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .pressure-ring-hot,
   .pressure-ring-calm {
+    animation: none;
+  }
+}
+
+/*
+ * A single, one-shot entrance for the Swap page's alternative cards
+ * (fade + slight rise on mount, ~traveller requested "slight motion to
+ * cards") -- runs once and stops, not a loop, so it doesn't compete with
+ * the pressure ring above as "the one deliberate motion moment".
+ */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-enter {
+  animation: card-enter 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-enter {
     animation: none;
   }
 }

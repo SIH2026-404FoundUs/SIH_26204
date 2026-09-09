@@ -83,7 +83,7 @@ export default function AuthScreen({ mode }) {
       <div className="w-full max-w-md">
         {isLogin && (
           <div className="mb-8 text-center">
-            <p className="font-display text-3xl text-paper">sahyatri</p>
+            <p className="font-display text-3xl text-paper">Sahyatri</p>
             <p className="mt-2 text-sm text-paper/60">Tourism, redistributed.</p>
             <p className="text-sm text-paper/60">We check crowding before you book, not after.</p>
           </div>

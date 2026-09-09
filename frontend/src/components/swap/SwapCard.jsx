@@ -1,6 +1,5 @@
-import { MapPin, Calendar, CheckCircle2, Info } from 'lucide-react'
+import { MapPin, Calendar, CheckCircle2, Info, Navigation, ShieldCheck } from 'lucide-react'
 import Card from '../ui/Card'
-import Badge from '../ui/Badge'
 import Button from '../ui/Button'
 import EmptyState from '../ui/EmptyState'
 import PlaceSwapVariant from './PlaceSwapVariant'
@@ -30,7 +29,7 @@ export default function SwapCard({ data, onAcceptPlace, onAcceptDate, onDecline 
         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-relief/10 text-relief">
           <CheckCircle2 size={24} aria-hidden="true" />
         </span>
-        <h2 className="mt-4 text-xl font-semibold text-ink">{requestedName} looks good for these dates</h2>
+        <h2 className="mt-4 font-display text-xl text-ink">{requestedName} looks good for these dates</h2>
         <p className="mt-2 text-sm text-ash">
           Crowding is estimated at {pressurePercent}% — low enough that there's no need to switch destination or date.
         </p>
@@ -46,21 +45,39 @@ export default function SwapCard({ data, onAcceptPlace, onAcceptDate, onDecline 
 
   return (
     <div className="space-y-6">
-      <Card className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <MapPin size={18} className="text-ash" aria-hidden="true" />
-          <span className="font-semibold text-ink">{requestedName}</span>
-          {relaxedRelief && <Badge tone="info">Showing close matches</Badge>}
+      {/* Requested trip -- a flat ink surface, not glass (glass-surface is
+          reserved for nav/overlays per the design doc; this is ordinary page
+          content, so it stays a solid dark card like AuthScreen/LandingPage's
+          hero treatment). */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-ink px-5 py-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-paper/10 text-paper">
+            <Navigation size={18} aria-hidden="true" />
+          </span>
+          <div>
+            <p className="text-xs font-medium text-paper/50">Your requested trip</p>
+            <p className="font-display text-lg text-paper">{requestedName}</p>
+          </div>
         </div>
-        <Badge tone="danger">{pressurePercent}% crowded</Badge>
-      </Card>
+        <div className="flex items-center gap-2">
+          {relaxedRelief && (
+            <span className="rounded-full bg-paper/10 px-2.5 py-0.5 text-xs font-medium text-paper/80">Showing close matches</span>
+          )}
+          <span className="flex items-center gap-1 rounded-full bg-pressure/20 px-3 py-1 text-xs font-semibold text-pressure">
+            <ShieldCheck size={12} aria-hidden="true" /> {pressurePercent}% crowded
+          </span>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div>
-          <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-ink">
-            <MapPin size={16} className="text-pressure" aria-hidden="true" />
-            Other destinations ({places.length})
-          </h3>
+          <div className="mb-3 flex items-baseline justify-between">
+            <h3 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+              <MapPin size={16} className="text-pressure" aria-hidden="true" />
+              Alternative destinations ({places.length})
+            </h3>
+            <span className="text-xs text-ash">Same attributes, lower crowds</span>
+          </div>
           {hasPlaces ? (
             <div className="space-y-3">
               {places.map((place) => (
@@ -73,10 +90,13 @@ export default function SwapCard({ data, onAcceptPlace, onAcceptDate, onDecline 
         </div>
 
         <div>
-          <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-ink">
-            <Calendar size={16} className="text-relief" aria-hidden="true" />
-            Other dates ({dates.length})
-          </h3>
+          <div className="mb-3 flex items-baseline justify-between">
+            <h3 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+              <Calendar size={16} className="text-relief" aria-hidden="true" />
+              Alternative dates ({dates.length})
+            </h3>
+            <span className="text-xs text-ash">Same place, off-peak window</span>
+          </div>
           {hasDates ? (
             <div className="space-y-3">
               {dates.map((dateObj, idx) => (

@@ -235,4 +235,39 @@ export const useTrustStore = create((set, get) => ({
       set({ isLoadingBusinesses: false })
     }
   },
+
+  // booking an Available Services business (POST /v1/bookings) -- confirmed
+  // immediately only when a real declared-availability row exists to claim
+  // from; otherwise a pending request, never a fabricated instant "booked".
+  isBooking: false,
+  bookingError: null,
+  lastBooking: null,
+  myBookings: [],
+  isLoadingBookings: false,
+
+  createBooking: async ({ businessId, date, travellers, notes }) => {
+    set({ isBooking: true, bookingError: null, lastBooking: null })
+    try {
+      const res = await api.post('/v1/bookings', { businessId, date, travellers, notes })
+      set((state) => ({ lastBooking: res.data, myBookings: [res.data, ...state.myBookings] }))
+      return res.data
+    } catch (error) {
+      set({ bookingError: getErrorMessage(error, 'Could not book this service') })
+      return null
+    } finally {
+      set({ isBooking: false })
+    }
+  },
+
+  fetchMyBookings: async () => {
+    set({ isLoadingBookings: true })
+    try {
+      const res = await api.get('/v1/bookings/mine')
+      set({ myBookings: res.data })
+    } catch {
+      // Non-critical for the Available Services page itself -- leave silently empty.
+    } finally {
+      set({ isLoadingBookings: false })
+    }
+  },
 }))

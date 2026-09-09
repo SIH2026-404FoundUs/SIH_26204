@@ -29,6 +29,7 @@ import safetyRoutes from "./routes/safety.route.js";
 import tripsRoutes from "./routes/trips.route.js";
 import dashboardRoutes from "./routes/dashboard.route.js";
 import destinationsRoutes from "./routes/destinations.route.js";
+import bookingsRoutes from "./routes/bookings.route.js";
 import { startAlertPolling } from "./jobs/scheduler.js";
 
 // dotenv.config() with no path loads .env from process.cwd(), which silently
@@ -90,6 +91,7 @@ app.use("/api/v1/offers", offersRoutes);
 app.use("/api/v1/waitlist", waitlistRoutes);
 app.use("/api/v1/alerts", alertsRoutes);
 app.use("/api/v1/businesses", businessesRoutes);
+app.use("/api/v1/bookings", bookingsRoutes);
 app.use("/api/v1/users", usersRoutes);
 app.use("/api/v1/safety", safetyRoutes);
 app.use("/api/v1/trips", tripsRoutes);

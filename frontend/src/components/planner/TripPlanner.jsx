@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Calendar, Users, Wallet, Navigation, Compass, Check, X, CalendarClock } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Calendar, Users, Wallet, Navigation, Compass, Check, X, CalendarClock, Map as MapIcon } from 'lucide-react'
 import { usePlannerStore } from '../../store/usePlannerStore'
 import PressureRing from '../pressure/PressureRing'
 import PressureBadge from '../pressure/PressureBadge'
@@ -247,7 +248,16 @@ export default function TripPlanner() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader icon={Compass} title="Where are you headed, and when?" description="We check how crowded it'll be before you book — not after." />
+      <div className="flex items-start justify-between gap-4">
+        <PageHeader icon={Compass} title="Where are you headed, and when?" description="We check how crowded it'll be before you book — not after." />
+        <Link
+          to="/map"
+          className="mt-1 flex shrink-0 items-center gap-1.5 rounded-lg border border-paper-dim bg-white px-3 py-2 text-xs font-medium text-ink/70 transition hover:border-ink/40"
+        >
+          <MapIcon size={14} aria-hidden="true" />
+          Show in Maps
+        </Link>
+      </div>
 
       {!awaitingDecision && !plan && (
         <Card className="mb-6">

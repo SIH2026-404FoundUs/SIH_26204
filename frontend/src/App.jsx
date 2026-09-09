@@ -13,6 +13,10 @@ import DestinationDetail from './components/destinations/DestinationDetail'
 import MyTrips from './components/trips/MyTrips'
 import Profile from './components/profile/Profile'
 import OperatorConsole from './components/operator/OperatorConsole'
+import RegisterBusiness from './components/operator/RegisterBusiness'
+import HirePeople from './components/operator/HirePeople'
+import OperatorWaitlistOffers from './components/operator/OperatorWaitlistOffers'
+import OperatorVerifyVisit from './components/operator/OperatorVerifyVisit'
 import AuthorityDashboard from './components/authority/AuthorityDashboard'
 import VisitVerify from './components/trust/VisitVerify'
 import CommunitySubmit from './components/trust/CommunitySubmit'
@@ -24,6 +28,7 @@ import Businesses from './components/trust/Businesses'
 import AvailableServices from './components/trust/AvailableServices'
 import Notifications from './components/trust/Notifications'
 import MapPreview from './pages/MapPreview'
+import LandingPage from './pages/LandingPage'
 
 // Where each role lands after authenticating (auth spec §7/§20) -- mirrors
 // AuthScreen's own ROLE_HOME, used here for the post-refresh/direct-URL
@@ -54,8 +59,10 @@ function App() {
       <div className="flex min-h-screen flex-col bg-paper">
         <Header />
         <Routes>
-          {/* Public experience (§53) */}
-          <Route path="/" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <AuthScreen mode="login" />} />
+          {/* Public experience (§53). "/" is now a proper landing page
+              describing the product -- sign-in stays its own screen at
+              /signin, unchanged, so existing links to it keep working. */}
+          <Route path="/" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <LandingPage />} />
           <Route path="/signin" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <AuthScreen mode="login" />} />
           <Route path="/signup" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <AuthScreen mode="signup" />} />
           {/* Auth-recovery routes are never gated on auth state (§19: "Do
@@ -80,7 +87,14 @@ function App() {
           <Route path="/trips" element={<RequireAuth><MyTrips /></RequireAuth>} />
           <Route path="/swap" element={<RequireAuthBare><SwapPage /></RequireAuthBare>} />
           <Route path="/trip-confirmation" element={<RequireAuthBare><TripConfirmation /></RequireAuthBare>} />
-          <Route path="/visits" element={<RequireAuth><VisitVerify /></RequireAuth>} />
+          {/* Same URL, role-branched: an operator's "Verify a Visit" means
+              displaying the live rotating code (OperatorVerifyVisit), not
+              submitting one -- travellers/authorities get the original
+              code-entry form (VisitVerify) unchanged. */}
+          <Route path="/visits" element={<RequireAuth>{authUser?.role === 'operator' ? <OperatorVerifyVisit /> : <VisitVerify />}</RequireAuth>} />
+          <Route path="/register-business" element={<RequireRole role="operator"><RegisterBusiness /></RequireRole>} />
+          <Route path="/hire-people" element={<RequireRole role="operator"><HirePeople /></RequireRole>} />
+          <Route path="/operator/waitlist" element={<RequireRole role="operator"><OperatorWaitlistOffers /></RequireRole>} />
           {/* Same URL, role-branched (§14-19): travellers get "Suggest a
               Place" (CommunitySubmit), authorities get the "Community
               Review" moderation UI (CommunityReview) -- both nav entries
