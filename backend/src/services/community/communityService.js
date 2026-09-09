@@ -401,3 +401,17 @@ export async function getQueuedSubmissions(models = {}) {
   }
   return CommunitySubmissionModel.find({ status: "queued" }).sort({ createdAt: 1 });
 }
+
+/**
+ * A traveller's own Suggest-a-Place submissions, most recent first -- the
+ * missing other half of the review loop: a submission previously vanished
+ * into the queue with no way for the traveller who sent it to ever learn
+ * whether an authority approved, rejected, or flagged it.
+ */
+export async function getUserSubmissions(userId, models = {}) {
+  const { CommunitySubmissionModel } = models;
+  if (!userId || !CommunitySubmissionModel || typeof CommunitySubmissionModel.find !== "function") {
+    return [];
+  }
+  return CommunitySubmissionModel.find({ userId: String(userId) }).sort({ createdAt: -1 });
+}

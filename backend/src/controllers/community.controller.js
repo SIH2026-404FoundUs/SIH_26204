@@ -3,6 +3,7 @@ import {
   submitCommunityDestination,
   reviewCommunitySubmission,
   getQueuedSubmissions,
+  getUserSubmissions,
 } from "../services/community/communityService.js";
 import Visit from "../models/visit.model.js";
 import CommunitySubmission from "../models/communitySubmission.model.js";
@@ -83,6 +84,19 @@ export const getQueuedSubmissionsController = async (req, res) => {
     res.status(200).json(await getQueuedSubmissions(models));
   } catch (error) {
     console.log("Error in getQueuedSubmissions controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// GET /community/submissions/mine — the traveller's own Suggest-a-Place
+// submissions, so a decision an authority makes in Community Review is
+// actually visible back to the traveller who submitted it, closing the
+// loop instead of the submission vanishing into the queue silently.
+export const getMySubmissionsController = async (req, res) => {
+  try {
+    res.status(200).json(await getUserSubmissions(String(req.user._id), models));
+  } catch (error) {
+    console.log("Error in getMySubmissions controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

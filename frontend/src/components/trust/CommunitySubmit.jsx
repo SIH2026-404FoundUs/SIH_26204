@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MapPinned, Upload, X } from 'lucide-react'
 import { useTrustStore } from '../../store/useTrustStore'
 import { submissionStatus } from '../../lib/labels'
@@ -10,18 +10,29 @@ import Badge from '../ui/Badge'
 import FormField, { inputClass } from '../ui/FormField'
 import LocationPickerMap from './LocationPickerMap'
 
+const POLL_MS = 15_000 // matches the operator pages -- an authority's review can land while this is open
+
 // "Suggest a Place" -- the traveller-facing rename and UX rebuild of what
 // was "Community"/CommunitySubmit. Same backend contract throughout
 // (POST /community/submissions, POST /community/photos): only the UI
 // changed -- a real map replaces manual lat/lng inputs, and photo upload
 // (optional, via the project's existing Cloudinary integration) was added.
 export default function CommunitySubmit() {
-  const { submitCommunityPlace, uploadCommunityPhotos, isSubmittingPlace, isUploadingPhotos, communityResult, communityError } = useTrustStore()
+  const {
+    submitCommunityPlace, uploadCommunityPhotos, isSubmittingPlace, isUploadingPhotos, communityResult, communityError,
+    mySubmissions, fetchMySubmissions,
+  } = useTrustStore()
   const [name, setName] = useState('')
   const [location, setLocation] = useState(null)
   const [description, setDescription] = useState('')
   const [photoFiles, setPhotoFiles] = useState([]) // [{file, previewUrl}]
   const [validationError, setValidationError] = useState(null)
+
+  useEffect(() => {
+    fetchMySubmissions()
+    const interval = setInterval(fetchMySubmissions, POLL_MS)
+    return () => clearInterval(interval)
+  }, [fetchMySubmissions])
 
   function handlePhotoSelect(e) {
     const files = Array.from(e.target.files || [])
@@ -62,7 +73,8 @@ export default function CommunitySubmit() {
       }
     }
 
-    await submitCommunityPlace({ name: name.trim(), lat: location.lat, lng: location.lng, description: description.trim(), photos: photoUrls })
+    const ok = await submitCommunityPlace({ name: name.trim(), lat: location.lat, lng: location.lng, description: description.trim(), photos: photoUrls })
+    if (ok) fetchMySubmissions() // don't wait up to 15s for the poll to pick up the one just sent
   }
 
   const submission = communityResult?.success ? communityResult.submission : null
@@ -130,6 +142,27 @@ export default function CommunitySubmit() {
           <Alert tone="success" action={<Badge tone={submissionStatus(submission.status).tone}>{submissionStatus(submission.status).label}</Badge>}>
             Submitted. An authority will review it before it appears on the map.
           </Alert>
+        </div>
+      )}
+
+      {mySubmissions.length > 0 && (
+        <div className="mt-8">
+          <h2 className="mb-3 text-sm font-semibold text-ink">Your submissions</h2>
+          <div className="space-y-2">
+            {mySubmissions.map((s) => {
+              const status = submissionStatus(s.status)
+              return (
+                <Card key={s._id} padding="p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-ink">{s.name}</p>
+                    <Badge tone={status.tone}>{status.label}</Badge>
+                  </div>
+                  <p className="mt-0.5 text-xs text-ash">Submitted {new Date(s.createdAt).toLocaleDateString()}</p>
+                  {s.rejectionReason && <p className="mt-1 text-xs text-pressure">{s.rejectionReason}</p>}
+                </Card>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

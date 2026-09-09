@@ -75,6 +75,25 @@ export const useTrustStore = create((set, get) => ({
     }
   },
 
+  // The other half of the review loop: what happened to a place this
+  // traveller already suggested (GET /community/submissions/mine) --
+  // previously a submission just vanished into the queue with no way to
+  // ever check back on it.
+  mySubmissions: [],
+  isLoadingMySubmissions: false,
+
+  fetchMySubmissions: async () => {
+    set({ isLoadingMySubmissions: true })
+    try {
+      const res = await api.get('/community/submissions/mine')
+      set({ mySubmissions: res.data })
+    } catch {
+      // Non-critical for the submit form itself -- leave silently empty.
+    } finally {
+      set({ isLoadingMySubmissions: false })
+    }
+  },
+
   // offers + waitlist
   offers: [],
   waitlists: [],
@@ -82,15 +101,16 @@ export const useTrustStore = create((set, get) => ({
   isLoadingWaitlists: false,
   marketError: null,
 
-  fetchOffers: async (destId) => {
-    set({ isLoadingOffers: true, marketError: null })
+  fetchOffers: async (destId, { silent = false } = {}) => {
+    if (!silent) set({ isLoadingOffers: true })
+    set({ marketError: null })
     try {
       const res = await api.get('/v1/offers', { params: { destId } })
       set({ offers: res.data })
     } catch (error) {
       set({ marketError: getErrorMessage(error, 'Could not load offers') })
     } finally {
-      set({ isLoadingOffers: false })
+      if (!silent) set({ isLoadingOffers: false })
     }
   },
 
@@ -106,15 +126,16 @@ export const useTrustStore = create((set, get) => ({
     }
   },
 
-  fetchMyWaitlists: async () => {
-    set({ isLoadingWaitlists: true, marketError: null })
+  fetchMyWaitlists: async ({ silent = false } = {}) => {
+    if (!silent) set({ isLoadingWaitlists: true })
+    set({ marketError: null })
     try {
       const res = await api.get('/v1/waitlist/mine')
       set({ waitlists: res.data })
     } catch (error) {
       set({ marketError: getErrorMessage(error, 'Could not load your waitlist entries') })
     } finally {
-      set({ isLoadingWaitlists: false })
+      if (!silent) set({ isLoadingWaitlists: false })
     }
   },
 
@@ -190,15 +211,19 @@ export const useTrustStore = create((set, get) => ({
   isReviewing: false,
   moderationError: null,
 
-  fetchQueuedSubmissions: async () => {
-    set({ isLoadingQueue: true, moderationError: null })
+  // silent: true skips the loading spinner -- used by the poll timer so a
+  // new submission arriving doesn't flash "Loading…" over the queue an
+  // authority might already be mid-review of.
+  fetchQueuedSubmissions: async ({ silent = false } = {}) => {
+    if (!silent) set({ isLoadingQueue: true })
+    set({ moderationError: null })
     try {
       const res = await api.get('/community/submissions/queued')
       set({ queuedSubmissions: res.data })
     } catch (error) {
       set({ moderationError: getErrorMessage(error, 'Could not load the review queue') })
     } finally {
-      set({ isLoadingQueue: false })
+      if (!silent) set({ isLoadingQueue: false })
     }
   },
 
