@@ -56,7 +56,8 @@ function defaultAiEnrichment(name, description) {
  * @returns {Promise<Object>} Submission result object.
  */
 export async function submitCommunityDestination(params, models = {}) {
-  const { userId, name, lat, lng, description = "", photos = [], aiEnrichment } = params;
+  const { userId, name, lat, lng, description = "", photos = [], aiEnrichment, state } = params;
+  const STATES = ["Himachal Pradesh", "Telangana"];
   const {
     VisitModel,
     DestinationModel,
@@ -190,6 +191,7 @@ export async function submitCommunityDestination(params, models = {}) {
     status: "queued",
     createdAt: new Date(),
   };
+  if (state && STATES.includes(state)) newSubmission.state = state;
 
   let queuedSubmissionDoc = null;
   if (CommunitySubmissionModel && typeof CommunitySubmissionModel.create === "function") {
@@ -414,4 +416,52 @@ export async function getUserSubmissions(userId, models = {}) {
     return [];
   }
   return CommunitySubmissionModel.find({ userId: String(userId) }).sort({ createdAt: -1 });
+}
+
+// Radius used for "this destination has N community suggestions nearby" --
+// deliberately wider than the 5km submission-time DEDUP_RADIUS_KM above
+// (that one only ever compares one new submission against near-identical
+// existing ones, to stop the same spot being queued twice; this one asks a
+// different question -- "how much community interest exists in this whole
+// area" -- so it needs a town/region-sized radius, not a single-spot one).
+export const NEARBY_SUGGESTION_RADIUS_KM = 30;
+
+/**
+ * Community Forum feed: approved Suggest-a-Place submissions, anonymized
+ * (no userId ever included) and optionally filtered by state. Only ever
+ * "approved" -- queued/rejected/flagged submissions stay out of any
+ * traveller-facing view, preserving the existing moderation workflow
+ * rather than turning this into a second, unmoderated publishing path.
+ */
+export async function getApprovedSubmissions({ state, limit } = {}, models = {}) {
+  const { CommunitySubmissionModel } = models;
+  if (!CommunitySubmissionModel || typeof CommunitySubmissionModel.find !== "function") {
+    return [];
+  }
+  const filter = { status: "approved" };
+  if (state) filter.state = state;
+
+  const query = CommunitySubmissionModel.find(filter)
+    .select("-userId")
+    .sort({ approvedAt: -1, createdAt: -1 });
+  if (limit) query.limit(Number(limit));
+  return query;
+}
+
+/**
+ * How many approved community submissions exist within
+ * NEARBY_SUGGESTION_RADIUS_KM of a canonical destination's own coordinates
+ * -- "people have suggested N places near here" while planning a trip.
+ * Real geo-distance over real approved rows; not the submission-time dedup
+ * check and not tied to any single exact spot.
+ */
+export async function countNearbySuggestions(destLat, destLng, models = {}) {
+  const { CommunitySubmissionModel } = models;
+  if (typeof destLat !== "number" || typeof destLng !== "number") return 0;
+  if (!CommunitySubmissionModel || typeof CommunitySubmissionModel.find !== "function") return 0;
+
+  const approved = await CommunitySubmissionModel.find({ status: "approved" }).select("location");
+  return approved.filter(
+    (s) => calculateHaversineDistance(destLat, destLng, s.location.lat, s.location.lng) <= NEARBY_SUGGESTION_RADIUS_KM
+  ).length;
 }

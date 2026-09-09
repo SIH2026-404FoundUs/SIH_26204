@@ -4,7 +4,10 @@ import {
   reviewCommunitySubmission,
   getQueuedSubmissions,
   getUserSubmissions,
+  getApprovedSubmissions,
+  countNearbySuggestions,
 } from "../services/community/communityService.js";
+import { getDestination } from "../services/pressure/seed.js";
 import Visit from "../models/visit.model.js";
 import CommunitySubmission from "../models/communitySubmission.model.js";
 import AuditLog from "../models/auditLog.model.js";
@@ -63,9 +66,9 @@ export const uploadPhotosController = async (req, res) => {
 // POST /community/submissions (spec §3.1)
 export const submitSubmissionController = async (req, res) => {
   try {
-    const { name, lat, lng, description, photos } = req.body;
+    const { name, lat, lng, description, photos, state } = req.body;
     const result = await submitCommunityDestination(
-      { userId: String(req.user._id), name, lat, lng, description, photos },
+      { userId: String(req.user._id), name, lat, lng, description, photos, state },
       models
     );
     res.status(result.status).json(result);
@@ -115,6 +118,43 @@ export const reviewSubmissionController = async (req, res) => {
     res.status(result.status).json(result);
   } catch (error) {
     console.log("Error in reviewSubmission controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// GET /community/submissions/approved?state=&limit= — public Community Forum
+// feed (spec: travellers see what other users have suggested, anonymous,
+// filterable by state). No auth required -- same public-read posture as
+// GET /v1/businesses/search, GET /v1/alerts, GET /api/destinations.
+export const getApprovedSubmissionsController = async (req, res) => {
+  try {
+    const { state, limit } = req.query;
+    const submissions = await getApprovedSubmissions({ state, limit }, models);
+    res.status(200).json(submissions);
+  } catch (error) {
+    console.log("Error in getApprovedSubmissions controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// GET /community/nearby-count?destId= — "N people have suggested places
+// near here" while planning a trip. Real geo-count against a canonical
+// destination's own seeded coordinates (services/pressure/seed.js), not a
+// fabricated number.
+export const getNearbySuggestionCountController = async (req, res) => {
+  try {
+    const { destId } = req.query;
+    if (!destId) return res.status(400).json({ message: "destId query param required" });
+
+    const destination = getDestination(destId);
+    if (!destination?.location) {
+      return res.status(200).json({ destId, count: 0 });
+    }
+
+    const count = await countNearbySuggestions(destination.location.lat, destination.location.lng, models);
+    res.status(200).json({ destId, count });
+  } catch (error) {
+    console.log("Error in getNearbySuggestionCount controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

@@ -7,6 +7,13 @@ const communitySubmissionSchema = new mongoose.Schema(
   {
     userId: { type: String, required: true },
     name: { type: String, required: true },
+    // Which state the submitter says this place is in -- optional, chosen
+    // from the same two states the platform actually has seeded
+    // destinations/pressure data for (frontend's DESTINATION_GROUPS), not a
+    // full India state list this platform doesn't cover yet. Powers the
+    // Community Forum's state filter; nothing derives it automatically
+    // (no geocoding call), it's exactly what the traveller picked.
+    state: { type: String, enum: ["Himachal Pradesh", "Telangana"] },
     location: {
       lat: { type: Number, required: true },
       lng: { type: Number, required: true },
