@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Users, MapPin } from 'lucide-react'
 import { useTrustStore } from '../../store/useTrustStore'
 import PageHeader from '../ui/PageHeader'
@@ -8,22 +8,21 @@ import EmptyState from '../ui/EmptyState'
 import LoadingState from '../ui/LoadingState'
 import Alert from '../ui/Alert'
 
-const STATE_TABS = ['All', 'Himachal Pradesh', 'Telangana']
-
 // Community Forum -- places other travellers have suggested via Suggest a
 // Place, shown as a simple card grid (spec: "just be able to see suggested
-// place as cards"), view-only -- no posting/commenting/liking here. Only
-// ever approved submissions (GET /community/submissions/approved, public,
-// same moderation workflow as everywhere else in this app) and always
-// anonymous -- the backend never even sends a userId for this endpoint, so
-// there's nothing here to accidentally deanonymize.
+// place as cards"), view-only -- no posting/commenting/liking here. Every
+// approved submission, no state restriction -- state is free text on
+// submission (not a fixed list), so the forum doesn't gate on it either.
+// Only ever approved submissions (GET /community/submissions/approved,
+// public, same moderation workflow as everywhere else in this app) and
+// always anonymous -- the backend never even sends a userId for this
+// endpoint, so there's nothing here to accidentally deanonymize.
 export default function CommunityForum() {
   const { forumPosts, isLoadingForum, forumError, fetchForumPosts } = useTrustStore()
-  const [activeState, setActiveState] = useState('All')
 
   useEffect(() => {
-    fetchForumPosts({ state: activeState === 'All' ? undefined : activeState })
-  }, [activeState, fetchForumPosts])
+    fetchForumPosts()
+  }, [fetchForumPosts])
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -33,27 +32,12 @@ export default function CommunityForum() {
         description="Places other travellers have suggested, straight from Suggest a Place -- posted anonymously, reviewed by an authority before it shows up here."
       />
 
-      <div className="mb-6 flex w-full max-w-sm gap-1.5 rounded-lg border border-paper-dim bg-white p-1">
-        {STATE_TABS.map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => setActiveState(s)}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
-              activeState === s ? 'bg-ink text-paper' : 'text-ink/70 hover:bg-ink/5'
-            }`}
-          >
-            {s}
-          </button>
-        ))}
-      </div>
-
       {forumError && <Alert tone="error">{forumError}</Alert>}
 
       {isLoadingForum ? (
         <LoadingState label="Loading the forum…" />
       ) : forumPosts.length === 0 ? (
-        <EmptyState icon={Users} title="Nothing here yet" description="No approved suggestions for this state yet -- be the first from Suggest a Place." />
+        <EmptyState icon={Users} title="Nothing here yet" description="No approved suggestions yet -- be the first from Suggest a Place." />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {forumPosts.map((post) => (

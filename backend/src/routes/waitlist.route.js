@@ -5,12 +5,14 @@ import {
   getMyWaitlistsController,
   getBusinessWaitlistController,
   cancelWaitlistController,
+  getMyOfferNotificationsController,
 } from "../controllers/waitlist.controller.js";
 
 const router = express.Router();
 
 router.post("/", protectRoute, createWaitlistController);
 router.get("/mine", protectRoute, getMyWaitlistsController);
+router.get("/notifications", protectRoute, getMyOfferNotificationsController);
 // Before "/:id" -- "business" would otherwise be swallowed as an :id value.
 router.get("/business/:businessId", protectRoute, getBusinessWaitlistController);
 router.delete("/:id", protectRoute, cancelWaitlistController);

@@ -13,11 +13,6 @@ import LocationPickerMap from './LocationPickerMap'
 
 const POLL_MS = 15_000 // matches the operator pages -- an authority's review can land while this is open
 
-// The only two states this platform actually has seeded destinations/
-// pressure data for (same list as frontend/src/lib/destinations.js's
-// DESTINATION_GROUPS) -- not a full India state list this app doesn't cover.
-const STATES = ['Himachal Pradesh', 'Telangana']
-
 // "Suggest a Place" -- the traveller-facing rename and UX rebuild of what
 // was "Community"/CommunitySubmit. Same backend contract throughout
 // (POST /community/submissions, POST /community/photos): only the UI
@@ -70,8 +65,8 @@ export default function CommunitySubmit() {
       setValidationError('Tell us what makes it worth visiting')
       return
     }
-    if (!state) {
-      setValidationError('Select a state')
+    if (!state.trim()) {
+      setValidationError('Enter the state this place is in')
       return
     }
 
@@ -84,7 +79,7 @@ export default function CommunitySubmit() {
       }
     }
 
-    const ok = await submitCommunityPlace({ name: name.trim(), lat: location.lat, lng: location.lng, description: description.trim(), photos: photoUrls, state })
+    const ok = await submitCommunityPlace({ name: name.trim(), lat: location.lat, lng: location.lng, description: description.trim(), photos: photoUrls, state: state.trim() })
     if (ok) fetchMySubmissions() // don't wait up to 15s for the poll to pick up the one just sent
   }
 
@@ -114,10 +109,13 @@ export default function CommunitySubmit() {
           </FormField>
 
           <FormField label="State" hint="Helps other travellers browsing the Community Forum find this">
-            <select value={state} onChange={(e) => setState(e.target.value)} required className={inputClass}>
-              <option value="" disabled>Choose a state</option>
-              {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <input
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              required
+              placeholder="e.g. Himachal Pradesh"
+              className={inputClass}
+            />
           </FormField>
 
           <FormField label="What makes it worth visiting?">

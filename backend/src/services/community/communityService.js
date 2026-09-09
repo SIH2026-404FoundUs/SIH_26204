@@ -57,7 +57,6 @@ function defaultAiEnrichment(name, description) {
  */
 export async function submitCommunityDestination(params, models = {}) {
   const { userId, name, lat, lng, description = "", photos = [], aiEnrichment, state } = params;
-  const STATES = ["Himachal Pradesh", "Telangana"];
   const {
     VisitModel,
     DestinationModel,
@@ -75,15 +74,15 @@ export async function submitCommunityDestination(params, models = {}) {
     };
   }
 
-  // State is required (not just an optional filter hint) -- must be one of
-  // the two states this platform actually has seeded destinations/pressure
-  // data for, same list enforced client-side.
-  if (!state || !STATES.includes(state)) {
+  // State is required (not just an optional filter hint) -- free text, not
+  // restricted to a fixed list. A traveller can suggest a place anywhere,
+  // not just within this platform's currently-seeded destination coverage.
+  if (!state || typeof state !== "string" || !state.trim()) {
     return {
       success: false,
       status: 400,
       error: "COMMUNITY_MISSING_STATE",
-      message: `state is required and must be one of: ${STATES.join(", ")}`,
+      message: "state is required",
     };
   }
 
@@ -203,7 +202,7 @@ export async function submitCommunityDestination(params, models = {}) {
     status: "queued",
     createdAt: new Date(),
   };
-  newSubmission.state = state;
+  newSubmission.state = state.trim();
 
   let queuedSubmissionDoc = null;
   if (CommunitySubmissionModel && typeof CommunitySubmissionModel.create === "function") {

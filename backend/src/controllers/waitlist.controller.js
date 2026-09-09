@@ -2,9 +2,11 @@ import {
   createWaitlistEntry,
   getUserWaitlists,
   cancelWaitlistEntry,
+  getUserOfferNotifications,
 } from "../services/waitlist/waitlistService.js";
 import Waitlist from "../models/waitlist.model.js";
 import Business from "../models/business.model.js";
+import Offer from "../models/offer.model.js";
 
 const models = { WaitlistModel: Waitlist };
 
@@ -56,6 +58,25 @@ export const getBusinessWaitlistController = async (req, res) => {
     res.status(200).json(entries);
   } catch (error) {
     console.log("Error in getBusinessWaitlist controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// GET /api/v1/waitlist/notifications -- every offer this traveller was
+// actually notified about via processOfferMatching's fan-out, plus any
+// waitlist entries that have since been fulfilled. Feeds the Notifications
+// page (spec: "notifications must come to traveller for new offers,
+// waitlist"), same underlying data the "Offers & Waitlist" page already
+// has, just reshaped as a notification feed.
+export const getMyOfferNotificationsController = async (req, res) => {
+  try {
+    const notifications = await getUserOfferNotifications(String(req.user._id), {
+      ...models,
+      OfferModel: Offer,
+    });
+    res.status(200).json(notifications);
+  } catch (error) {
+    console.log("Error in getMyOfferNotifications controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
