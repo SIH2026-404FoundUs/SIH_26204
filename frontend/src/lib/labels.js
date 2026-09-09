@@ -37,6 +37,7 @@ export const SUBMISSION_STATUS = {
   queued: { label: 'Pending review', tone: 'warning' },
   approved: { label: 'Approved', tone: 'success' },
   rejected: { label: 'Not approved', tone: 'danger' },
+  flagged: { label: 'Flagged', tone: 'danger' },
 }
 
 export function submissionStatus(status) {

@@ -30,15 +30,39 @@ export const useTrustStore = create((set, get) => ({
     }
   },
 
-  // community discovery
+  // community discovery ("Suggest a Place" for travellers)
   isSubmittingPlace: false,
+  isUploadingPhotos: false,
   communityResult: null,
   communityError: null,
 
-  submitCommunityPlace: async ({ name, lat, lng, description }) => {
+  // Uploads to the existing Cloudinary integration (backend/src/lib/cloudinary.js
+  // -- configured but previously wired to no endpoint) and returns the
+  // resulting secure URLs. A separate step from the submission itself:
+  // POST /community/submissions' own `photos` field already expects URL
+  // strings, not files.
+  uploadCommunityPhotos: async (files) => {
+    if (!files || files.length === 0) return []
+    set({ isUploadingPhotos: true, communityError: null })
+    try {
+      const formData = new FormData()
+      for (const file of files) formData.append('photos', file)
+      const res = await api.post('/community/photos', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      return res.data.urls
+    } catch (error) {
+      set({ communityError: getErrorMessage(error, 'Could not upload photos') })
+      throw error
+    } finally {
+      set({ isUploadingPhotos: false })
+    }
+  },
+
+  submitCommunityPlace: async ({ name, lat, lng, description, photos }) => {
     set({ isSubmittingPlace: true, communityError: null, communityResult: null })
     try {
-      const res = await api.post('/community/submissions', { name, lat, lng, description })
+      const res = await api.post('/community/submissions', { name, lat, lng, description, photos })
       set({ communityResult: res.data })
       return true
     } catch (error) {
@@ -157,6 +181,41 @@ export const useTrustStore = create((set, get) => ({
       return false
     } finally {
       set({ isSubmittingComplaint: false })
+    }
+  },
+
+  // community moderation (authority-only: Community Review)
+  queuedSubmissions: [],
+  isLoadingQueue: false,
+  isReviewing: false,
+  moderationError: null,
+
+  fetchQueuedSubmissions: async () => {
+    set({ isLoadingQueue: true, moderationError: null })
+    try {
+      const res = await api.get('/community/submissions/queued')
+      set({ queuedSubmissions: res.data })
+    } catch (error) {
+      set({ moderationError: getErrorMessage(error, 'Could not load the review queue') })
+    } finally {
+      set({ isLoadingQueue: false })
+    }
+  },
+
+  // action: "approve" | "reject" | "flag" -- the exact same review endpoint
+  // (POST /community/submissions/:id/review) that already existed; "flag"
+  // is a new action value the backend now also accepts, same contract shape.
+  reviewSubmission: async (submissionId, action, rejectionReason) => {
+    set({ isReviewing: true, moderationError: null })
+    try {
+      await api.post(`/community/submissions/${submissionId}/review`, { action, rejectionReason })
+      set((state) => ({ queuedSubmissions: state.queuedSubmissions.filter((s) => s._id !== submissionId) }))
+      return true
+    } catch (error) {
+      set({ moderationError: getErrorMessage(error, 'Could not submit this review') })
+      return false
+    } finally {
+      set({ isReviewing: false })
     }
   },
 
