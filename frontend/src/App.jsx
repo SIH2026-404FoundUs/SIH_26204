@@ -81,7 +81,7 @@ function App() {
           <Route path="/alerts" element={<Page><Alerts /></Page>} />
 
           {/* Authenticated experience (§57/§58) */}
-          <Route path="/home" element={<RequireAuth><TripPlanner /></RequireAuth>} />
+          <Route path="/home" element={<RequireAuth wide><TripPlanner /></RequireAuth>} />
           {/* RequireAuthBare, not RequireAuth: the map is a full-bleed canvas
               (near-full-viewport, its own <main>), not the standard
               max-w-6xl centred page shell RequireAuth would force it into. */}

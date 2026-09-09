@@ -1,5 +1,34 @@
 import { ok, fail } from '../lib/envelope.js';
 import axios from 'axios';
+import { createTtlCache } from '../lib/ttlCache.js';
+
+// Text Search is the expensive call in this file, and a trip plan re-runs the
+// same two queries ("hotels in X", "tourist attractions in X") for the same
+// destination on every plan, preview and confirm. Ten minutes is long enough
+// to collapse one traveller's whole session into a single billed search, and
+// short enough that ratings/opening data are not visibly stale.
+const SEARCH_TTL_MS = 10 * 60 * 1000;
+const searchCache = createTtlCache({ ttlMs: SEARCH_TTL_MS, maxEntries: 300 });
+
+// Photo bytes are immutable for a given photo name, so they are cached far
+// longer, capped by total size rather than by count — one 800px JPEG is
+// ~100-200KB and an uncapped cache would be a slow memory leak.
+const PHOTO_TTL_MS = 24 * 60 * 60 * 1000;
+const PHOTO_CACHE_MAX_BYTES = 32 * 1024 * 1024;
+const photoCache = createTtlCache({
+  ttlMs: PHOTO_TTL_MS,
+  maxEntries: 300,
+  maxBytes: PHOTO_CACHE_MAX_BYTES,
+  sizeOf: (photo) => photo?.data?.byteLength ?? photo?.data?.length ?? 0,
+});
+
+// Coordinates arrive from map interactions as well as from stored destination
+// records, so round before keying: a few metres of drift must not miss the
+// cache. Three decimal places is roughly 110m.
+function searchCacheKey(query, lat, lng, radiusMeters) {
+  const round = (value) => (Number.isFinite(value) ? value.toFixed(3) : String(value));
+  return `${String(query).trim().toLowerCase()}|${round(lat)}|${round(lng)}|${radiusMeters}`;
+}
 
 function getApiKeys(preferGeocodeKey = false) {
   const keys = preferGeocodeKey
@@ -9,6 +38,10 @@ function getApiKeys(preferGeocodeKey = false) {
 }
 
 async function searchPlaces(query, lat, lng, radiusMeters = 20000) {
+  const cacheKey = searchCacheKey(query, lat, lng, radiusMeters);
+  const cached = searchCache.get(cacheKey);
+  if (cached) return cached;
+
   const keys = getApiKeys(false); // Key 1 primary for Places, Key 2 fallback
   let lastError = 'No API keys configured';
 
@@ -29,7 +62,7 @@ async function searchPlaces(query, lat, lng, radiusMeters = 20000) {
           headers: {
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': apiKey,
-            'X-Goog-FieldMask': 'places.id,places.displayName,places.location,places.rating'
+          'X-Goog-FieldMask': 'places.id,places.displayName,places.location,places.rating,places.photos'
           }
         }
       );
@@ -39,16 +72,45 @@ async function searchPlaces(query, lat, lng, radiusMeters = 20000) {
         name: p.displayName?.text,
         lat: p.location?.latitude,
         lng: p.location?.longitude,
-        rating: p.rating
+        rating: p.rating,
+        photoName: p.photos?.[0]?.name || null
       }));
 
-      return ok(places, { source: 'googlemaps', confidence: 'high' });
+      // Only successes are cached: a failure here is usually a quota or key
+      // problem that the very next request should be free to retry.
+      return searchCache.set(cacheKey, ok(places, { source: 'googlemaps', confidence: 'high' }));
     } catch (error) {
       lastError = error.response?.data?.error?.message || error.message;
     }
   }
 
   return fail(lastError, { source: 'googlemaps' });
+}
+
+async function getPlacePhoto(photoName, maxWidthPx = 800) {
+  const cacheKey = `${photoName}|${maxWidthPx}`;
+  const cached = photoCache.get(cacheKey);
+  if (cached) return cached;
+
+  const keys = getApiKeys(false);
+  let lastError = 'No API keys configured';
+  for (const apiKey of keys) {
+    try {
+      const response = await axios.get(`https://places.googleapis.com/v1/${photoName}/media`, {
+        params: { maxWidthPx },
+        headers: { 'X-Goog-Api-Key': apiKey },
+        responseType: 'arraybuffer',
+        maxRedirects: 5,
+      });
+      return photoCache.set(cacheKey, {
+        data: response.data,
+        contentType: response.headers['content-type'] || 'image/jpeg',
+      });
+    } catch (error) {
+      lastError = error.response?.data?.error?.message || error.message;
+    }
+  }
+  throw new Error(lastError);
 }
 
 async function calculateRoute(originLat, originLng, destLat, destLng, mode = 'DRIVE') {
@@ -96,5 +158,5 @@ async function calculateRoute(originLat, originLng, destLat, destLng, mode = 'DR
   return fail(lastError, { source: 'googlemaps' });
 }
 
-export { searchPlaces, calculateRoute };
+export { searchPlaces, getPlacePhoto, calculateRoute };
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, Users, Wallet, Navigation, Compass, Check, X, CalendarClock, Map as MapIcon } from 'lucide-react'
+import { Calendar, Users, Wallet, Navigation, Compass, Check, X, CalendarClock, Map as MapIcon, CloudSun, Hotel, ShieldCheck, Route as RouteIcon } from 'lucide-react'
 import { usePlannerStore } from '../../store/usePlannerStore'
 import { useTrustStore } from '../../store/useTrustStore'
 import PressureRing from '../pressure/PressureRing'
@@ -29,16 +29,13 @@ function TripForm({ onSubmit, isPlanning }) {
   }, [form.destId, fetchNearbySuggestionCount])
 
   return (
-    <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); onSubmit(form) }}>
-      <FormField label="Destination">
-        <DestinationSelect required value={form.destId} onChange={(v) => setForm((p) => ({ ...p, destId: v }))} />
-        {form.destId && nearbySuggestionCount != null && nearbySuggestionCount > 0 && (
-          <p className="mt-1.5 flex items-center gap-1 text-xs text-relief">
-            <Users size={12} aria-hidden="true" />
-            {nearbySuggestionCount} traveller{nearbySuggestionCount === 1 ? '' : 's'} suggested {nearbySuggestionCount === 1 ? 'a place' : 'places'} worth visiting nearby
-          </p>
-        )}
-      </FormField>
+    <form className="grid grid-cols-1 gap-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); onSubmit(form) }}>
+      <div className="sm:col-span-2 mb-1">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-relief">Start a considered trip</p>
+        <h2 className="mt-1 font-display text-2xl tracking-tight text-ink">Tell us what you’re planning.</h2>
+        <p className="mt-1 text-sm leading-6 text-ink/60">We’ll check pressure, route, weather, stays and your budget before shaping the days.</p>
+      </div>
+      <FormField label="Destination"><DestinationSelect required value={form.destId} onChange={(v) => setForm((p) => ({ ...p, destId: v }))} /></FormField>
       <FormField label="Travelling from">
         <div className="relative">
           <Navigation size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ash" aria-hidden="true" />
@@ -265,9 +262,21 @@ export default function TripPlanner() {
   const { submitTrip, isPlanning, awaitingDecision, error, plan, clearError, reset } = usePlannerStore()
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-6xl">
+      <section className="relative mb-8 overflow-hidden rounded-2xl bg-ink px-6 py-8 text-paper shadow-[0_20px_60px_rgba(16,25,43,0.15)] sm:px-10 sm:py-10">
+        <div className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full border-[32px] border-pressure/15" />
+        <div className="pointer-events-none absolute -bottom-32 right-36 h-64 w-64 rounded-full border-[24px] border-relief/20" />
+        <div className="relative max-w-2xl">
+          <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-paper/55"><Compass size={15} className="text-pressure" /> Sahyatri trip desk</div>
+          <h1 className="font-display text-4xl leading-tight tracking-tight sm:text-5xl">Go somewhere good.<br /><span className="text-paper/60">Travel there thoughtfully.</span></h1>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-paper/70 sm:text-base">Build a trip around crowd pressure, route time, local weather, places to stay, and the budget you actually have.</p>
+          <div className="mt-6 flex flex-wrap gap-2 text-xs text-paper/75"><span className="rounded-full border border-paper/15 bg-paper/10 px-3 py-1.5">Pressure-aware</span><span className="rounded-full border border-paper/15 bg-paper/10 px-3 py-1.5">Real places &amp; stays</span><span className="rounded-full border border-paper/15 bg-paper/10 px-3 py-1.5">Flexible by design</span></div>
+        </div>
+      </section>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+      <div>
       <div className="flex items-start justify-between gap-4">
-        <PageHeader icon={Compass} title="Where are you headed, and when?" description="We check how crowded it'll be before you book — not after." />
+        <PageHeader icon={Compass} title="Plan your next escape" description="A clear plan starts with a clear picture of the trip." />
         <Link
           to="/map"
           className="mt-1 flex shrink-0 items-center gap-1.5 rounded-lg border border-paper-dim bg-white px-3 py-2 text-xs font-medium text-ink/70 transition hover:border-ink/40"
@@ -294,6 +303,26 @@ export default function TripPlanner() {
       {awaitingDecision && <div className="mb-6"><DecisionPanel /></div>}
       {plan && <div className="mb-4"><PlanResult /></div>}
       {plan && <Button variant="ghost" onClick={reset}>Plan another trip</Button>}
+      </div>
+      <aside className="space-y-4">
+        <Card className="bg-white">
+          <div className="mb-4 flex items-center gap-2"><div className="rounded-lg bg-relief/10 p-2 text-relief"><ShieldCheck size={18} /></div><h2 className="font-display text-xl">What you’ll get</h2></div>
+          <div className="space-y-4">
+            <div className="flex gap-3"><CloudSun size={17} className="mt-0.5 shrink-0 text-pressure" /><div><p className="text-sm font-semibold">Live trip signals</p><p className="mt-1 text-xs leading-5 text-ash">Weather, route time and pressure before you commit.</p></div></div>
+            <div className="flex gap-3"><Hotel size={17} className="mt-0.5 shrink-0 text-relief" /><div><p className="text-sm font-semibold">Useful places to stay</p><p className="mt-1 text-xs leading-5 text-ash">Real hotel and local place data where available.</p></div></div>
+            <div className="flex gap-3"><RouteIcon size={17} className="mt-0.5 shrink-0 text-ink/60" /><div><p className="text-sm font-semibold">A day-by-day rhythm</p><p className="mt-1 text-xs leading-5 text-ash">Morning, afternoon and evening ideas to follow.</p></div></div>
+          </div>
+        </Card>
+        <Card className="border-relief/20 bg-relief/5">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-relief">How it works</p>
+          <div className="mt-4 space-y-3 text-sm">
+            <div className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-relief text-xs font-bold text-paper">1</span><span className="leading-6 text-ink/70">Enter destination, dates and budget.</span></div>
+            <div className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-relief text-xs font-bold text-paper">2</span><span className="leading-6 text-ink/70">Review pressure and alternatives.</span></div>
+            <div className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-relief text-xs font-bold text-paper">3</span><span className="leading-6 text-ink/70">Take the plan to One Map.</span></div>
+          </div>
+        </Card>
+      </aside>
+      </div>
     </div>
   )
 }

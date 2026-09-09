@@ -1,5 +1,115 @@
 # app/tools/alternatives.py
+from datetime import date
+
 from app.services.backend_client import post
+
+
+def _trip_value(trip, key, default=None):
+    if isinstance(trip, dict):
+        return trip.get(key, default)
+    return getattr(trip, key, default)
+
+
+def _shifted_end(start, end, new_start):
+    try:
+        duration = date.fromisoformat(end) - date.fromisoformat(start)
+        return (date.fromisoformat(new_start) + duration).isoformat()
+    except (TypeError, ValueError):
+        return new_start
+
+
+def _money_delta(candidate):
+    """The public swap contract uses negative numbers for savings."""
+    saving = candidate.get("savingINR") if isinstance(candidate, dict) else None
+    return -round(float(saving)) if isinstance(saving, (int, float)) else 0
+
+
+def _travel_time_change(candidate):
+    if not isinstance(candidate, dict):
+        return "Unavailable"
+    current = candidate.get("requestedTimeHours")
+    alternative = candidate.get("travelTimeHours", candidate.get("travelTime"))
+    if not isinstance(current, (int, float)) or not isinstance(alternative, (int, float)):
+        return "Unavailable"
+    minutes = round((alternative - current) * 60)
+    return f"{minutes:+d} min"
+
+
+def _destination_reasons(candidate):
+    reasons = []
+    if isinstance(candidate, dict) and isinstance(candidate.get("pressure"), (int, float)):
+        reasons.append("Lower crowd")
+    if isinstance(candidate, dict) and candidate.get("stayCost") is not None:
+        reasons.append("Higher hotel availability")
+    reasons.append("Similar trekking experience")
+    return reasons
+
+
+def _date_reasons(candidate):
+    reasons = ["Avoid peak-period rush"]
+    if isinstance(candidate, dict) and candidate.get("savingINR") is not None:
+        reasons.append("More hotel availability")
+    return reasons
+
+
+def find_alternative(trip: dict) -> dict | None:
+    """Return the first verified lower-pressure destination swap for ``trip``.
+
+    This is a thin adapter over the existing backend alternatives/Pressure Engine
+    pipeline. It does not calculate crowding itself.
+    """
+    result = find_alternatives(
+        _trip_value(trip, "origin"),
+        _trip_value(trip, "destId"),
+        _trip_value(trip, "startDate"),
+        _trip_value(trip, "endDate"),
+        int(_trip_value(trip, "travellers", 1) or 1),
+        float(_trip_value(trip, "budgetINR", 0) or 0),
+        _trip_value(trip, "interests", {}) or {},
+    )
+    places = result.get("places") if isinstance(result, dict) else None
+    candidate = places[0] if isinstance(places, list) and places else None
+    if not candidate:
+        return None
+    return {
+        "original_destination": _trip_value(trip, "destId"),
+        "original_name": result.get("requested", {}).get("displayName"),
+        "alternative_destination": candidate.get("destId"),
+        "alternative_name": candidate.get("displayName"),
+        "pressure_before": result.get("requested", {}).get("pressure"),
+        "pressure_after": candidate.get("pressure"),
+        "travel_time_change": _travel_time_change(candidate),
+        "budget_difference": _money_delta(candidate),
+        "reason": _destination_reasons(candidate),
+        "candidate": candidate,
+    }
+
+
+def _find_alternative_dates_for_trip(trip: dict) -> dict | None:
+    """Return the first verified lower-pressure date swap for ``trip``."""
+    result = find_alternatives(
+        _trip_value(trip, "origin"),
+        _trip_value(trip, "destId"),
+        _trip_value(trip, "startDate"),
+        _trip_value(trip, "endDate"),
+        int(_trip_value(trip, "travellers", 1) or 1),
+        float(_trip_value(trip, "budgetINR", 0) or 0),
+        _trip_value(trip, "interests", {}) or {},
+    )
+    dates = result.get("dates") if isinstance(result, dict) else None
+    candidate = dates[0] if isinstance(dates, list) and dates else None
+    if not candidate:
+        return None
+    new_start = candidate.get("startDate")
+    return {
+        "original_dates": [_trip_value(trip, "startDate"), _trip_value(trip, "endDate")],
+        "alternative_dates": [new_start, _shifted_end(_trip_value(trip, "startDate"), _trip_value(trip, "endDate"), new_start)],
+        "pressure_before": result.get("requested", {}).get("pressure"),
+        "pressure_after": candidate.get("pressure"),
+        "budget_difference": _money_delta(candidate),
+        "reason": _date_reasons(candidate),
+        "candidate": candidate,
+    }
 
 def find_alternatives(origin: str, dest_id: str, start_date: str, end_date: str,
                       travellers: int, budget_inr: float, interests: dict) -> dict:
@@ -51,7 +161,7 @@ def find_alternatives(origin: str, dest_id: str, start_date: str, end_date: str,
     })
 
 
-def find_alternative_dates(dest_id: str, start: str, end: str, origin: str,
+def _find_alternative_dates_legacy(dest_id: str, start: str, end: str, origin: str,
                            travellers: int = 1, budget_inr: float = 0.0) -> dict:
     """Find less-crowded dates for the SAME destination, without changing the place.
 
@@ -91,3 +201,18 @@ def find_alternative_dates(dest_id: str, start: str, end: str, origin: str,
         "budgetINR": budget_inr,
         "interests": {},
     })
+
+
+def find_alternative_dates(trip_or_dest, start=None, end=None, origin=None,
+                           travellers: int = 1, budget_inr: float = 0.0):
+    """Support both the new trip-object contract and the existing agent tool.
+
+    ``find_alternative_dates(trip)`` returns the normalized Swap Card object.
+    The positional form remains available for the older travel-agent tool,
+    which expects the raw alternatives response.
+    """
+    if isinstance(trip_or_dest, dict) and start is None:
+        return _find_alternative_dates_for_trip(trip_or_dest)
+    return _find_alternative_dates_legacy(
+        trip_or_dest, start, end, origin, travellers, budget_inr
+    )

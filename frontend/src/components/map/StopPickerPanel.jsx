@@ -14,6 +14,7 @@ import { MapPin, Plus, Trash2, X } from 'lucide-react';
 export default function StopPickerPanel({
   stops = [],
   onAddStop,
+  onSearchAddStop,
   onRemoveStop,
   onClearStops,
   onClose
@@ -23,7 +24,9 @@ export default function StopPickerPanel({
   const handleAddManualStop = (e) => {
     e.preventDefault();
     if (!customStopName.trim()) return;
-    if (typeof onAddStop === 'function') {
+    if (typeof onSearchAddStop === 'function') {
+      onSearchAddStop(customStopName.trim());
+    } else if (typeof onAddStop === 'function') {
       onAddStop({
         id: `stop_${Date.now()}`,
         name: customStopName.trim(),

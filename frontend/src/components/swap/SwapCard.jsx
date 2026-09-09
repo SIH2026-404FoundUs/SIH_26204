@@ -12,7 +12,20 @@ import { getDestinationLabel } from '../../lib/destinations'
  * there's nothing to switch to, so it just confirms the pick is fine; above
  * that it lays out real alternative places and dates side by side.
  */
-export default function SwapCard({ data, onAcceptPlace, onAcceptDate, onDecline }) {
+export default function SwapCard({ data, onAcceptPlace, onAcceptDate, onDecline, onPreview, onApply, onDismiss }) {
+  if (data?.swapOffers) {
+    // EverythingMap passes these as ordinary props; earlier callers nested
+    // them inside `data`. Read both, or the card renders with three dead
+    // buttons -- which is exactly how it behaved before.
+    return (
+      <GeneratedTripSwapCard
+        offers={data.swapOffers}
+        onPreview={onPreview || data.onPreview}
+        onApply={onApply || data.onApply}
+        onDismiss={onDismiss || data.onDismiss}
+      />
+    )
+  }
   if (!data || !data.requested) {
     return <EmptyState icon={Info} title="No crowding data yet" description="Run a search above to check this trip." />
   }
@@ -113,5 +126,49 @@ export default function SwapCard({ data, onAcceptPlace, onAcceptDate, onDecline 
         <DeclineButton onDecline={onDecline} requestedName={requestedName} />
       </div>
     </div>
+  )
+}
+
+function dateLabel(value) {
+  if (!value) return '—'
+  return new Date(`${value}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function rupees(value) {
+  const amount = Number(value || 0)
+  return `${amount < 0 ? '-' : ''}₹${Math.abs(amount).toLocaleString('en-IN')}`
+}
+
+function GeneratedTripSwapCard({ offers, onPreview, onApply, onDismiss }) {
+  const destination = offers?.destination_swap
+  const dates = offers?.date_swap
+  const combined = offers?.combined
+  if (!destination && !dates) return null
+  const both = Boolean(destination && dates)
+  const title = both ? '⚠️ AI found a better plan' : destination ? '⚠️ Destination Swap' : '📅 Date Swap'
+  const reasons = [...(destination?.reason || []), ...(dates?.reason || [])].filter((item, index, all) => all.indexOf(item) === index)
+
+  return (
+    <Card className="w-[min(440px,calc(100vw-2rem))] border-amber-200 bg-white/95 shadow-xl backdrop-blur-md" padding="p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-600">Optional trip improvement</p>
+          <h2 className="mt-1 text-base font-extrabold text-slate-900">{title}</h2>
+        </div>
+        <button type="button" onClick={onDismiss} className="rounded-full px-2 text-lg leading-none text-slate-400 hover:bg-slate-100" aria-label="Dismiss swap suggestion">×</button>
+      </div>
+      <div className="mt-3 space-y-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-700">
+        {destination && <p><span className="font-bold">Destination:</span> {destination.original_destination} → {destination.alternative_name || destination.alternative_destination}</p>}
+        {dates && <p><span className="font-bold">Dates:</span> {dateLabel(dates.original_dates?.[0])}–{dateLabel(dates.original_dates?.[1])} → {dateLabel(dates.alternative_dates?.[0])}–{dateLabel(dates.alternative_dates?.[1])}</p>}
+        {both && combined && <p className="font-bold text-emerald-700">Savings: ₹{Math.abs(Number(combined.budget_difference || 0)).toLocaleString('en-IN')} · Pressure: {Math.round((combined.pressure_before || 0) * 100)}% → {combined.pressure_after == null ? '—' : `${Math.round(combined.pressure_after * 100)}%`}</p>}
+        {!both && destination && <p>Pressure: {Math.round((destination.pressure_before || 0) * 100)}% → {destination.pressure_after == null ? '—' : `${Math.round(destination.pressure_after * 100)}%`} · Budget: {rupees(destination.budget_difference)}</p>}
+        {!both && dates && <p>Pressure: {Math.round((dates.pressure_before || 0) * 100)}% → {dates.pressure_after == null ? '—' : `${Math.round(dates.pressure_after * 100)}%`} · Budget: {rupees(dates.budget_difference)}</p>}
+      </div>
+      {reasons.length > 0 && <ul className="mt-3 list-disc space-y-1 pl-5 text-xs leading-5 text-slate-600">{reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <Button variant="secondary" onClick={onPreview}>Preview</Button>
+        <Button variant="primary" onClick={onApply}>Apply</Button>
+      </div>
+    </Card>
   )
 }

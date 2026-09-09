@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import api from '../../lib/api';
 import { useDestinationsStore } from '../../store/useDestinationsStore';
-import { scoreColor } from '../pressure/scoreColor';
+import { scoreColor, scoreLabel } from '../pressure/scoreColor';
 
 /**
- * PressureHeatmapLayer - Renders crowd pressure density across 36 destinations.
- * Supports `google.maps.visualization.HeatmapLayer` when available, and falls back
- * smoothly to styled `google.maps.Circle` pressure density overlays.
+ * PressureHeatmapLayer - Renders crowd pressure density across tracked destinations.
+ *
+ * Google retired `visualization.HeatmapLayer`, so this draws `google.maps.Circle`
+ * overlays instead. Colour and radius both encode the same 0..1 score, which on
+ * its own is unreadable -- a viewer sees overlapping blobs with no idea whether
+ * darker means busier or what "busy" is. So the circles are accompanied by:
+ *   - a legend naming the three bands in plain English,
+ *   - a click target on every circle giving that destination's actual number,
+ * because colour alone is never an acceptable sole signal.
  *
  * Props:
  * - map: google.maps.Map instance
@@ -14,8 +20,9 @@ import { scoreColor } from '../pressure/scoreColor';
  * - date: YYYY-MM-DD date string
  * - visible: boolean toggle state (Default: false)
  */
-export default function PressureHeatmapLayer({ map, mapsSDK, date = '2026-12-26', visible = false }) {
+export default function PressureHeatmapLayer({ map, mapsSDK, date, visible = false }) {
   const circlesRef = useRef([]);
+  const infoWindowRef = useRef(null);
   const [pressureData, setPressureData] = useState([]);
   const destinations = useDestinationsStore((state) => state.destinations);
   const fetchDestinations = useDestinationsStore((state) => state.fetchDestinations);
@@ -32,13 +39,14 @@ export default function PressureHeatmapLayer({ map, mapsSDK, date = '2026-12-26'
       if (c && typeof c.setMap === 'function') c.setMap(null);
     });
     circlesRef.current = [];
+    if (infoWindowRef.current) infoWindowRef.current.close();
   };
 
   useEffect(() => {
     fetchDestinations().catch((err) => console.error('[PressureHeatmapLayer] Failed to load destinations:', err));
   }, [fetchDestinations]);
 
-  // Step 2: Load date-specific pressure scores whenever `date` changes
+  // Load date-specific pressure scores whenever `date` changes.
   useEffect(() => {
     if (!date) return;
     let isMounted = true;
@@ -58,40 +66,56 @@ export default function PressureHeatmapLayer({ map, mapsSDK, date = '2026-12-26'
     };
   }, [date]);
 
-  // Step 3: Render pressure density circles. Google retired the
-  // visualization.HeatmapLayer API, so circles are the supported rendering
-  // path and avoid invoking a deprecated SDK constructor.
   useEffect(() => {
     if (!map || !mapsSDK) return;
-
     if (Object.keys(destinationsMap).length === 0) return;
 
-    // Render google.maps.Circle pressure overlays across all destinations.
     clearCircles();
+    if (!visible) return;
 
-    if (visible) {
-      pressureData.forEach((row) => {
-        const destCoords = destinationsMap[row.destId];
-        if (destCoords) {
-          const score = typeof row.score === 'number' ? row.score : null;
-          const color = scoreColor(score);
-          const isUnknown = score == null;
-
-          const circle = new mapsSDK.Circle({
-            strokeColor: color,
-            strokeOpacity: 0.8,
-            strokeWeight: 1.5,
-            fillColor: color,
-            fillOpacity: isUnknown ? 0.15 : 0.35,
-            map,
-            center: { lat: destCoords.lat, lng: destCoords.lng },
-            radius: isUnknown ? 15000 : Math.max(15000, score * 40000) // 15km to 40km density radius
-          });
-
-          circlesRef.current.push(circle);
-        }
-      });
+    if (!infoWindowRef.current) {
+      infoWindowRef.current = new mapsSDK.InfoWindow();
     }
+
+    pressureData.forEach((row) => {
+      const destCoords = destinationsMap[row.destId];
+      if (!destCoords) return;
+
+      const score = typeof row.score === 'number' ? row.score : null;
+      const color = scoreColor(score);
+      const isUnknown = score == null;
+      const center = { lat: destCoords.lat, lng: destCoords.lng };
+
+      const circle = new mapsSDK.Circle({
+        strokeColor: color,
+        strokeOpacity: 0.9,
+        strokeWeight: 1.5,
+        fillColor: color,
+        fillOpacity: isUnknown ? 0.12 : 0.34,
+        map,
+        center,
+        clickable: true,
+        radius: isUnknown ? 15000 : Math.max(15000, score * 40000), // 15km to 40km density radius
+      });
+
+      // Colour and size are comparative at best. A click gives the actual
+      // reading, named, so the layer is readable rather than merely pretty.
+      circle.addListener('click', () => {
+        const name = destCoords.displayName || row.destId;
+        const readout = isUnknown
+          ? 'No crowding data for this date'
+          : `${Math.round(score * 100)}% crowded &middot; ${scoreLabel(score)}`;
+        infoWindowRef.current.setContent(
+          `<div style="font:600 12px system-ui,sans-serif;color:#111827;padding:2px 4px">
+             ${name}<div style="font-weight:500;color:#4B5563;margin-top:2px">${readout}</div>
+           </div>`
+        );
+        infoWindowRef.current.setPosition(center);
+        infoWindowRef.current.open(map);
+      });
+
+      circlesRef.current.push(circle);
+    });
   }, [map, mapsSDK, destinationsMap, pressureData, visible]);
 
   // Cleanup on unmount
@@ -101,5 +125,35 @@ export default function PressureHeatmapLayer({ map, mapsSDK, date = '2026-12-26'
     };
   }, []);
 
-  return null;
+  if (!visible) return null;
+
+  const bands = [
+    { label: 'Calm', hint: 'under 35%', score: 0.15 },
+    { label: 'Moderate', hint: '35-60%', score: 0.5 },
+    { label: 'Crowded', hint: 'over 60%', score: 0.85 },
+  ];
+
+  return (
+    // Bottom-centre is the one free slot: the trip summary owns bottom-left,
+    // LayerControls bottom-right, RouteDetailsPanel the lower-left corner.
+    <div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-xl border border-slate-200 bg-white/92 px-3 py-2.5 shadow-md backdrop-blur-xs">
+      <p className="text-[10px] font-bold uppercase tracking-[.14em] text-slate-500">Crowd pressure</p>
+      <ul className="mt-1.5 space-y-1">
+        {bands.map((band) => (
+          <li key={band.label} className="flex items-center gap-2">
+            <span
+              className="h-3 w-3 shrink-0 rounded-full border border-white/60"
+              style={{ backgroundColor: scoreColor(band.score) }}
+              aria-hidden="true"
+            />
+            <span className="text-[11px] font-semibold text-slate-700">{band.label}</span>
+            <span className="text-[10px] text-slate-400">{band.hint}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-1.5 max-w-[168px] text-[10px] leading-3.5 text-slate-400">
+        Bigger, warmer circles are busier. Click one for its exact reading.
+      </p>
+    </div>
+  );
 }

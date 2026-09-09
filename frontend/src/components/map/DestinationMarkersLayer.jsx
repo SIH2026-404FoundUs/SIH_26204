@@ -11,7 +11,7 @@ import { useDestinationsStore } from '../../store/useDestinationsStore';
  * - selectedDestId: string ID of currently selected destination
  * - onSelectDestination: function(destId) callback when a destination pointer is clicked
  */
-export default function DestinationMarkersLayer({ map, mapsSDK, selectedDestId, onSelectDestination }) {
+export default function DestinationMarkersLayer({ map, mapsSDK, selectedDestId, highlightedDestId, onSelectDestination }) {
   const markersRef = useRef([]);
   const infoWindowRef = useRef(null);
   const destinations = useDestinationsStore((state) => state.destinations);
@@ -50,9 +50,10 @@ export default function DestinationMarkersLayer({ map, mapsSDK, selectedDestId, 
       if (!lat || !lng) return;
 
       const isSelected = (dest._id || dest.id) === selectedDestId;
+      const isHighlighted = (dest._id || dest.id) === highlightedDestId;
 
       // Custom SVG Pin with Lucide MapPin shape for Destination Pointer
-      const pinColor = isSelected ? '#4F46E5' : '#E11D48'; // Indigo when selected, Rose when default
+      const pinColor = isSelected ? '#4F46E5' : isHighlighted ? '#059669' : '#E11D48'; // Indigo selected, emerald preview, rose default
       const svgPin = `
         <svg width="20" height="26" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
           <filter id="sd" x="0" y="0" width="24" height="28" filterUnits="userSpaceOnUse">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Flame, Calendar, MapPin, Navigation, Route, Loader2, Hotel, Utensils, Wallet, Users, Search, Plus } from 'lucide-react';
+import { Flame, Calendar, MapPin, Navigation, Route, Loader2, Hotel, Utensils, Wallet, Users, Search, Plus, Sparkles } from 'lucide-react';
 import { useDestinationsStore } from '../../store/useDestinationsStore';
 import TravelModeSelector from './TravelModeSelector';
 
@@ -35,7 +35,8 @@ export default function MapControls({
   onSearchAddStop,
   isSearchingStop = false,
   onDirectPlanTrip,
-  isPlanning = false
+  isPlanning = false,
+  plannerStage = ''
 }) {
   const destinations = useDestinationsStore((state) => state.destinations);
   const fetchDestinations = useDestinationsStore((state) => state.fetchDestinations);
@@ -67,7 +68,7 @@ export default function MapControls({
   };
 
   return (
-    <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex flex-col gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 p-2 shadow-lg backdrop-blur-md transition-all w-[96vw] max-w-6xl">
+    <div className="absolute top-3 left-1/2 z-10 flex w-[96vw] max-w-6xl -translate-x-1/2 flex-col gap-1.5 rounded-[20px] border border-white/50 bg-white/80 p-2.5 shadow-[0_20px_60px_rgba(0,0,0,.08)] backdrop-blur-2xl transition-all">
       {/* Row 1: Parameters (From, To, Dates, Budget, Travellers, Search Place Stop) */}
       <div className="flex items-center justify-between gap-1.5 text-xs overflow-x-auto no-scrollbar py-0.5">
         <div className="flex items-center gap-1.5 shrink-0">
@@ -186,6 +187,16 @@ export default function MapControls({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+          <button
+            type="button"
+            onClick={() => onFetchRoute && onFetchRoute()}
+            disabled={isFetchingRoute || !destId}
+            className="flex items-center gap-1 rounded-lg border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-700 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isFetchingRoute ? <Loader2 size={12} className="animate-spin" /> : <Route size={12} />}
+            <span>Route</span>
+          </button>
+
           {/* Pressure Heatmap Toggle */}
           <button
             type="button"
@@ -256,10 +267,11 @@ export default function MapControls({
             {isPlanning ? (
               <>
                 <Loader2 size={13} className="animate-spin" />
-                <span>Checking Crowding...</span>
+                <span>{plannerStage || 'Planning...'}</span>
               </>
             ) : (
               <>
+                <Sparkles size={13} />
                 <span>🗺️ Plan Trip</span>
               </>
             )}
