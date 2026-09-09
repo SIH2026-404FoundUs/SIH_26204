@@ -44,6 +44,17 @@ export function submissionStatus(status) {
   return SUBMISSION_STATUS[status] || { label: status, tone: 'neutral' }
 }
 
+export const BOOKING_STATUS = {
+  pending: { label: 'Request sent', tone: 'warning' },
+  confirmed: { label: 'Confirmed', tone: 'success' },
+  declined: { label: 'Declined', tone: 'danger' },
+  cancelled: { label: 'Cancelled', tone: 'neutral' },
+}
+
+export function bookingStatus(status) {
+  return BOOKING_STATUS[status] || { label: status, tone: 'neutral' }
+}
+
 export const ALERT_SEVERITY = {
   info: { label: 'Informational', tone: 'neutral' },
   warning: { label: 'Warning', tone: 'warning' },
