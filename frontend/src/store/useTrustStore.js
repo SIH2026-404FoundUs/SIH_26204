@@ -113,6 +113,37 @@ export const useTrustStore = create((set, get) => ({
     }
   },
 
+  // Like/dislike a forum post -- optimistic update against the local list
+  // (the server response carries the real counts/myReaction right back, so
+  // this settles to the true state within one round trip either way).
+  reactToPost: async (postId, reaction) => {
+    const prevPosts = get().forumPosts
+    set({
+      forumPosts: prevPosts.map((p) => {
+        if (p._id !== postId) return p
+        const prevReaction = p.myReaction
+        const nextReaction = prevReaction === reaction ? null : reaction // clicking the active reaction un-votes
+        let likeCount = p.likeCount || 0
+        let dislikeCount = p.dislikeCount || 0
+        if (prevReaction === 'like') likeCount--
+        if (prevReaction === 'dislike') dislikeCount--
+        if (nextReaction === 'like') likeCount++
+        if (nextReaction === 'dislike') dislikeCount++
+        return { ...p, myReaction: nextReaction, likeCount, dislikeCount }
+      }),
+    })
+    try {
+      const res = await api.post(`/community/submissions/${postId}/react`, { reaction })
+      set({
+        forumPosts: get().forumPosts.map((p) =>
+          p._id === postId ? { ...p, likeCount: res.data.likeCount, dislikeCount: res.data.dislikeCount, myReaction: res.data.myReaction } : p
+        ),
+      })
+    } catch (error) {
+      set({ forumPosts: prevPosts, forumError: getErrorMessage(error, 'Could not save your reaction') }) // roll back on failure
+    }
+  },
+
   nearbySuggestionCount: null,
   fetchNearbySuggestionCount: async (destId) => {
     if (!destId) return

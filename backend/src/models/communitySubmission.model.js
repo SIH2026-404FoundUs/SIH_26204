@@ -31,6 +31,13 @@ const communitySubmissionSchema = new mongoose.Schema(
     rejectedByAdminId: String,
     rejectedAt: Date,
     rejectionReason: String,
+    // Community Forum like/dislike -- userIds only (never exposed directly;
+    // the API only ever returns counts + the viewer's own reaction), one
+    // vote per user, mutually exclusive (liking removes an existing
+    // dislike and vice versa). Plain string arrays, same pattern as
+    // Waitlist's declinedDestinations elsewhere in this codebase.
+    likedBy: { type: [String], default: [] },
+    dislikedBy: { type: [String], default: [] },
   },
   { timestamps: true }
 );

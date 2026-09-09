@@ -444,7 +444,7 @@ export const NEARBY_SUGGESTION_RADIUS_KM = 30;
  * traveller-facing view, preserving the existing moderation workflow
  * rather than turning this into a second, unmoderated publishing path.
  */
-export async function getApprovedSubmissions({ state, limit } = {}, models = {}) {
+export async function getApprovedSubmissions({ state, limit, viewerUserId } = {}, models = {}) {
   const { CommunitySubmissionModel } = models;
   if (!CommunitySubmissionModel || typeof CommunitySubmissionModel.find !== "function") {
     return [];
@@ -456,7 +456,88 @@ export async function getApprovedSubmissions({ state, limit } = {}, models = {})
     .select("-userId")
     .sort({ approvedAt: -1, createdAt: -1 });
   if (limit) query.limit(Number(limit));
-  return query;
+  const docs = await query;
+
+  // Reshape likedBy/dislikedBy into counts + this viewer's own reaction --
+  // the raw userId arrays never leave this function, keeping the forum
+  // anonymous the same way userId itself is already excluded above.
+  const uid = viewerUserId ? String(viewerUserId) : null;
+  return docs.map((doc) => {
+    const obj = doc.toObject();
+    const likedBy = obj.likedBy || [];
+    const dislikedBy = obj.dislikedBy || [];
+    delete obj.likedBy;
+    delete obj.dislikedBy;
+    return {
+      ...obj,
+      likeCount: likedBy.length,
+      dislikeCount: dislikedBy.length,
+      myReaction: uid ? (likedBy.includes(uid) ? "like" : dislikedBy.includes(uid) ? "dislike" : null) : null,
+    };
+  });
+}
+
+/**
+ * Like or dislike an approved Community Forum submission. One vote per
+ * user, mutually exclusive -- liking removes an existing dislike from the
+ * same user and vice versa; clicking the same reaction again un-votes.
+ * Only ever acts on "approved" submissions -- nothing still in the review
+ * queue is reachable from the forum, so there's nothing to react to there.
+ *
+ * @param {string} submissionId - Target submission ID.
+ * @param {string} userId - Reacting user's ID.
+ * @param {string} reaction - "like" | "dislike".
+ * @param {Object} [models] - Database models (CommunitySubmissionModel).
+ * @returns {Promise<Object>} Result with updated counts + the user's own reaction.
+ */
+export async function reactToSubmission(submissionId, userId, reaction, models = {}) {
+  const { CommunitySubmissionModel } = models;
+
+  if (!submissionId || !userId || !["like", "dislike"].includes(reaction)) {
+    return {
+      success: false,
+      status: 400,
+      error: "INVALID_REACTION",
+      message: "reaction must be 'like' or 'dislike'",
+    };
+  }
+  if (!CommunitySubmissionModel || typeof CommunitySubmissionModel.findById !== "function") {
+    return { success: false, status: 500, error: "MODEL_UNAVAILABLE", message: "Could not react to submission" };
+  }
+
+  const submission = await CommunitySubmissionModel.findById(submissionId);
+  if (!submission || submission.status !== "approved") {
+    return {
+      success: false,
+      status: 404,
+      error: "SUBMISSION_NOT_FOUND",
+      message: "Approved submission not found",
+    };
+  }
+
+  const uid = String(userId);
+  const likedBy = submission.likedBy || [];
+  const dislikedBy = submission.dislikedBy || [];
+  const alreadyLiked = likedBy.includes(uid);
+  const alreadyDisliked = dislikedBy.includes(uid);
+
+  if (reaction === "like") {
+    submission.likedBy = alreadyLiked ? likedBy.filter((id) => id !== uid) : [...likedBy, uid];
+    submission.dislikedBy = dislikedBy.filter((id) => id !== uid);
+  } else {
+    submission.dislikedBy = alreadyDisliked ? dislikedBy.filter((id) => id !== uid) : [...dislikedBy, uid];
+    submission.likedBy = likedBy.filter((id) => id !== uid);
+  }
+
+  await submission.save();
+
+  return {
+    success: true,
+    status: 200,
+    likeCount: submission.likedBy.length,
+    dislikeCount: submission.dislikedBy.length,
+    myReaction: submission.likedBy.includes(uid) ? "like" : submission.dislikedBy.includes(uid) ? "dislike" : null,
+  };
 }
 
 /**

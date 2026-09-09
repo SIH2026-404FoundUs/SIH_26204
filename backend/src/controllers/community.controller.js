@@ -6,6 +6,7 @@ import {
   getUserSubmissions,
   getApprovedSubmissions,
   countNearbySuggestions,
+  reactToSubmission,
 } from "../services/community/communityService.js";
 import { getDestination } from "../services/pressure/seed.js";
 import Visit from "../models/visit.model.js";
@@ -125,14 +126,36 @@ export const reviewSubmissionController = async (req, res) => {
 // GET /community/submissions/approved?state=&limit= — public Community Forum
 // feed (spec: travellers see what other users have suggested, anonymous,
 // filterable by state). No auth required -- same public-read posture as
-// GET /v1/businesses/search, GET /v1/alerts, GET /api/destinations.
+// GET /v1/businesses/search, GET /v1/alerts, GET /api/destinations. Mounted
+// behind optionalAuth (not protectRoute) so it stays reachable logged-out
+// (the landing page's "suggested places" section needs that), but a
+// logged-in viewer's own like/dislike still comes back on each post.
 export const getApprovedSubmissionsController = async (req, res) => {
   try {
     const { state, limit } = req.query;
-    const submissions = await getApprovedSubmissions({ state, limit }, models);
+    const submissions = await getApprovedSubmissions(
+      { state, limit, viewerUserId: req.user ? String(req.user._id) : null },
+      models
+    );
     res.status(200).json(submissions);
   } catch (error) {
     console.log("Error in getApprovedSubmissions controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// POST /community/submissions/:id/react  { reaction: "like"|"dislike" } --
+// Community Forum like/dislike. Requires a real signed-in user (unlike the
+// GET above) since a vote has to be attributable to exactly one account to
+// be worth anything; every authenticated role may react, not just
+// travellers, matching /forum's own RequireAuth (not RequireRole) gate.
+export const reactToSubmissionController = async (req, res) => {
+  try {
+    const { reaction } = req.body;
+    const result = await reactToSubmission(req.params.id, String(req.user._id), reaction, models);
+    res.status(result.status).json(result);
+  } catch (error) {
+    console.log("Error in reactToSubmission controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
