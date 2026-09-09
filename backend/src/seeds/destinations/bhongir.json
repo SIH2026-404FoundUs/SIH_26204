@@ -1,26 +1,39 @@
 {
   "_id": "bhongir",
-  "displayName": "Bhongir",
+  "displayName": "Bhongir Fort, Telangana",
   "state": "TG",
   "location": {
     "lat": 17.512,
     "lng": 78.885
   },
-  "nearestRailhead": "bhongir",
+  "attrs": {
+    "snow": 0.0,
+    "trek": 0.6,
+    "riverside": 0.1,
+    "heritage": 0.8,
+    "nightlife": 0.1,
+    "food": 0.4,
+    "wildlife": 0.2,
+    "spiritual": 0.3
+  },
+  "nearestRailhead": "BG",
+  "railheadDistanceKm": 2,
   "railSignalConfidence": 0.7,
   "roadAccess": {
-    "corridor": "hyderabad-bhongir"
+    "operators": [
+      "TSRTC"
+    ],
+    "corridor": "Hyderabad-Bhongir-Yadadri",
+    "boardingPoint": "Jubilee Bus Station"
   },
+  "nearestAirport": "HYD",
   "capacityPrior": 0.35,
   "baseline": {
     "railWL": 18,
-    "roadSeatsAvail": 0.5,
+    "roadSeatsAvail": 350,
     "hotelMedianINR": 1600
   },
-  "expectedSupply": 150,
   "trackingTier": "tracked",
-  "demoCorridor": false,
-  "provenance": "placeholder-sathvik (Ananya owns final seed)",
-  "demandPrior": 0.3,
-  "trains": []
+  "googlePlaceId": "ChIJ_bhongir_tg",
+  "seededAt": "2026-09-10"
 }

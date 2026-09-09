@@ -1,169 +1,30 @@
 [
   {
-    "_id": "biz_shimla_homestay_01",
-    "destId": "shimla",
-    "name": "Shimla Local Homestay 1",
+    "_id": "biz_alampur_jogulamba_homestay_01",
+    "destId": "alampur-jogulamba",
+    "name": "Alampur Heritage Homestay",
     "type": "homestay",
     "ownerPhone": "+919876500001",
     "languages": [
-      "hi",
-      "en"
-    ],
-    "capacity": 3,
-    "priceRangeINR": {
-      "min": 850,
-      "max": 1600
-    },
-    "amenities": [
-      "hot water",
-      "parking",
-      "wifi"
-    ],
-    "meals": [
-      "breakfast"
-    ],
-    "nearestLandmark": "Main Chowk Shimla",
-    "photos": [],
-    "onboardedVia": "seed",
-    "verificationTier": "self-declared",
-    "registrationStatus": "not-started",
-    "visitCount": 0
-  },
-  {
-    "_id": "biz_manali_guesthouse_02",
-    "destId": "manali",
-    "name": "Manali Local Guesthouse 2",
-    "type": "guesthouse",
-    "ownerPhone": "+919876500002",
-    "languages": [
-      "hi",
-      "en"
-    ],
-    "capacity": 4,
-    "priceRangeINR": {
-      "min": 900,
-      "max": 1700
-    },
-    "amenities": [
-      "hot water",
-      "parking",
-      "wifi"
-    ],
-    "meals": [
-      "breakfast"
-    ],
-    "nearestLandmark": "Main Chowk Manali",
-    "photos": [],
-    "onboardedVia": "seed",
-    "verificationTier": "self-declared",
-    "registrationStatus": "not-started",
-    "visitCount": 0
-  },
-  {
-    "_id": "biz_kasol_guide_03",
-    "destId": "kasol",
-    "name": "Kasol Local Guide 3",
-    "type": "guide",
-    "ownerPhone": "+919876500003",
-    "languages": [
-      "hi",
-      "en"
-    ],
-    "capacity": 5,
-    "priceRangeINR": {
-      "min": 950,
-      "max": 1800
-    },
-    "amenities": [
-      "guided tour",
-      "local insights"
-    ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Kasol",
-    "photos": [],
-    "onboardedVia": "seed",
-    "verificationTier": "self-declared",
-    "registrationStatus": "not-started",
-    "visitCount": 0
-  },
-  {
-    "_id": "biz_jibhi_driver_04",
-    "destId": "jibhi",
-    "name": "Jibhi Local Driver 4",
-    "type": "driver",
-    "ownerPhone": "+919876500004",
-    "languages": [
-      "hi",
-      "en"
-    ],
-    "capacity": 6,
-    "priceRangeINR": {
-      "min": 1000,
-      "max": 1900
-    },
-    "amenities": [
-      "guided tour",
-      "local insights"
-    ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Jibhi",
-    "photos": [],
-    "onboardedVia": "seed",
-    "verificationTier": "self-declared",
-    "registrationStatus": "not-started",
-    "visitCount": 0
-  },
-  {
-    "_id": "biz_tirthan-valley_cook_05",
-    "destId": "tirthan-valley",
-    "name": "Tirthan Valley Local Cook 5",
-    "type": "cook",
-    "ownerPhone": "+919876500005",
-    "languages": [
-      "hi",
-      "en"
-    ],
-    "capacity": 7,
-    "priceRangeINR": {
-      "min": 1050,
-      "max": 2000
-    },
-    "amenities": [
-      "guided tour",
-      "local insights"
-    ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Tirthan-Valley",
-    "photos": [],
-    "onboardedVia": "seed",
-    "verificationTier": "self-declared",
-    "registrationStatus": "not-started",
-    "visitCount": 0
-  },
-  {
-    "_id": "biz_dharamshala_homestay_06",
-    "destId": "dharamshala",
-    "name": "Dharamshala Local Homestay 6",
-    "type": "homestay",
-    "ownerPhone": "+919876500006",
-    "languages": [
-      "hi",
-      "en"
+      "te",
+      "en",
+      "hi"
     ],
     "capacity": 2,
     "priceRangeINR": {
-      "min": 1100,
-      "max": 2100
+      "min": 1259,
+      "max": 3078
     },
     "amenities": [
-      "hot water",
-      "parking",
-      "wifi"
+      "power backup",
+      "room service",
+      "garden"
     ],
     "meals": [
-      "breakfast"
+      "breakfast",
+      "lunch"
     ],
-    "nearestLandmark": "Main Chowk Dharamshala",
+    "nearestLandmark": "Main Market Alampur",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -171,29 +32,58 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_mcleodganj_guesthouse_07",
-    "destId": "mcleodganj",
-    "name": "Mcleodganj Local Guesthouse 7",
-    "type": "guesthouse",
-    "ownerPhone": "+919876500007",
+    "_id": "biz_alampur_jogulamba_driver_02",
+    "destId": "alampur-jogulamba",
+    "name": "Alampur Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500002",
     "languages": [
-      "hi",
-      "en"
+      "te",
+      "hi"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 558,
+      "max": 1769
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "Alampur Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_ananthagiri_hills_homestay_01",
+    "destId": "ananthagiri-hills",
+    "name": "Ananthagiri Hills Heritage Homestay",
+    "type": "homestay",
+    "ownerPhone": "+919876500003",
+    "languages": [
+      "te",
+      "en",
+      "hi"
     ],
     "capacity": 3,
     "priceRangeINR": {
-      "min": 1150,
-      "max": 2200
+      "min": 881,
+      "max": 2595
     },
     "amenities": [
-      "hot water",
+      "wifi",
       "parking",
-      "wifi"
+      "power backup"
     ],
     "meals": [
-      "breakfast"
+      "breakfast",
+      "lunch"
     ],
-    "nearestLandmark": "Main Chowk Mcleodganj",
+    "nearestLandmark": "Main Market Ananthagiri Hills",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -201,26 +91,26 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_dalhousie_guide_08",
-    "destId": "dalhousie",
-    "name": "Dalhousie Local Guide 8",
-    "type": "guide",
-    "ownerPhone": "+919876500008",
+    "_id": "biz_ananthagiri_hills_driver_02",
+    "destId": "ananthagiri-hills",
+    "name": "Ananthagiri Hills Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500004",
     "languages": [
-      "hi",
-      "en"
+      "te",
+      "hi"
     ],
-    "capacity": 4,
+    "capacity": 3,
     "priceRangeINR": {
-      "min": 1200,
-      "max": 2300
+      "min": 698,
+      "max": 2274
     },
     "amenities": [
-      "guided tour",
-      "local insights"
+      "ac vehicle",
+      "clean seating"
     ],
     "meals": [],
-    "nearestLandmark": "Main Chowk Dalhousie",
+    "nearestLandmark": "Ananthagiri Hills Bus Stand",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -228,26 +118,151 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_spiti-kaza_driver_09",
-    "destId": "spiti-kaza",
-    "name": "Spiti Kaza Local Driver 9",
+    "_id": "biz_bhadrachalam_guesthouse_01",
+    "destId": "bhadrachalam",
+    "name": "Bhadrachalam Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500005",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 1096,
+      "max": 2083
+    },
+    "amenities": [
+      "wifi",
+      "ac",
+      "mountain view"
+    ],
+    "meals": [
+      "lunch",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Bhadrachalam",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_bhadrachalam_cook_02",
+    "destId": "bhadrachalam",
+    "name": "Bhadrachalam Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500006",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 1000,
+      "max": 1616
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Bhadrachalam Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_bhongir_guesthouse_01",
+    "destId": "bhongir",
+    "name": "Bhongir Fort Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500007",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 6,
+    "priceRangeINR": {
+      "min": 833,
+      "max": 2672
+    },
+    "amenities": [
+      "ac",
+      "room service",
+      "parking"
+    ],
+    "meals": [
+      "tea/snacks",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Bhongir Fort",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_bhongir_driver_02",
+    "destId": "bhongir",
+    "name": "Bhongir Fort Local Driver Services",
     "type": "driver",
+    "ownerPhone": "+919876500008",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 907,
+      "max": 1534
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "Bhongir Fort Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_bir_billing_homestay_01",
+    "destId": "bir-billing",
+    "name": "Bir Billing Heritage Homestay",
+    "type": "homestay",
     "ownerPhone": "+919876500009",
     "languages": [
       "hi",
       "en"
     ],
-    "capacity": 5,
+    "capacity": 4,
     "priceRangeINR": {
-      "min": 1250,
-      "max": 2400
+      "min": 930,
+      "max": 2771
     },
     "amenities": [
-      "guided tour",
-      "local insights"
+      "hot water",
+      "mountain view",
+      "parking"
     ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Spiti-Kaza",
+    "meals": [
+      "lunch",
+      "tea/snacks"
+    ],
+    "nearestLandmark": "Main Market Bir Billing",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -255,26 +270,26 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_bir-billing_cook_10",
+    "_id": "biz_bir_billing_driver_02",
     "destId": "bir-billing",
-    "name": "Bir Billing Local Cook 10",
-    "type": "cook",
+    "name": "Bir Billing Local Driver Services",
+    "type": "driver",
     "ownerPhone": "+919876500010",
     "languages": [
       "hi",
       "en"
     ],
-    "capacity": 6,
+    "capacity": 1,
     "priceRangeINR": {
-      "min": 1300,
-      "max": 2500
+      "min": 680,
+      "max": 2232
     },
     "amenities": [
-      "guided tour",
-      "local insights"
+      "ac vehicle",
+      "clean seating"
     ],
     "meals": [],
-    "nearestLandmark": "Main Chowk Bir-Billing",
+    "nearestLandmark": "Bir Billing Bus Stand",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -282,99 +297,11 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_kasauli_homestay_11",
-    "destId": "kasauli",
-    "name": "Kasauli Local Homestay 11",
+    "_id": "biz_bogatha_waterfalls_homestay_01",
+    "destId": "bogatha-waterfalls",
+    "name": "Bogatha Waterfalls Heritage Homestay",
     "type": "homestay",
     "ownerPhone": "+919876500011",
-    "languages": [
-      "hi",
-      "en"
-    ],
-    "capacity": 7,
-    "priceRangeINR": {
-      "min": 1350,
-      "max": 2600
-    },
-    "amenities": [
-      "hot water",
-      "parking",
-      "wifi"
-    ],
-    "meals": [
-      "breakfast"
-    ],
-    "nearestLandmark": "Main Chowk Kasauli",
-    "photos": [],
-    "onboardedVia": "seed",
-    "verificationTier": "self-declared",
-    "registrationStatus": "not-started",
-    "visitCount": 0
-  },
-  {
-    "_id": "biz_chail_guesthouse_12",
-    "destId": "chail",
-    "name": "Chail Local Guesthouse 12",
-    "type": "guesthouse",
-    "ownerPhone": "+919876500012",
-    "languages": [
-      "hi",
-      "en"
-    ],
-    "capacity": 2,
-    "priceRangeINR": {
-      "min": 1400,
-      "max": 2700
-    },
-    "amenities": [
-      "hot water",
-      "parking",
-      "wifi"
-    ],
-    "meals": [
-      "breakfast"
-    ],
-    "nearestLandmark": "Main Chowk Chail",
-    "photos": [],
-    "onboardedVia": "seed",
-    "verificationTier": "self-declared",
-    "registrationStatus": "not-started",
-    "visitCount": 0
-  },
-  {
-    "_id": "biz_charminar-hyderabad_guide_13",
-    "destId": "charminar-hyderabad",
-    "name": "Charminar Hyderabad Local Guide 13",
-    "type": "guide",
-    "ownerPhone": "+919876500013",
-    "languages": [
-      "te",
-      "en",
-      "hi"
-    ],
-    "capacity": 3,
-    "priceRangeINR": {
-      "min": 1450,
-      "max": 2800
-    },
-    "amenities": [
-      "guided tour",
-      "local insights"
-    ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Charminar-Hyderabad",
-    "photos": [],
-    "onboardedVia": "seed",
-    "verificationTier": "self-declared",
-    "registrationStatus": "not-started",
-    "visitCount": 0
-  },
-  {
-    "_id": "biz_golconda-hyderabad_driver_14",
-    "destId": "golconda-hyderabad",
-    "name": "Golconda Hyderabad Local Driver 14",
-    "type": "driver",
-    "ownerPhone": "+919876500014",
     "languages": [
       "te",
       "en",
@@ -382,15 +309,19 @@
     ],
     "capacity": 4,
     "priceRangeINR": {
-      "min": 1500,
-      "max": 2900
+      "min": 1454,
+      "max": 2980
     },
     "amenities": [
-      "guided tour",
-      "local insights"
+      "garden",
+      "mountain view",
+      "ac"
     ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Golconda-Hyderabad",
+    "meals": [
+      "tea/snacks",
+      "dinner"
+    ],
+    "nearestLandmark": "Main Market Bogatha Waterfalls",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -398,56 +329,116 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_warangal-fort_cook_15",
-    "destId": "warangal-fort",
-    "name": "Warangal Fort Local Cook 15",
-    "type": "cook",
+    "_id": "biz_bogatha_waterfalls_guide_02",
+    "destId": "bogatha-waterfalls",
+    "name": "Bogatha Waterfalls Local Guide Services",
+    "type": "guide",
+    "ownerPhone": "+919876500012",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 611,
+      "max": 1300
+    },
+    "amenities": [
+      "local guidance",
+      "flexible timing"
+    ],
+    "meals": [],
+    "nearestLandmark": "Bogatha Waterfalls Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_chail_guesthouse_01",
+    "destId": "chail",
+    "name": "Chail Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500013",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 946,
+      "max": 2304
+    },
+    "amenities": [
+      "wifi",
+      "hot water",
+      "power backup"
+    ],
+    "meals": [
+      "tea/snacks",
+      "lunch"
+    ],
+    "nearestLandmark": "Main Market Chail",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_chail_guide_02",
+    "destId": "chail",
+    "name": "Chail Local Guide Services",
+    "type": "guide",
+    "ownerPhone": "+919876500014",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 766,
+      "max": 2020
+    },
+    "amenities": [
+      "local guidance",
+      "flexible timing"
+    ],
+    "meals": [],
+    "nearestLandmark": "Chail Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_charminar_hyderabad_guesthouse_01",
+    "destId": "charminar-hyderabad",
+    "name": "Charminar Heritage Guesthouse",
+    "type": "guesthouse",
     "ownerPhone": "+919876500015",
     "languages": [
-      "hi",
-      "en"
-    ],
-    "capacity": 5,
-    "priceRangeINR": {
-      "min": 1550,
-      "max": 3000
-    },
-    "amenities": [
-      "guided tour",
-      "local insights"
-    ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Warangal-Fort",
-    "photos": [],
-    "onboardedVia": "seed",
-    "verificationTier": "self-declared",
-    "registrationStatus": "not-started",
-    "visitCount": 0
-  },
-  {
-    "_id": "biz_ramappa-temple_homestay_16",
-    "destId": "ramappa-temple",
-    "name": "Ramappa Temple Local Homestay 16",
-    "type": "homestay",
-    "ownerPhone": "+919876500016",
-    "languages": [
-      "hi",
-      "en"
+      "te",
+      "en",
+      "hi"
     ],
     "capacity": 6,
     "priceRangeINR": {
-      "min": 1600,
-      "max": 3100
+      "min": 1463,
+      "max": 2795
     },
     "amenities": [
-      "hot water",
       "parking",
-      "wifi"
+      "power backup",
+      "room service"
     ],
     "meals": [
+      "dinner",
       "breakfast"
     ],
-    "nearestLandmark": "Main Chowk Ramappa-Temple",
+    "nearestLandmark": "Main Market Charminar",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -455,29 +446,57 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_laknavaram-lake_guesthouse_17",
-    "destId": "laknavaram-lake",
-    "name": "Laknavaram Lake Local Guesthouse 17",
+    "_id": "biz_charminar_hyderabad_driver_02",
+    "destId": "charminar-hyderabad",
+    "name": "Charminar Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500016",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 1,
+    "priceRangeINR": {
+      "min": 850,
+      "max": 2301
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "Charminar Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_chhitkul_guesthouse_01",
+    "destId": "chhitkul",
+    "name": "Chhitkul Heritage Guesthouse",
     "type": "guesthouse",
     "ownerPhone": "+919876500017",
     "languages": [
       "hi",
       "en"
     ],
-    "capacity": 7,
+    "capacity": 2,
     "priceRangeINR": {
-      "min": 1650,
-      "max": 3200
+      "min": 1053,
+      "max": 2675
     },
     "amenities": [
-      "hot water",
-      "parking",
-      "wifi"
+      "power backup",
+      "wifi",
+      "mountain view"
     ],
     "meals": [
-      "breakfast"
+      "lunch",
+      "dinner"
     ],
-    "nearestLandmark": "Main Chowk Laknavaram-Lake",
+    "nearestLandmark": "Main Market Chhitkul",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -485,26 +504,29 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_nagarjuna-sagar_guide_18",
-    "destId": "nagarjuna-sagar",
-    "name": "Nagarjuna Sagar Local Guide 18",
-    "type": "guide",
+    "_id": "biz_chhitkul_cook_02",
+    "destId": "chhitkul",
+    "name": "Chhitkul Local Cook Services",
+    "type": "cook",
     "ownerPhone": "+919876500018",
     "languages": [
       "hi",
       "en"
     ],
-    "capacity": 2,
+    "capacity": 4,
     "priceRangeINR": {
-      "min": 1700,
-      "max": 3300
+      "min": 541,
+      "max": 1520
     },
     "amenities": [
-      "guided tour",
-      "local insights"
+      "authentic local cuisine",
+      "hygiene certified"
     ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Nagarjuna-Sagar",
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Chhitkul Bus Stand",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -512,26 +534,30 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_kuntala-waterfalls_driver_19",
-    "destId": "kuntala-waterfalls",
-    "name": "Kuntala Waterfalls Local Driver 19",
-    "type": "driver",
+    "_id": "biz_dalhousie_homestay_01",
+    "destId": "dalhousie",
+    "name": "Dalhousie Heritage Homestay",
+    "type": "homestay",
     "ownerPhone": "+919876500019",
     "languages": [
       "hi",
       "en"
     ],
-    "capacity": 3,
+    "capacity": 2,
     "priceRangeINR": {
-      "min": 1750,
-      "max": 3400
+      "min": 1370,
+      "max": 3059
     },
     "amenities": [
-      "guided tour",
-      "local insights"
+      "garden",
+      "parking",
+      "room service"
     ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Kuntala-Waterfalls",
+    "meals": [
+      "tea/snacks",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Dalhousie",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -539,26 +565,26 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_bhadrachalam_cook_20",
-    "destId": "bhadrachalam",
-    "name": "Bhadrachalam Local Cook 20",
-    "type": "cook",
+    "_id": "biz_dalhousie_guide_02",
+    "destId": "dalhousie",
+    "name": "Dalhousie Local Guide Services",
+    "type": "guide",
     "ownerPhone": "+919876500020",
     "languages": [
       "hi",
       "en"
     ],
-    "capacity": 4,
+    "capacity": 1,
     "priceRangeINR": {
-      "min": 1800,
-      "max": 3500
+      "min": 738,
+      "max": 2404
     },
     "amenities": [
-      "guided tour",
-      "local insights"
+      "local guidance",
+      "flexible timing"
     ],
     "meals": [],
-    "nearestLandmark": "Main Chowk Bhadrachalam",
+    "nearestLandmark": "Dalhousie Bus Stand",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -566,29 +592,30 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_yadapalli-yadadri_homestay_21",
-    "destId": "yadapalli-yadadri",
-    "name": "Yadapalli Yadadri Local Homestay 21",
-    "type": "homestay",
+    "_id": "biz_dharamshala_guesthouse_01",
+    "destId": "dharamshala",
+    "name": "Dharamshala Heritage Guesthouse",
+    "type": "guesthouse",
     "ownerPhone": "+919876500021",
     "languages": [
       "hi",
       "en"
     ],
-    "capacity": 5,
+    "capacity": 4,
     "priceRangeINR": {
-      "min": 1850,
-      "max": 3600
+      "min": 1339,
+      "max": 1705
     },
     "amenities": [
-      "hot water",
-      "parking",
-      "wifi"
+      "garden",
+      "power backup",
+      "parking"
     ],
     "meals": [
-      "breakfast"
+      "dinner",
+      "lunch"
     ],
-    "nearestLandmark": "Main Chowk Yadapalli-Yadadri",
+    "nearestLandmark": "Main Market Dharamshala",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -596,110 +623,26 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_ananthagiri-hills_guesthouse_22",
-    "destId": "ananthagiri-hills",
-    "name": "Ananthagiri Hills Local Guesthouse 22",
-    "type": "guesthouse",
-    "ownerPhone": "+919876500022",
-    "languages": [
-      "hi",
-      "en"
-    ],
-    "capacity": 6,
-    "priceRangeINR": {
-      "min": 1900,
-      "max": 3700
-    },
-    "amenities": [
-      "hot water",
-      "parking",
-      "wifi"
-    ],
-    "meals": [
-      "breakfast"
-    ],
-    "nearestLandmark": "Main Chowk Ananthagiri-Hills",
-    "photos": [],
-    "onboardedVia": "seed",
-    "verificationTier": "self-declared",
-    "registrationStatus": "not-started",
-    "visitCount": 0
-  },
-  {
-    "_id": "biz_shimla_guide_23",
-    "destId": "shimla",
-    "name": "Shimla Local Guide 23",
+    "_id": "biz_dharamshala_guide_02",
+    "destId": "dharamshala",
+    "name": "Dharamshala Local Guide Services",
     "type": "guide",
-    "ownerPhone": "+919876500023",
-    "languages": [
-      "hi",
-      "en"
-    ],
-    "capacity": 7,
-    "priceRangeINR": {
-      "min": 1950,
-      "max": 3800
-    },
-    "amenities": [
-      "guided tour",
-      "local insights"
-    ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Shimla",
-    "photos": [],
-    "onboardedVia": "seed",
-    "verificationTier": "self-declared",
-    "registrationStatus": "not-started",
-    "visitCount": 0
-  },
-  {
-    "_id": "biz_manali_driver_24",
-    "destId": "manali",
-    "name": "Manali Local Driver 24",
-    "type": "driver",
-    "ownerPhone": "+919876500024",
-    "languages": [
-      "hi",
-      "en"
-    ],
-    "capacity": 2,
-    "priceRangeINR": {
-      "min": 2000,
-      "max": 3900
-    },
-    "amenities": [
-      "guided tour",
-      "local insights"
-    ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Manali",
-    "photos": [],
-    "onboardedVia": "seed",
-    "verificationTier": "self-declared",
-    "registrationStatus": "not-started",
-    "visitCount": 0
-  },
-  {
-    "_id": "biz_kasol_cook_25",
-    "destId": "kasol",
-    "name": "Kasol Local Cook 25",
-    "type": "cook",
-    "ownerPhone": "+919876500025",
+    "ownerPhone": "+919876500022",
     "languages": [
       "hi",
       "en"
     ],
     "capacity": 3,
     "priceRangeINR": {
-      "min": 2050,
-      "max": 4000
+      "min": 716,
+      "max": 1256
     },
     "amenities": [
-      "guided tour",
-      "local insights"
+      "local guidance",
+      "flexible timing"
     ],
     "meals": [],
-    "nearestLandmark": "Main Chowk Kasol",
+    "nearestLandmark": "Dharamshala Bus Stand",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -707,29 +650,31 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_jibhi_homestay_26",
-    "destId": "jibhi",
-    "name": "Jibhi Local Homestay 26",
+    "_id": "biz_golconda_hyderabad_homestay_01",
+    "destId": "golconda-hyderabad",
+    "name": "Golconda Fort Heritage Homestay",
     "type": "homestay",
-    "ownerPhone": "+919876500026",
+    "ownerPhone": "+919876500023",
     "languages": [
-      "hi",
-      "en"
+      "te",
+      "en",
+      "hi"
     ],
     "capacity": 4,
     "priceRangeINR": {
-      "min": 2100,
-      "max": 4100
+      "min": 1075,
+      "max": 1701
     },
     "amenities": [
-      "hot water",
-      "parking",
-      "wifi"
+      "garden",
+      "room service",
+      "power backup"
     ],
     "meals": [
+      "tea/snacks",
       "breakfast"
     ],
-    "nearestLandmark": "Main Chowk Jibhi",
+    "nearestLandmark": "Main Market Golconda Fort",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -737,10 +682,102 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_tirthan-valley_guesthouse_27",
-    "destId": "tirthan-valley",
-    "name": "Tirthan Valley Local Guesthouse 27",
+    "_id": "biz_golconda_hyderabad_cook_02",
+    "destId": "golconda-hyderabad",
+    "name": "Golconda Fort Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500024",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 1,
+    "priceRangeINR": {
+      "min": 664,
+      "max": 1467
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Golconda Fort Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_hussain_sagar_hyderabad_guesthouse_01",
+    "destId": "hussain-sagar-hyderabad",
+    "name": "Hussain Sagar Heritage Guesthouse",
     "type": "guesthouse",
+    "ownerPhone": "+919876500025",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 1318,
+      "max": 1819
+    },
+    "amenities": [
+      "mountain view",
+      "wifi",
+      "ac"
+    ],
+    "meals": [
+      "dinner",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Hussain Sagar",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_hussain_sagar_hyderabad_cook_02",
+    "destId": "hussain-sagar-hyderabad",
+    "name": "Hussain Sagar Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500026",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 590,
+      "max": 1206
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Hussain Sagar Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_jibhi_homestay_01",
+    "destId": "jibhi",
+    "name": "Jibhi Heritage Homestay",
+    "type": "homestay",
     "ownerPhone": "+919876500027",
     "languages": [
       "hi",
@@ -748,18 +785,19 @@
     ],
     "capacity": 5,
     "priceRangeINR": {
-      "min": 2150,
-      "max": 4200
+      "min": 1399,
+      "max": 2924
     },
     "amenities": [
-      "hot water",
-      "parking",
+      "mountain view",
+      "ac",
       "wifi"
     ],
     "meals": [
-      "breakfast"
+      "breakfast",
+      "lunch"
     ],
-    "nearestLandmark": "Main Chowk Tirthan-Valley",
+    "nearestLandmark": "Main Market Jibhi",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -767,26 +805,29 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_dharamshala_guide_28",
-    "destId": "dharamshala",
-    "name": "Dharamshala Local Guide 28",
-    "type": "guide",
+    "_id": "biz_jibhi_cook_02",
+    "destId": "jibhi",
+    "name": "Jibhi Local Cook Services",
+    "type": "cook",
     "ownerPhone": "+919876500028",
     "languages": [
       "hi",
       "en"
     ],
-    "capacity": 6,
+    "capacity": 1,
     "priceRangeINR": {
-      "min": 2200,
-      "max": 4300
+      "min": 713,
+      "max": 1741
     },
     "amenities": [
-      "guided tour",
-      "local insights"
+      "authentic local cuisine",
+      "hygiene certified"
     ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Dharamshala",
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Jibhi Bus Stand",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -794,26 +835,30 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_mcleodganj_driver_29",
-    "destId": "mcleodganj",
-    "name": "Mcleodganj Local Driver 29",
-    "type": "driver",
+    "_id": "biz_kalpa_homestay_01",
+    "destId": "kalpa",
+    "name": "Kalpa Heritage Homestay",
+    "type": "homestay",
     "ownerPhone": "+919876500029",
     "languages": [
       "hi",
       "en"
     ],
-    "capacity": 7,
+    "capacity": 5,
     "priceRangeINR": {
-      "min": 2250,
-      "max": 4400
+      "min": 1210,
+      "max": 2396
     },
     "amenities": [
-      "guided tour",
-      "local insights"
+      "room service",
+      "garden",
+      "power backup"
     ],
-    "meals": [],
-    "nearestLandmark": "Main Chowk Mcleodganj",
+    "meals": [
+      "dinner",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Kalpa",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",
@@ -821,10 +866,10 @@
     "visitCount": 0
   },
   {
-    "_id": "biz_dalhousie_cook_30",
-    "destId": "dalhousie",
-    "name": "Dalhousie Local Cook 30",
-    "type": "cook",
+    "_id": "biz_kalpa_driver_02",
+    "destId": "kalpa",
+    "name": "Kalpa Local Driver Services",
+    "type": "driver",
     "ownerPhone": "+919876500030",
     "languages": [
       "hi",
@@ -832,15 +877,1565 @@
     ],
     "capacity": 2,
     "priceRangeINR": {
-      "min": 2300,
-      "max": 4500
+      "min": 744,
+      "max": 1706
     },
     "amenities": [
-      "guided tour",
-      "local insights"
+      "ac vehicle",
+      "clean seating"
     ],
     "meals": [],
-    "nearestLandmark": "Main Chowk Dalhousie",
+    "nearestLandmark": "Kalpa Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_kasauli_guesthouse_01",
+    "destId": "kasauli",
+    "name": "Kasauli Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500031",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 1494,
+      "max": 2577
+    },
+    "amenities": [
+      "parking",
+      "power backup",
+      "ac"
+    ],
+    "meals": [
+      "dinner",
+      "lunch"
+    ],
+    "nearestLandmark": "Main Market Kasauli",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_kasauli_cook_02",
+    "destId": "kasauli",
+    "name": "Kasauli Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500032",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 780,
+      "max": 1862
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Kasauli Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_kasol_guesthouse_01",
+    "destId": "kasol",
+    "name": "Kasol Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500033",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 991,
+      "max": 2827
+    },
+    "amenities": [
+      "mountain view",
+      "garden",
+      "room service"
+    ],
+    "meals": [
+      "tea/snacks",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Kasol",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_kasol_cook_02",
+    "destId": "kasol",
+    "name": "Kasol Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500034",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 547,
+      "max": 2372
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Kasol Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_khajjiar_guesthouse_01",
+    "destId": "khajjiar",
+    "name": "Khajjiar Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500035",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 1095,
+      "max": 2107
+    },
+    "amenities": [
+      "wifi",
+      "garden",
+      "parking"
+    ],
+    "meals": [
+      "dinner",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Khajjiar",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_khajjiar_cook_02",
+    "destId": "khajjiar",
+    "name": "Khajjiar Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500036",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 908,
+      "max": 2353
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Khajjiar Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_kondagattu_homestay_01",
+    "destId": "kondagattu",
+    "name": "Kondagattu Heritage Homestay",
+    "type": "homestay",
+    "ownerPhone": "+919876500037",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 6,
+    "priceRangeINR": {
+      "min": 1106,
+      "max": 2882
+    },
+    "amenities": [
+      "power backup",
+      "garden",
+      "mountain view"
+    ],
+    "meals": [
+      "breakfast",
+      "dinner"
+    ],
+    "nearestLandmark": "Main Market Kondagattu",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_kondagattu_cook_02",
+    "destId": "kondagattu",
+    "name": "Kondagattu Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500038",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 680,
+      "max": 2412
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Kondagattu Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_kuntala_waterfalls_guesthouse_01",
+    "destId": "kuntala-waterfalls",
+    "name": "Kuntala Waterfalls Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500039",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 886,
+      "max": 1993
+    },
+    "amenities": [
+      "power backup",
+      "parking",
+      "garden"
+    ],
+    "meals": [
+      "tea/snacks",
+      "dinner"
+    ],
+    "nearestLandmark": "Main Market Kuntala Waterfalls",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_kuntala_waterfalls_guide_02",
+    "destId": "kuntala-waterfalls",
+    "name": "Kuntala Waterfalls Local Guide Services",
+    "type": "guide",
+    "ownerPhone": "+919876500040",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 881,
+      "max": 1919
+    },
+    "amenities": [
+      "local guidance",
+      "flexible timing"
+    ],
+    "meals": [],
+    "nearestLandmark": "Kuntala Waterfalls Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_laknavaram_lake_guesthouse_01",
+    "destId": "laknavaram-lake",
+    "name": "Laknavaram Lake Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500041",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 1340,
+      "max": 1958
+    },
+    "amenities": [
+      "wifi",
+      "hot water",
+      "room service"
+    ],
+    "meals": [
+      "breakfast",
+      "dinner"
+    ],
+    "nearestLandmark": "Main Market Laknavaram Lake",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_laknavaram_lake_driver_02",
+    "destId": "laknavaram-lake",
+    "name": "Laknavaram Lake Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500042",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 1,
+    "priceRangeINR": {
+      "min": 703,
+      "max": 1348
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "Laknavaram Lake Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_manali_homestay_01",
+    "destId": "manali",
+    "name": "Manali Heritage Homestay",
+    "type": "homestay",
+    "ownerPhone": "+919876500043",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 904,
+      "max": 1839
+    },
+    "amenities": [
+      "room service",
+      "power backup",
+      "hot water"
+    ],
+    "meals": [
+      "dinner",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Manali",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_manali_guide_02",
+    "destId": "manali",
+    "name": "Manali Local Guide Services",
+    "type": "guide",
+    "ownerPhone": "+919876500044",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 735,
+      "max": 1958
+    },
+    "amenities": [
+      "local guidance",
+      "flexible timing"
+    ],
+    "meals": [],
+    "nearestLandmark": "Manali Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_mandi_homestay_01",
+    "destId": "mandi",
+    "name": "Mandi Heritage Homestay",
+    "type": "homestay",
+    "ownerPhone": "+919876500045",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 1185,
+      "max": 2921
+    },
+    "amenities": [
+      "power backup",
+      "wifi",
+      "hot water"
+    ],
+    "meals": [
+      "breakfast",
+      "tea/snacks"
+    ],
+    "nearestLandmark": "Main Market Mandi",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_mandi_guide_02",
+    "destId": "mandi",
+    "name": "Mandi Local Guide Services",
+    "type": "guide",
+    "ownerPhone": "+919876500046",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 744,
+      "max": 1932
+    },
+    "amenities": [
+      "local guidance",
+      "flexible timing"
+    ],
+    "meals": [],
+    "nearestLandmark": "Mandi Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_mcleodganj_guesthouse_01",
+    "destId": "mcleodganj",
+    "name": "McLeod Ganj Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500047",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 932,
+      "max": 2328
+    },
+    "amenities": [
+      "garden",
+      "wifi",
+      "mountain view"
+    ],
+    "meals": [
+      "lunch",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market McLeod Ganj",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_mcleodganj_driver_02",
+    "destId": "mcleodganj",
+    "name": "McLeod Ganj Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500048",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 1,
+    "priceRangeINR": {
+      "min": 961,
+      "max": 1958
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "McLeod Ganj Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_medak_church_homestay_01",
+    "destId": "medak-church",
+    "name": "Medak Cathedral Heritage Homestay",
+    "type": "homestay",
+    "ownerPhone": "+919876500049",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 978,
+      "max": 3097
+    },
+    "amenities": [
+      "garden",
+      "wifi",
+      "mountain view"
+    ],
+    "meals": [
+      "breakfast",
+      "dinner"
+    ],
+    "nearestLandmark": "Main Market Medak Cathedral",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_medak_church_cook_02",
+    "destId": "medak-church",
+    "name": "Medak Cathedral Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500050",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 1,
+    "priceRangeINR": {
+      "min": 640,
+      "max": 1560
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Medak Cathedral Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_nagarjuna_sagar_guesthouse_01",
+    "destId": "nagarjuna-sagar",
+    "name": "Nagarjuna Sagar Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500051",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 1399,
+      "max": 2220
+    },
+    "amenities": [
+      "room service",
+      "parking",
+      "power backup"
+    ],
+    "meals": [
+      "dinner",
+      "lunch"
+    ],
+    "nearestLandmark": "Main Market Nagarjuna Sagar",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_nagarjuna_sagar_guide_02",
+    "destId": "nagarjuna-sagar",
+    "name": "Nagarjuna Sagar Local Guide Services",
+    "type": "guide",
+    "ownerPhone": "+919876500052",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 931,
+      "max": 2308
+    },
+    "amenities": [
+      "local guidance",
+      "flexible timing"
+    ],
+    "meals": [],
+    "nearestLandmark": "Nagarjuna Sagar Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_naggar_homestay_01",
+    "destId": "naggar",
+    "name": "Naggar Heritage Homestay",
+    "type": "homestay",
+    "ownerPhone": "+919876500053",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 1132,
+      "max": 2372
+    },
+    "amenities": [
+      "power backup",
+      "garden",
+      "wifi"
+    ],
+    "meals": [
+      "tea/snacks",
+      "dinner"
+    ],
+    "nearestLandmark": "Main Market Naggar",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_naggar_cook_02",
+    "destId": "naggar",
+    "name": "Naggar Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500054",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 554,
+      "max": 1917
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Naggar Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_narkanda_homestay_01",
+    "destId": "narkanda",
+    "name": "Narkanda Heritage Homestay",
+    "type": "homestay",
+    "ownerPhone": "+919876500055",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 1461,
+      "max": 2417
+    },
+    "amenities": [
+      "garden",
+      "room service",
+      "wifi"
+    ],
+    "meals": [
+      "breakfast",
+      "tea/snacks"
+    ],
+    "nearestLandmark": "Main Market Narkanda",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_narkanda_cook_02",
+    "destId": "narkanda",
+    "name": "Narkanda Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500056",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 800,
+      "max": 2297
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Narkanda Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_palampur_homestay_01",
+    "destId": "palampur",
+    "name": "Palampur Heritage Homestay",
+    "type": "homestay",
+    "ownerPhone": "+919876500057",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 6,
+    "priceRangeINR": {
+      "min": 1099,
+      "max": 2396
+    },
+    "amenities": [
+      "power backup",
+      "garden",
+      "ac"
+    ],
+    "meals": [
+      "lunch",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Palampur",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_palampur_driver_02",
+    "destId": "palampur",
+    "name": "Palampur Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500058",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 515,
+      "max": 2202
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "Palampur Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_pochampally_homestay_01",
+    "destId": "pochampally",
+    "name": "Pochampally Heritage Homestay",
+    "type": "homestay",
+    "ownerPhone": "+919876500059",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 1139,
+      "max": 2098
+    },
+    "amenities": [
+      "ac",
+      "power backup",
+      "room service"
+    ],
+    "meals": [
+      "lunch",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Pochampally",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_pochampally_guide_02",
+    "destId": "pochampally",
+    "name": "Pochampally Local Guide Services",
+    "type": "guide",
+    "ownerPhone": "+919876500060",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 905,
+      "max": 2254
+    },
+    "amenities": [
+      "local guidance",
+      "flexible timing"
+    ],
+    "meals": [],
+    "nearestLandmark": "Pochampally Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_ramappa_temple_guesthouse_01",
+    "destId": "ramappa-temple",
+    "name": "Ramappa Temple Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500061",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 6,
+    "priceRangeINR": {
+      "min": 1062,
+      "max": 1940
+    },
+    "amenities": [
+      "power backup",
+      "garden",
+      "ac"
+    ],
+    "meals": [
+      "tea/snacks",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Ramappa Temple",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_ramappa_temple_driver_02",
+    "destId": "ramappa-temple",
+    "name": "Ramappa Temple Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500062",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 640,
+      "max": 1997
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "Ramappa Temple Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_ramoji_film_city_guesthouse_01",
+    "destId": "ramoji-film-city",
+    "name": "Ramoji Film City Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500063",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 6,
+    "priceRangeINR": {
+      "min": 1246,
+      "max": 2416
+    },
+    "amenities": [
+      "room service",
+      "mountain view",
+      "wifi"
+    ],
+    "meals": [
+      "breakfast",
+      "dinner"
+    ],
+    "nearestLandmark": "Main Market Ramoji Film City",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_ramoji_film_city_cook_02",
+    "destId": "ramoji-film-city",
+    "name": "Ramoji Film City Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500064",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 871,
+      "max": 2268
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Ramoji Film City Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_shimla_guesthouse_01",
+    "destId": "shimla",
+    "name": "Shimla Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500065",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 5,
+    "priceRangeINR": {
+      "min": 1270,
+      "max": 2752
+    },
+    "amenities": [
+      "ac",
+      "hot water",
+      "power backup"
+    ],
+    "meals": [
+      "dinner",
+      "lunch"
+    ],
+    "nearestLandmark": "Main Market Shimla",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_shimla_driver_02",
+    "destId": "shimla",
+    "name": "Shimla Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500066",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 942,
+      "max": 1255
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "Shimla Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_solan_guesthouse_01",
+    "destId": "solan",
+    "name": "Solan Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500067",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 1394,
+      "max": 2746
+    },
+    "amenities": [
+      "mountain view",
+      "room service",
+      "wifi"
+    ],
+    "meals": [
+      "tea/snacks",
+      "dinner"
+    ],
+    "nearestLandmark": "Main Market Solan",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_solan_driver_02",
+    "destId": "solan",
+    "name": "Solan Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500068",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 857,
+      "max": 1498
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "Solan Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_spiti_kaza_guesthouse_01",
+    "destId": "spiti-kaza",
+    "name": "Kaza Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500069",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 1385,
+      "max": 2806
+    },
+    "amenities": [
+      "garden",
+      "power backup",
+      "ac"
+    ],
+    "meals": [
+      "lunch",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Kaza",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_spiti_kaza_driver_02",
+    "destId": "spiti-kaza",
+    "name": "Kaza Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500070",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 750,
+      "max": 1762
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "Kaza Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_thousand_pillar_temple_guesthouse_01",
+    "destId": "thousand-pillar-temple",
+    "name": "Thousand Pillar Temple Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500071",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 1112,
+      "max": 2960
+    },
+    "amenities": [
+      "garden",
+      "room service",
+      "wifi"
+    ],
+    "meals": [
+      "lunch",
+      "dinner"
+    ],
+    "nearestLandmark": "Main Market Thousand Pillar Temple",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_thousand_pillar_temple_guide_02",
+    "destId": "thousand-pillar-temple",
+    "name": "Thousand Pillar Temple Local Guide Services",
+    "type": "guide",
+    "ownerPhone": "+919876500072",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 825,
+      "max": 1303
+    },
+    "amenities": [
+      "local guidance",
+      "flexible timing"
+    ],
+    "meals": [],
+    "nearestLandmark": "Thousand Pillar Temple Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_tirthan_valley_guesthouse_01",
+    "destId": "tirthan-valley",
+    "name": "Tirthan Valley Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500073",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 6,
+    "priceRangeINR": {
+      "min": 1043,
+      "max": 2121
+    },
+    "amenities": [
+      "room service",
+      "power backup",
+      "hot water"
+    ],
+    "meals": [
+      "lunch",
+      "tea/snacks"
+    ],
+    "nearestLandmark": "Main Market Tirthan Valley",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_tirthan_valley_driver_02",
+    "destId": "tirthan-valley",
+    "name": "Tirthan Valley Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500074",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 515,
+      "max": 1316
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "Tirthan Valley Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_tosh_guesthouse_01",
+    "destId": "tosh",
+    "name": "Tosh Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500075",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 1371,
+      "max": 2686
+    },
+    "amenities": [
+      "hot water",
+      "power backup",
+      "mountain view"
+    ],
+    "meals": [
+      "tea/snacks",
+      "dinner"
+    ],
+    "nearestLandmark": "Main Market Tosh",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_tosh_driver_02",
+    "destId": "tosh",
+    "name": "Tosh Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500076",
+    "languages": [
+      "hi",
+      "en"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 675,
+      "max": 2342
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "Tosh Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_warangal_fort_homestay_01",
+    "destId": "warangal-fort",
+    "name": "Warangal Fort Heritage Homestay",
+    "type": "homestay",
+    "ownerPhone": "+919876500077",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 3,
+    "priceRangeINR": {
+      "min": 1268,
+      "max": 2210
+    },
+    "amenities": [
+      "garden",
+      "hot water",
+      "ac"
+    ],
+    "meals": [
+      "breakfast",
+      "dinner"
+    ],
+    "nearestLandmark": "Main Market Warangal Fort",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_warangal_fort_cook_02",
+    "destId": "warangal-fort",
+    "name": "Warangal Fort Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500078",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 749,
+      "max": 2240
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Warangal Fort Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_warangal_homestay_01",
+    "destId": "warangal",
+    "name": "Warangal City Heritage Homestay",
+    "type": "homestay",
+    "ownerPhone": "+919876500079",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 1290,
+      "max": 1975
+    },
+    "amenities": [
+      "parking",
+      "hot water",
+      "garden"
+    ],
+    "meals": [
+      "lunch",
+      "breakfast"
+    ],
+    "nearestLandmark": "Main Market Warangal City",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_warangal_driver_02",
+    "destId": "warangal",
+    "name": "Warangal City Local Driver Services",
+    "type": "driver",
+    "ownerPhone": "+919876500080",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 1,
+    "priceRangeINR": {
+      "min": 939,
+      "max": 1422
+    },
+    "amenities": [
+      "ac vehicle",
+      "clean seating"
+    ],
+    "meals": [],
+    "nearestLandmark": "Warangal City Bus Stand",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_yadapalli_yadadri_guesthouse_01",
+    "destId": "yadapalli-yadadri",
+    "name": "Yadadri Heritage Guesthouse",
+    "type": "guesthouse",
+    "ownerPhone": "+919876500081",
+    "languages": [
+      "te",
+      "en",
+      "hi"
+    ],
+    "capacity": 4,
+    "priceRangeINR": {
+      "min": 1318,
+      "max": 3091
+    },
+    "amenities": [
+      "power backup",
+      "parking",
+      "ac"
+    ],
+    "meals": [
+      "lunch",
+      "tea/snacks"
+    ],
+    "nearestLandmark": "Main Market Yadadri",
+    "photos": [],
+    "onboardedVia": "seed",
+    "verificationTier": "self-declared",
+    "registrationStatus": "not-started",
+    "visitCount": 0
+  },
+  {
+    "_id": "biz_yadapalli_yadadri_cook_02",
+    "destId": "yadapalli-yadadri",
+    "name": "Yadadri Local Cook Services",
+    "type": "cook",
+    "ownerPhone": "+919876500082",
+    "languages": [
+      "te",
+      "hi"
+    ],
+    "capacity": 2,
+    "priceRangeINR": {
+      "min": 937,
+      "max": 2175
+    },
+    "amenities": [
+      "authentic local cuisine",
+      "hygiene certified"
+    ],
+    "meals": [
+      "breakfast",
+      "lunch"
+    ],
+    "nearestLandmark": "Yadadri Bus Stand",
     "photos": [],
     "onboardedVia": "seed",
     "verificationTier": "self-declared",

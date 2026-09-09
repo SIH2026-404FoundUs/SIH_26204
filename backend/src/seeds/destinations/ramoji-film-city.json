@@ -1,26 +1,40 @@
 {
   "_id": "ramoji-film-city",
-  "displayName": "Ramoji Film City",
+  "displayName": "Ramoji Film City, Telangana",
   "state": "TG",
   "location": {
-    "lat": 17.253,
-    "lng": 78.68
+    "lat": 17.254,
+    "lng": 78.681
   },
-  "nearestRailhead": "hyderabad-deccan",
-  "railSignalConfidence": 0.75,
+  "attrs": {
+    "snow": 0.0,
+    "trek": 0.2,
+    "riverside": 0.1,
+    "heritage": 0.4,
+    "nightlife": 0.5,
+    "food": 0.7,
+    "wildlife": 0.2,
+    "spiritual": 0.1
+  },
+  "nearestRailhead": "SC",
+  "railheadDistanceKm": 35,
+  "railSignalConfidence": 0.5,
   "roadAccess": {
-    "corridor": "hyderabad-ramoji"
+    "operators": [
+      "TSRTC",
+      "Private"
+    ],
+    "corridor": "Hyderabad-Vijayawada Highway",
+    "boardingPoint": "LB Nagar"
   },
-  "capacityPrior": 0.78,
+  "nearestAirport": "HYD",
+  "capacityPrior": 0.45,
   "baseline": {
-    "railWL": 28,
-    "roadSeatsAvail": 0.5,
-    "hotelMedianINR": 3500
+    "railWL": 25,
+    "roadSeatsAvail": 600,
+    "hotelMedianINR": 3200
   },
-  "expectedSupply": 900,
   "trackingTier": "tracked",
-  "demoCorridor": true,
-  "provenance": "placeholder-sathvik (Ananya owns final seed)",
-  "demandPrior": 0.85,
-  "trains": []
+  "googlePlaceId": "ChIJ_ramoji_tg",
+  "seededAt": "2026-09-10"
 }

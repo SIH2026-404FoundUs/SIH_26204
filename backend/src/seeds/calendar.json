@@ -6,16 +6,106 @@
     "impact": 0.8
   },
   {
+    "date": "2026-10-18",
+    "state": "TG",
+    "label": "bathukamma-start",
+    "impact": 0.7
+  },
+  {
     "date": "2026-10-20",
     "state": "TG",
     "label": "bathukamma-diwali",
     "impact": 0.9
   },
   {
+    "date": "2026-10-24",
+    "state": null,
+    "label": "dussehra-vijayadashami",
+    "impact": 0.95
+  },
+  {
     "date": "2026-11-01",
     "state": null,
     "label": "karnataka-rajyotsava-weekend",
     "impact": 0.4
+  },
+  {
+    "date": "2026-11-07",
+    "state": null,
+    "label": "weekend-sat",
+    "impact": 0.4
+  },
+  {
+    "date": "2026-11-08",
+    "state": null,
+    "label": "weekend-sun",
+    "impact": 0.4
+  },
+  {
+    "date": "2026-11-14",
+    "state": null,
+    "label": "diwali-deepavali",
+    "impact": 1.0
+  },
+  {
+    "date": "2026-11-15",
+    "state": null,
+    "label": "diwali-weekend",
+    "impact": 0.9
+  },
+  {
+    "date": "2026-11-24",
+    "state": null,
+    "label": "guru-nanak-jayanti",
+    "impact": 0.8
+  },
+  {
+    "date": "2026-11-28",
+    "state": null,
+    "label": "weekend-sat",
+    "impact": 0.4
+  },
+  {
+    "date": "2026-11-29",
+    "state": null,
+    "label": "weekend-sun",
+    "impact": 0.4
+  },
+  {
+    "date": "2026-12-05",
+    "state": null,
+    "label": "weekend-sat",
+    "impact": 0.4
+  },
+  {
+    "date": "2026-12-06",
+    "state": null,
+    "label": "weekend-sun",
+    "impact": 0.4
+  },
+  {
+    "date": "2026-12-12",
+    "state": null,
+    "label": "weekend-sat",
+    "impact": 0.4
+  },
+  {
+    "date": "2026-12-13",
+    "state": null,
+    "label": "weekend-sun",
+    "impact": 0.4
+  },
+  {
+    "date": "2026-12-19",
+    "state": null,
+    "label": "weekend-sat",
+    "impact": 0.5
+  },
+  {
+    "date": "2026-12-20",
+    "state": null,
+    "label": "winter-holiday-start",
+    "impact": 0.6
   },
   {
     "date": "2026-12-24",
@@ -42,6 +132,24 @@
     "impact": 0.9
   },
   {
+    "date": "2026-12-28",
+    "state": null,
+    "label": "year-end-peak",
+    "impact": 0.85
+  },
+  {
+    "date": "2026-12-29",
+    "state": null,
+    "label": "year-end-peak",
+    "impact": 0.85
+  },
+  {
+    "date": "2026-12-30",
+    "state": null,
+    "label": "year-end-peak",
+    "impact": 0.9
+  },
+  {
     "date": "2026-12-31",
     "state": null,
     "label": "new-years-eve",
@@ -54,15 +162,111 @@
     "impact": 1.0
   },
   {
+    "date": "2027-01-02",
+    "state": null,
+    "label": "new-year-weekend",
+    "impact": 0.7
+  },
+  {
+    "date": "2027-01-03",
+    "state": null,
+    "label": "new-year-weekend",
+    "impact": 0.6
+  },
+  {
+    "date": "2027-01-09",
+    "state": null,
+    "label": "weekend-sat",
+    "impact": 0.4
+  },
+  {
+    "date": "2027-01-10",
+    "state": null,
+    "label": "weekend-sun",
+    "impact": 0.4
+  },
+  {
     "date": "2027-01-14",
     "state": "TG",
-    "label": "sankranti",
+    "label": "sankranti-pongal",
     "impact": 0.95
+  },
+  {
+    "date": "2027-01-15",
+    "state": "TG",
+    "label": "kanuma-sankranti",
+    "impact": 0.9
+  },
+  {
+    "date": "2027-01-16",
+    "state": null,
+    "label": "weekend-sat",
+    "impact": 0.5
+  },
+  {
+    "date": "2027-01-17",
+    "state": null,
+    "label": "weekend-sun",
+    "impact": 0.5
+  },
+  {
+    "date": "2027-01-23",
+    "state": null,
+    "label": "weekend-sat",
+    "impact": 0.4
+  },
+  {
+    "date": "2027-01-24",
+    "state": null,
+    "label": "weekend-sun",
+    "impact": 0.4
   },
   {
     "date": "2027-01-26",
     "state": null,
     "label": "republic-day",
+    "impact": 0.85
+  },
+  {
+    "date": "2027-02-13",
+    "state": null,
+    "label": "weekend-sat",
+    "impact": 0.4
+  },
+  {
+    "date": "2027-02-14",
+    "state": null,
+    "label": "valentines-weekend",
+    "impact": 0.7
+  },
+  {
+    "date": "2027-02-26",
+    "state": null,
+    "label": "maha-shivaratri",
+    "impact": 0.8
+  },
+  {
+    "date": "2027-03-06",
+    "state": null,
+    "label": "weekend-sat",
+    "impact": 0.4
+  },
+  {
+    "date": "2027-03-07",
+    "state": null,
+    "label": "weekend-sun",
+    "impact": 0.4
+  },
+  {
+    "date": "2027-03-25",
+    "state": null,
+    "label": "holi-festival",
+    "impact": 0.9
+  },
+  {
+    "date": "2027-03-26",
+    "state": null,
+    "label": "good-friday-long-weekend",
     "impact": 0.85
   }
 ]

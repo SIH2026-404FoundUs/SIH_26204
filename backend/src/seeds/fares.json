@@ -53,6 +53,111 @@
       "flat": 15
     }
   },
+  "karimnagar": {
+    "auto": {
+      "base": 25,
+      "perKm": 10,
+      "minFare": 25
+    },
+    "cab": {
+      "base": 40,
+      "perKm": 13,
+      "minFare": 65
+    },
+    "bus": {
+      "flat": 15
+    }
+  },
+  "khammam": {
+    "auto": {
+      "base": 20,
+      "perKm": 9,
+      "minFare": 20
+    },
+    "cab": {
+      "base": 40,
+      "perKm": 13,
+      "minFare": 60
+    },
+    "bus": {
+      "flat": 12
+    }
+  },
+  "nizamabad": {
+    "auto": {
+      "base": 22,
+      "perKm": 10,
+      "minFare": 22
+    },
+    "cab": {
+      "base": 42,
+      "perKm": 13,
+      "minFare": 65
+    },
+    "bus": {
+      "flat": 15
+    }
+  },
+  "mahabubnagar": {
+    "auto": {
+      "base": 20,
+      "perKm": 9,
+      "minFare": 20
+    },
+    "cab": {
+      "base": 40,
+      "perKm": 12,
+      "minFare": 60
+    },
+    "bus": {
+      "flat": 12
+    }
+  },
+  "nalgonda": {
+    "auto": {
+      "base": 20,
+      "perKm": 9,
+      "minFare": 20
+    },
+    "cab": {
+      "base": 40,
+      "perKm": 12,
+      "minFare": 60
+    },
+    "bus": {
+      "flat": 12
+    }
+  },
+  "medak": {
+    "auto": {
+      "base": 22,
+      "perKm": 10,
+      "minFare": 22
+    },
+    "cab": {
+      "base": 42,
+      "perKm": 13,
+      "minFare": 65
+    },
+    "bus": {
+      "flat": 15
+    }
+  },
+  "yadadri": {
+    "auto": {
+      "base": 25,
+      "perKm": 10,
+      "minFare": 25
+    },
+    "cab": {
+      "base": 45,
+      "perKm": 14,
+      "minFare": 70
+    },
+    "bus": {
+      "flat": 15
+    }
+  },
   "shimla": {
     "auto": {
       "base": 40,
@@ -96,6 +201,126 @@
     },
     "bus": {
       "flat": 12
+    }
+  },
+  "kullu": {
+    "auto": {
+      "base": 35,
+      "perKm": 13,
+      "minFare": 35
+    },
+    "cab": {
+      "base": 55,
+      "perKm": 18,
+      "minFare": 90
+    },
+    "bus": {
+      "flat": 12
+    }
+  },
+  "mandi": {
+    "auto": {
+      "base": 30,
+      "perKm": 11,
+      "minFare": 30
+    },
+    "cab": {
+      "base": 50,
+      "perKm": 16,
+      "minFare": 80
+    },
+    "bus": {
+      "flat": 10
+    }
+  },
+  "solan": {
+    "auto": {
+      "base": 30,
+      "perKm": 11,
+      "minFare": 30
+    },
+    "cab": {
+      "base": 50,
+      "perKm": 16,
+      "minFare": 80
+    },
+    "bus": {
+      "flat": 10
+    }
+  },
+  "dalhousie": {
+    "auto": {
+      "base": 45,
+      "perKm": 14,
+      "minFare": 45
+    },
+    "cab": {
+      "base": 65,
+      "perKm": 20,
+      "minFare": 110
+    },
+    "bus": {
+      "flat": 12
+    }
+  },
+  "palampur": {
+    "auto": {
+      "base": 30,
+      "perKm": 11,
+      "minFare": 30
+    },
+    "cab": {
+      "base": 50,
+      "perKm": 16,
+      "minFare": 80
+    },
+    "bus": {
+      "flat": 10
+    }
+  },
+  "chamba": {
+    "auto": {
+      "base": 35,
+      "perKm": 12,
+      "minFare": 35
+    },
+    "cab": {
+      "base": 55,
+      "perKm": 18,
+      "minFare": 90
+    },
+    "bus": {
+      "flat": 12
+    }
+  },
+  "kinnaur": {
+    "auto": {
+      "base": 50,
+      "perKm": 16,
+      "minFare": 50
+    },
+    "cab": {
+      "base": 75,
+      "perKm": 24,
+      "minFare": 130
+    },
+    "bus": {
+      "flat": 15
+    }
+  },
+  "spiti": {
+    "auto": {
+      "base": 60,
+      "perKm": 18,
+      "minFare": 60
+    },
+    "cab": {
+      "base": 90,
+      "perKm": 28,
+      "minFare": 150
+    },
+    "bus": {
+      "flat": 20
     }
   }
 }

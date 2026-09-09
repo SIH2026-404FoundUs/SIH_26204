@@ -1,26 +1,39 @@
 {
   "_id": "narkanda",
-  "displayName": "Narkanda",
+  "displayName": "Narkanda, Himachal Pradesh",
   "state": "HP",
   "location": {
-    "lat": 31.256,
-    "lng": 77.462
+    "lat": 31.258,
+    "lng": 77.458
   },
-  "nearestRailhead": "shimla",
-  "railSignalConfidence": 0.55,
+  "attrs": {
+    "snow": 0.8,
+    "trek": 0.7,
+    "riverside": 0.2,
+    "heritage": 0.3,
+    "nightlife": 0.1,
+    "food": 0.3,
+    "wildlife": 0.4,
+    "spiritual": 0.2
+  },
+  "nearestRailhead": "KLK",
+  "railheadDistanceKm": 125,
+  "railSignalConfidence": 0.35,
   "roadAccess": {
-    "corridor": "shimla-narkanda"
+    "operators": [
+      "HRTC"
+    ],
+    "corridor": "Shimla-Narkanda-Rampur",
+    "boardingPoint": "Shimla ISBT"
   },
-  "capacityPrior": 0.45,
+  "nearestAirport": "SLV",
+  "capacityPrior": 0.55,
   "baseline": {
     "railWL": 15,
-    "roadSeatsAvail": 0.5,
-    "hotelMedianINR": 2400
+    "roadSeatsAvail": 220,
+    "hotelMedianINR": 2800
   },
-  "expectedSupply": 220,
   "trackingTier": "tracked",
-  "demoCorridor": true,
-  "provenance": "placeholder-sathvik (Ananya owns final seed)",
-  "demandPrior": 0.32,
-  "trains": []
+  "googlePlaceId": "ChIJ_narkanda_hp",
+  "seededAt": "2026-09-10"
 }

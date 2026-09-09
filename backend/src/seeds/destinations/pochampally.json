@@ -1,26 +1,39 @@
 {
   "_id": "pochampally",
-  "displayName": "Pochampally",
+  "displayName": "Pochampally, Telangana",
   "state": "TG",
   "location": {
-    "lat": 17.35,
-    "lng": 78.82
+    "lat": 17.348,
+    "lng": 78.812
   },
-  "nearestRailhead": "bhongir",
-  "railSignalConfidence": 0.55,
+  "attrs": {
+    "snow": 0.0,
+    "trek": 0.2,
+    "riverside": 0.2,
+    "heritage": 0.9,
+    "nightlife": 0.1,
+    "food": 0.5,
+    "wildlife": 0.1,
+    "spiritual": 0.2
+  },
+  "nearestRailhead": "SC",
+  "railheadDistanceKm": 42,
+  "railSignalConfidence": 0.4,
   "roadAccess": {
-    "corridor": "hyderabad-pochampally"
+    "operators": [
+      "TSRTC"
+    ],
+    "corridor": "Hyderabad-Pochampally",
+    "boardingPoint": "MGBS Hyderabad"
   },
+  "nearestAirport": "HYD",
   "capacityPrior": 0.3,
   "baseline": {
-    "railWL": 12,
-    "roadSeatsAvail": 0.5,
-    "hotelMedianINR": 1500
+    "railWL": 10,
+    "roadSeatsAvail": 400,
+    "hotelMedianINR": 1400
   },
-  "expectedSupply": 90,
   "trackingTier": "tracked",
-  "demoCorridor": false,
-  "provenance": "placeholder-sathvik (Ananya owns final seed)",
-  "demandPrior": 0.15,
-  "trains": []
+  "googlePlaceId": "ChIJ_pochampally_tg",
+  "seededAt": "2026-09-10"
 }

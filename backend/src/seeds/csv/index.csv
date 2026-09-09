@@ -1,0 +1,7 @@
+dataset,file_name,records,primary_key,description
+destinations,destinations.csv,41,_id,Tracked destination seed taxonomy across HP & TG with 8-attr vectors
+businesses,businesses.csv,82,_id,"Local homestays, guesthouses, guides, drivers, and cooks"
+availability,availability.csv,1148,_id,"Declared resource availability with rooms, slots, seats, tables and discounts"
+calendar,calendar.csv,45,date + state,State and national holiday/festival/weekend calendar events
+fares,fares.csv,61,city + mode,City-level local fare structures across transport modes
+pressure_history,pressure_history.csv,1230,destId + date,30-day backfilled pressure history for Spearman backtesting
