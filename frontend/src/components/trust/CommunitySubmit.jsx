@@ -70,6 +70,10 @@ export default function CommunitySubmit() {
       setValidationError('Tell us what makes it worth visiting')
       return
     }
+    if (!state) {
+      setValidationError('Select a state')
+      return
+    }
 
     let photoUrls = []
     if (photoFiles.length > 0) {
@@ -80,7 +84,7 @@ export default function CommunitySubmit() {
       }
     }
 
-    const ok = await submitCommunityPlace({ name: name.trim(), lat: location.lat, lng: location.lng, description: description.trim(), photos: photoUrls, state: state || undefined })
+    const ok = await submitCommunityPlace({ name: name.trim(), lat: location.lat, lng: location.lng, description: description.trim(), photos: photoUrls, state })
     if (ok) fetchMySubmissions() // don't wait up to 15s for the poll to pick up the one just sent
   }
 
@@ -109,9 +113,9 @@ export default function CommunitySubmit() {
             <LocationPickerMap value={location} onChange={setLocation} />
           </FormField>
 
-          <FormField label="State" optional hint="Helps other travellers browsing the Community Forum find this">
-            <select value={state} onChange={(e) => setState(e.target.value)} className={inputClass}>
-              <option value="">Not specified</option>
+          <FormField label="State" hint="Helps other travellers browsing the Community Forum find this">
+            <select value={state} onChange={(e) => setState(e.target.value)} required className={inputClass}>
+              <option value="" disabled>Choose a state</option>
               {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </FormField>

@@ -75,6 +75,18 @@ export async function submitCommunityDestination(params, models = {}) {
     };
   }
 
+  // State is required (not just an optional filter hint) -- must be one of
+  // the two states this platform actually has seeded destinations/pressure
+  // data for, same list enforced client-side.
+  if (!state || !STATES.includes(state)) {
+    return {
+      success: false,
+      status: 400,
+      error: "COMMUNITY_MISSING_STATE",
+      message: `state is required and must be one of: ${STATES.join(", ")}`,
+    };
+  }
+
   const location = { lat: Number(lat), lng: Number(lng) };
 
   // Step 1: AUTHZ Check — Submitter must have >= 1 verified visit anywhere
@@ -191,7 +203,7 @@ export async function submitCommunityDestination(params, models = {}) {
     status: "queued",
     createdAt: new Date(),
   };
-  if (state && STATES.includes(state)) newSubmission.state = state;
+  newSubmission.state = state;
 
   let queuedSubmissionDoc = null;
   if (CommunitySubmissionModel && typeof CommunitySubmissionModel.create === "function") {
