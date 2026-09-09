@@ -40,9 +40,13 @@ teammate discover a rename at integration time.
 | `GET /api/v1/alerts` | Pranay/Sathvik | `?destId` (required), `?kind?` | 200 `[{destId, kind, severity, body, sourceUrl, sourceName, validFrom, validTo, fetchedAt}, ...]` — public, no envelope | 400 missing `destId` |
 | `POST /api/v1/alerts` | Pranay/Sathvik | auth required, `role:"authority"`; `{destId, kind, body, sourceUrl, sourceName, severity?, validFrom?, validTo}` | 200 `{success:true, alert}` — idempotent upsert on `sha256(destId+kind+normalisedBody)` | 400 missing params or `ALERT_ATTRIBUTION_REQUIRED` if `sourceUrl`/`sourceName` empty; 403 not authority |
 | `GET /api/v1/businesses/search` | Pranay/Sathvik | `?destId` (required), `?type?` | 200 `[business, ...]` sorted by `growthRank` desc, each carrying `growthRank`/`growthMultipliers` — wraps the existing `growthRanking.js` formula, no re-implementation | 400 missing `destId` |
-| `GET /api/v1/users/:id/preferences` | Pranay/Sathvik | none | 200 `{interests, budgetBand, languages}` | 404 unknown user |
+| `GET /api/v1/users/:id/preferences` | Pranay/Sathvik | authenticated self; AI service may use the internal service token | 200 `{interests, budgetBand, languages}` | 401 unauthenticated; 403 another user's id; 404 unknown user |
+| `GET /api/v1/trips` | authenticated user / AI service | browser: no body; service: `?userId` with internal service token | 200 own trip records | 401 unauthenticated; service token required for AI persistence |
+| `GET /api/v1/trips/:id` | authenticated owner / AI service | path `id` | 200 owned trip record | 401 unauthenticated; 404 not found or not owned |
+| `PATCH /api/v1/trips/:id` | authenticated owner / AI service | allowed trip update fields | 200 updated owned trip record | 401 unauthenticated; 404 not found or not owned |
+| `GET /api/v1/trips/summary` | authority | none | 200 aggregate redistribution summary | 401 unauthenticated; 403 non-authority |
 | `GET /api/v1/safety/emergency-contacts/:destId` | Pranay/Sathvik | none — public | 200 district-keyed contacts + statewide `defaults` | — (unknown destId falls back to a general/India entry, never 404) |
-| `POST /api/v1/safety/trips/share` | Pranay/Sathvik | auth required; `{tripId, destId, title?, startDate?, endDate?, stops?}` | 201 `{success:true, shareToken, expiresAt, record}` | 400 missing params |
+| `POST /api/v1/safety/trips/share` | Pranay/Sathvik | auth required; `{tripId, destId, title?, startDate?, endDate?, stops?}`; authenticated user must own `tripId` | 201 `{success:true, shareToken, expiresAt, record}` | 400 missing params; 404 trip not found or not owned |
 | `GET /api/v1/safety/trips/share/:token` | Pranay/Sathvik | none — public, read-only, PII-minimized projection | 200 `{success:true, tripProjection}` | 404 unknown token; 410 expired/revoked |
 | `POST /api/v1/safety/trips/share/:token/revoke` | Pranay/Sathvik | auth required, must be the token's owner | 200 `{success:true, isRevoked:true}` | 400 missing params |
 | `POST /api/v1/safety/complaints` | Pranay/Sathvik | auth required; `{destId, businessId?, category?, text, photos?}` | 201 `{success:true, complaint, disclaimer}` — disclaimer explicitly states no auto-forwarding to any government body | 400 missing params |
@@ -52,6 +56,18 @@ teammate discover a rename at integration time.
 | `GET /api/v1/dashboard/redistribution` | Sathvik | auth required, `role:"authority"`; no `date` param — trips don't carry a single filterable date, so this always reflects the whole `trips` collection | 200 `{redirectedTrips, totalBudgetMovedINR, averagePressureRelief (number\|null), byDestination:[{destId, displayName, count}]}` — only `redistribution.kind != "none"` trips count; `averagePressureRelief` is `null` (not fabricated) when no redirected trip has both `pressureBefore`/`pressureAfter` recorded | 401 unauthenticated; 403 not authority |
 | `GET /api/v1/dashboard/acceptance` | Sathvik | auth required, `role:"authority"`; no `date` param, same reasoning as redistribution above | 200 `{acceptanceRate (number\|null), accepted, alternativesOffered, totalTrips}` — `acceptanceRate = count(redistribution.kind != "none") / count(alternativesOffered == true)`, **never** accepted/totalTrips; `null` (not a divide-by-zero) when `alternativesOffered` is 0 | 401 unauthenticated; 403 not authority |
 | `POST /api/availability/:id` | Bharani | `{date, units, ...}` | `{ok: true}` | 400 — **not actually wired to any route/controller as of this writing**; `BusinessAvailability` has no write path anywhere in the codebase yet, confirmed by repo-wide search during the Authority Dashboard build (this is the reason `roomDemandGap`/`normalizedCapacityGap` above are currently unpopulated) |
+
+## Cross-service planner and internal authorization
+
+| Endpoint | Authentication | Ownership / role rule | Response errors |
+|---|---|---|---|
+| `POST /api/plan-trip` | authenticated browser session forwarded to AI service | `userId` is derived from `/api/auth/check`; any body `userId` is ignored | 401 unauthenticated; 503 authentication service unavailable; existing planning errors |
+| `POST /api/plan-trip/confirm` | authenticated browser session forwarded to AI service | draft owner must match the authenticated user | 401 unauthenticated; 403 draft belongs to another user |
+| `POST /api/internal/onboarding/upload` | authenticated operator or `X-Internal-Service-Token` | public callers cannot invoke the onboarding mutation pipeline | 401 unauthenticated; 403 non-operator |
+
+The AI service uses `INTERNAL_SERVICE_TOKEN` when persisting trip drafts through
+Express. This token must be configured identically in backend and ai-service
+environments and must not be exposed to the browser.
 
 ## Naming contract
 `destId` everywhere — always the canonical slug from Ananya's seed

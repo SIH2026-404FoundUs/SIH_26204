@@ -33,3 +33,4 @@ COMMIT_CONVENTION.md
 
 docs/
 build/
+.gcp/

@@ -1,4 +1,5 @@
-import { getStats, zScore, getTrackedDestinations } from './standardize.js';
+import { getStats, zScore } from './standardize.js';
+import { loadDestinations } from '../pressure/seed.js';
 
 const ATTR_LIST = [
   'snow',
@@ -318,7 +319,7 @@ async function calculateDistance(destA, destB, interests) {
   const zB = await zScore(destB);
   const weights = computeWeights(interests);
 
-  const destinations = getTrackedDestinations();
+  const destinations = loadDestinations().filter((d) => d.trackingTier === 'tracked');
   const useMahalanobis = shouldUseMahalanobis(destinations);
 
   if (useMahalanobis) {

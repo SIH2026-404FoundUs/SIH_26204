@@ -3,11 +3,13 @@ import {
   createShareableTripRecord,
   getShareableTripRecord,
   revokeShareableTripRecord,
+  tripBelongsToUser,
 } from "../services/alerts/shareableTripService.js";
 import { submitTouristComplaint, getUserComplaints } from "../services/alerts/complaintService.js";
 import ShareableTrip from "../models/shareableTrip.model.js";
 import Complaint from "../models/complaint.model.js";
 import AuditLog from "../models/auditLog.model.js";
+import Trip from "../models/trip.model.js";
 
 // GET /api/v1/safety/emergency-contacts/:destId — public, seeded district-keyed
 // registry (spec §5.4). No DB needed: the registry is a static, hand-verified
@@ -19,8 +21,12 @@ export const getEmergencyContactsController = (req, res) => {
 // POST /api/v1/safety/trips/share — auth required
 export const createShareableTripController = async (req, res) => {
   try {
+    const userId = String(req.user._id);
+    if (!(await tripBelongsToUser(req.body.tripId, userId, Trip))) {
+      return res.status(404).json({ message: "trip not found" });
+    }
     const result = await createShareableTripRecord(
-      { ...req.body, userId: String(req.user._id) },
+      { ...req.body, userId },
       { ShareableTripModel: ShareableTrip, AuditLogModel: AuditLog }
     );
     res.status(201).json(result);

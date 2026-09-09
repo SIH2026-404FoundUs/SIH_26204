@@ -7,7 +7,7 @@ import { getAlternatives } from '../services/substitution/alternatives.service.j
 import { getPressure } from '../services/pressure/service.js';
 import { travelTimeFn } from '../services/travelTime.js';
 import { calculateBudget } from '../services/budgetService.js';
-import { getDestinationById } from '../services/substitution/standardize.js';
+import { getDestination } from '../services/pressure/seed.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,7 +41,7 @@ const pressureFn = async (dest, date) => {
 /** Dynamic destination budget estimator using budgetService and seeded baselines */
 const budgetFn = async (dest, date, travellers = 2) => {
   const id = destIdOf(dest);
-  const destDoc = getDestinationById(id);
+  const destDoc = getDestination(id);
   const medianPrice = destDoc?.baseline?.hotelMedianINR || 3500;
   const days = 2;
   const pricePerPersonPerDay = 600;
@@ -89,7 +89,7 @@ router.post('/', async (req, res) => {
   // existing at all. Reject that case up front, the same way
   // GET /api/v1/pressure/:destId already does, instead of letting the rest
   // of this pipeline invent a plausible-looking profile for it.
-  if (!getDestinationById(destId)) {
+  if (!getDestination(destId)) {
     return res.status(404).json({ ok: false, error: `unknown destId: ${destId}` });
   }
 

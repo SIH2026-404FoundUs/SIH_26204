@@ -22,8 +22,8 @@ export default function MyTrips() {
   const { trips, isLoading, error, fetchMyTrips } = useTripsStore()
 
   useEffect(() => {
-    if (authUser?._id) fetchMyTrips(authUser._id)
-  }, [authUser?._id, fetchMyTrips])
+    if (authUser) fetchMyTrips()
+  }, [authUser, fetchMyTrips])
 
   return (
     <div>

@@ -4,26 +4,35 @@ import json
 import logging
 import os
 import re
+import requests
 from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
+import litellm
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from google import genai
 from google.adk.runners import InMemoryRunner
 from google.genai import types
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-# Load the service-local .env before importing the agent. The Agent is created
-# at import time and the Google SDK reads its credentials during construction.
+# Load the service-local .env before importing the agent. The Agent (and the
+# LiteLlm model wrapper it is built on) is created at import time and reads
+# MODEL during construction.
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-from app.agents.travel_agent import PROVIDER_CHAIN
+from app.agents.travel_agent import DEFAULT_MODEL, TripSummary, travel_agent
+from app.onboarding.transcribe import run_transcription
 from app.services import trip_drafts
 from app.tools.alternatives import find_alternatives
 from app.tools.pressure import get_pressure
@@ -55,7 +64,32 @@ PRESSURE_GATE = 0.60
 # the per-call timeouts and the Connection: close fix in backend_client.py --
 # whatever the exact internal cause, a request must fail by this deadline
 # rather than hang indefinitely.
-AGENT_RUN_TIMEOUT_S = 45
+#
+# travel_agent is now a SequentialAgent (data-gathering agent -> formatter
+# agent; see travel_agent.py for why), so this ceiling covers both stages
+# combined, not just one LLM call.
+AGENT_RUN_TIMEOUT_S = 180
+
+def _authenticate_with_backend(cookie_header: str) -> str:
+    if not cookie_header:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    try:
+        response = requests.get(
+            f"{os.environ.get('BACKEND_URL', 'http://localhost:5001')}/api/auth/check",
+            headers={"Cookie": cookie_header, "Connection": "close"},
+            timeout=5,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(status_code=503, detail="Authentication service unavailable") from exc
+    if response.status_code != 200:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    user_id = response.json().get("_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return str(user_id)
+
+async def authenticated_user_id(request: Request) -> str:
+    return await run_in_threadpool(_authenticate_with_backend, request.headers.get("cookie", ""))
 
 # The frontend dev server origin, as documented by CLIENT_URL in
 # backend/.env.example (Vite's default 5173). Overridable so a deployed
@@ -97,20 +131,9 @@ async def http_exception_handler(request, exc: StarletteHTTPException):
     return JSONResponse(status_code=exc.status_code, content=body, headers=exc.headers)
 
 
-# One runner per configured LLM provider (not one runner overall) -- ADK ties
-# a runner to a single fixed agent/model, and trying Gemini, then Grok, then
-# Mistral in turn (see run_travel_agent below) means each needs its own
-# runner+agent pair. Sessions are still created per-request, so concurrent
-# plans never share conversation history regardless of which provider they
-# land on. RUNNERS is in the same fallback order as PROVIDER_CHAIN.
-RUNNERS = [(name, InMemoryRunner(agent=agent, app_name=APP_NAME)) for name, agent in PROVIDER_CHAIN]
-
-# The overall per-plan budget (AGENT_RUN_TIMEOUT_S) split evenly across
-# however many providers are actually configured, so a single-provider setup
-# keeps the full budget on that one provider (no behaviour change from before
-# this feature existed) while a 3-provider chain gives each attempt a fair
-# slice instead of letting one hang eat the whole budget.
-PROVIDER_TIMEOUT_S = AGENT_RUN_TIMEOUT_S / max(1, len(RUNNERS))
+# One runner for the process; sessions are per-request so concurrent plans
+# don't share conversation history.
+runner = InMemoryRunner(agent=travel_agent, app_name=APP_NAME)
 
 
 # QA findings (brutal-qa-report.md):
@@ -225,9 +248,13 @@ def build_prompt(req: PlanTripRequest) -> str:
 def extract_structured_output(event: Any) -> Optional[dict]:
     """Return the TripSummary payload carried by a final response event.
 
-    The agent has an output_schema, so its final event carries the summary as
-    a JSON text part. Non-final events (tool calls, tool results, partial
-    streaming chunks) carry no structured output and yield None.
+    travel_agent is a SequentialAgent (data-gathering agent -> formatter
+    agent). Both sub-agents can emit a "final response" event for their own
+    turn, but only the formatter agent's has output_schema and therefore
+    carries valid TripSummary JSON as its text part. The data-gathering
+    agent's final text is plain-language and will fail json.loads here,
+    which is expected -- it's filtered out by the try/except below, and the
+    caller keeps only the last successfully-parsed dict.
     """
     if not event.is_final_response():
         return None
@@ -250,10 +277,13 @@ def extract_structured_output(event: Any) -> Optional[dict]:
     return None
 
 
-async def _run_with_runner(runner: InMemoryRunner, req: PlanTripRequest) -> dict:
-    """Run one provider's agent to completion and return its structured TripSummary.
+async def run_travel_agent(req: PlanTripRequest) -> dict:
+    """Run the agent to completion and return its structured TripSummary.
 
     Raises LookupError if the run finished without producing structured output.
+    Raises pydantic.ValidationError if the formatter agent's JSON doesn't
+    match TripSummary -- treated as an unclassified failure (500) by
+    plan_or_500, same as any other unexpected agent defect.
     """
     session = await runner.session_service.create_session(
         app_name=runner.app_name,
@@ -272,7 +302,8 @@ async def _run_with_runner(runner: InMemoryRunner, req: PlanTripRequest) -> dict
         new_message=message,
     ):
         # Keep the last structured payload: a run can emit more than one final
-        # response, and the latest one is the completed summary.
+        # response (one per sub-agent), and the latest one is the completed
+        # summary from the formatter agent.
         structured = extract_structured_output(event)
         if structured is not None:
             result = structured
@@ -280,35 +311,10 @@ async def _run_with_runner(runner: InMemoryRunner, req: PlanTripRequest) -> dict
     if result is None:
         raise LookupError("agent run produced no structured TripSummary output")
 
-    return result
-
-
-async def run_travel_agent(req: PlanTripRequest) -> dict:
-    """Run the trip-planning agent, falling through RUNNERS in order
-    (Gemini -> Grok -> Mistral, whichever are configured) until one succeeds.
-
-    A provider "fails" for this purpose if it raises anything at all (bad/
-    missing API key, rate limit, provider-side 5xx, malformed response...) or
-    exceeds its PROVIDER_TIMEOUT_S slice -- either way it's logged and the
-    next provider gets a turn with a fresh session. Only once every configured
-    provider has failed does this raise, re-raising whichever exception the
-    LAST attempt produced so plan_or_500's existing error translation
-    (TimeoutError/LookupError -> 503, anything else -> 500) still applies
-    unchanged to a fully-exhausted chain.
-    """
-    last_exc: Optional[BaseException] = None
-    for name, runner in RUNNERS:
-        try:
-            result = await asyncio.wait_for(_run_with_runner(runner, req), timeout=PROVIDER_TIMEOUT_S)
-        except Exception as exc:  # noqa: BLE001 -- deliberately broad: any provider failure falls through
-            logger.warning("plan-trip: provider %r failed (%s: %s), trying next", name, type(exc).__name__, exc)
-            last_exc = exc
-            continue
-        if name != RUNNERS[0][0]:
-            logger.warning("plan-trip: recovered via provider %r after an earlier provider failed", name)
-        return result
-
-    raise last_exc if last_exc is not None else LookupError("no LLM provider configured")
+    # Validate against the real schema rather than trusting the model's JSON
+    # shape blindly -- output_schema constrains the formatter agent's
+    # decoding, but this is the actual guarantee the rest of the app relies on.
+    return TripSummary.model_validate(result).model_dump()
 
 
 async def plan_or_500(req: PlanTripRequest) -> dict:
@@ -386,7 +392,8 @@ async def _run_plan_trip(req: PlanTripRequest) -> dict:
 
 
 @app.post("/api/plan-trip")
-async def plan_trip(req: PlanTripRequest):
+async def plan_trip(req: PlanTripRequest, authenticated_id: str = Depends(authenticated_user_id)):
+    req = req.model_copy(update={"userId": authenticated_id})
     try:
         return await asyncio.wait_for(_run_plan_trip(req), timeout=AGENT_RUN_TIMEOUT_S)
     except asyncio.TimeoutError as exc:
@@ -462,7 +469,7 @@ def shift_end_date(start: str, end: str, new_start: str) -> str:
 
 
 @app.post("/api/plan-trip/confirm")
-async def confirm_trip(req: ConfirmTripRequest):
+async def confirm_trip(req: ConfirmTripRequest, authenticated_id: str = Depends(authenticated_user_id)):
     draft = await run_in_threadpool(trip_drafts.get_draft, req.tripDraftId)
     if draft is None:
         raise HTTPException(
@@ -470,6 +477,8 @@ async def confirm_trip(req: ConfirmTripRequest):
         )
 
     original = PlanTripRequest(**draft["request"])
+    if original.userId != authenticated_id:
+        raise HTTPException(status_code=403, detail="This trip draft belongs to another user")
     pressure_before = pressure_score(draft["pressure"])
 
     if req.decision == "decline":
@@ -550,15 +559,18 @@ async def transcribe_endpoint(audio: UploadFile = File(...)) -> dict:
 # bharani-tasks.md Section 1.3 -- structured extraction from a transcript.
 # Deliberately NOT built on the ADK Agent/tools framework travel_agent.py
 # uses: this is a single structured-output call (transcript in, one strict
-# JSON object out), not a multi-step tool-calling run, so a raw
-# google.genai client call is the right-sized tool here.
+# JSON object out), not a multi-step tool-calling run, so a direct LiteLLM
+# call is the right-sized tool here. It goes through LiteLLM rather than a
+# provider SDK so this endpoint and the agent stay on one model string and
+# one set of credentials. It has no `tools`, so provider-specific
+# response_format + tools restrictions do not apply here.
 #
-# response_json_schema (not response_schema) + reading response.text is
-# the pattern verified directly against this repo's actual pinned
-# google-genai==2.22.0 source (github.com/googleapis/python-genai, tag
-# v2.22.0) -- response_schema/.parsed exist in some SDK versions/docs but
-# were not independently confirmed for this exact pinned version, so this
-# uses only what was verified working.
+# Passing the pydantic class itself as response_format is what LiteLLM
+# documents for JSON mode, and was verified against this repo's installed
+# litellm 1.95.0: type_to_response_format_param() turns ExtractionResult
+# into a strict json_schema payload (additionalProperties: false, every
+# property required, $ref siblings stripped) that xAI accepts. Building
+# that payload by hand from .model_json_schema() would NOT be strict-valid.
 
 
 class PriceRangeINR(BaseModel):
@@ -589,15 +601,10 @@ class ExtractRequest(BaseModel):
     language: Optional[str] = None
 
 
-EXTRACTION_MODEL = os.environ.get("MODEL", "gemini-2.5-flash")
-
-# genai.Client() with no args reads GOOGLE_API_KEY (falling back to
-# GEMINI_API_KEY) from the environment automatically -- verified against
-# the pinned google-genai==2.22.0 source (_api_client.py's
-# get_env_api_key()), same as how travel_agent's ADK Agent picks up
-# credentials. Constructed once at import time, not per-request, matching
-# the `runner` pattern above.
-genai_client = genai.Client()
+# Same model string as the agent (see travel_agent.DEFAULT_MODEL), routed
+# through LiteLLM. With the default Vertex AI model, authentication comes from
+# Google Application Default Credentials rather than a provider API key.
+EXTRACTION_MODEL = os.environ.get("MODEL", DEFAULT_MODEL)
 
 # The critical rule from the spec, stated explicitly rather than left
 # implicit: an LLM asked to "extract details" will happily infer a
@@ -626,22 +633,25 @@ async def extract_endpoint(req: ExtractRequest) -> dict:
         transcript=req.transcript,
     )
     try:
-        # generate_content() is a blocking network call -- off the event
-        # loop, same reasoning as run_transcription() above.
-        response = await run_in_threadpool(
-            genai_client.models.generate_content,
+        # acompletion() is LiteLLM's natively async entry point, so unlike
+        # run_transcription() above this needs no threadpool hop to stay off
+        # the event loop.
+        response = await litellm.acompletion(
             model=EXTRACTION_MODEL,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_json_schema=ExtractionResult.model_json_schema(),
-            ),
+            messages=[{"role": "user", "content": prompt}],
+            response_format=ExtractionResult,
+            temperature=0,
         )
-        parsed = ExtractionResult.model_validate_json(response.text)
+        parsed = ExtractionResult.model_validate_json(
+            response.choices[0].message.content
+        )
     except ValidationError as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"extraction failed: Gemini's output did not match the expected schema: {exc}",
+            detail=(
+                f"extraction failed: {EXTRACTION_MODEL}'s output did not match "
+                f"the expected schema: {exc}"
+            ),
         ) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"extraction failed: {exc}") from exc

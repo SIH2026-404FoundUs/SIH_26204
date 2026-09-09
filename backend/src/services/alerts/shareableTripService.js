@@ -9,6 +9,12 @@ import crypto from "crypto";
 
 export const DEFAULT_SHARE_EXPIRATION_DAYS = 7;
 
+export async function tripBelongsToUser(tripId, userId, TripModel) {
+  if (!tripId || !userId || !TripModel?.findOne) return false;
+  const trip = await TripModel.findOne({ _id: String(tripId), userId: String(userId) }).select("_id");
+  return Boolean(trip);
+}
+
 /**
  * Create a new read-only shareable trip record token.
  *

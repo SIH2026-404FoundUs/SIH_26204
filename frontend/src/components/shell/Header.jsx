@@ -17,7 +17,6 @@ const TRAVELLER_PRIMARY = [
   { to: '/trips', label: 'My Trips', icon: Route },
 ]
 const TRAVELLER_MORE = [
-  { to: '/swap', label: 'Alternatives', icon: MapPinned },
   { to: '/community', label: 'Community', icon: MapPinned },
   { to: '/offers', label: 'Offers & waitlist', icon: Tag },
   { to: '/visits', label: 'Verify a visit', icon: ShieldCheck },

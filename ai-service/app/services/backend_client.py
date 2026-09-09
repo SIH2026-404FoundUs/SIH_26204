@@ -17,24 +17,31 @@ BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:5001")
 # calls, and it removes an entire class of "recovered but still stuck" bug.
 _HEADERS = {"Connection": "close"}
 
+def _service_headers() -> dict:
+    headers = dict(_HEADERS)
+    token = os.environ.get("INTERNAL_SERVICE_TOKEN")
+    if token:
+        headers["X-Internal-Service-Token"] = token
+    return headers
+
 
 def get(path: str, params: dict) -> dict:
     try:
-        response = requests.get(f"{BACKEND_URL}{path}", params=params, timeout=5, headers=_HEADERS)
+        response = requests.get(f"{BACKEND_URL}{path}", params=params, timeout=5, headers=_service_headers())
         return response.json()
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
 def post(path: str, body: dict) -> dict:
     try:
-        response = requests.post(f"{BACKEND_URL}{path}", json=body, timeout=5, headers=_HEADERS)
+        response = requests.post(f"{BACKEND_URL}{path}", json=body, timeout=5, headers=_service_headers())
         return response.json()
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
 def patch(path: str, body: dict) -> dict:
     try:
-        response = requests.patch(f"{BACKEND_URL}{path}", json=body, timeout=5, headers=_HEADERS)
+        response = requests.patch(f"{BACKEND_URL}{path}", json=body, timeout=5, headers=_service_headers())
         return response.json()
     except Exception as e:
         return {"ok": False, "error": str(e)}
