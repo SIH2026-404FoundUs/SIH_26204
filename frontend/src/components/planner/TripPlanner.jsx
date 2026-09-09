@@ -13,13 +13,13 @@ import DestinationSelect from '../ui/DestinationSelect'
 
 function TripForm({ onSubmit, isPlanning }) {
   const [form, setForm] = useState({
-    destId: 'manali', startDate: '', endDate: '', origin: '', travellers: 2, budgetInr: 20000,
+    destId: '', startDate: '', endDate: '', origin: '', travellers: 2, budgetInr: 20000,
   })
   const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
 
   return (
     <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); onSubmit(form) }}>
-      <FormField label="Destination"><DestinationSelect value={form.destId} onChange={(v) => setForm((p) => ({ ...p, destId: v }))} /></FormField>
+      <FormField label="Destination"><DestinationSelect required value={form.destId} onChange={(v) => setForm((p) => ({ ...p, destId: v }))} /></FormField>
       <FormField label="Travelling from">
         <div className="relative">
           <Navigation size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ash" aria-hidden="true" />
@@ -57,15 +57,20 @@ function TripForm({ onSubmit, isPlanning }) {
   )
 }
 
-function AlternativeRow({ label, icon: Icon, pressure, savingINR, onSelect }) {
+function AlternativeRow({ label, icon: Icon, pressure, requestedPressure, savingINR, selected, onSelect }) {
+  const pressureDrop = typeof requestedPressure === 'number' && typeof pressure === 'number'
+    ? requestedPressure - pressure
+    : null
+
   return (
-    <button type="button" onClick={onSelect} className="flex w-full items-center justify-between gap-3 rounded-lg border border-paper-dim bg-white p-3 text-left transition hover:border-ink/25 hover:shadow-sm">
+    <button type="button" aria-pressed={selected} onClick={onSelect} className={`flex w-full items-center justify-between gap-3 rounded-lg border bg-white p-3 text-left transition hover:border-ink/25 hover:shadow-sm ${selected ? 'border-relief ring-2 ring-relief/20' : 'border-paper-dim'}`}>
       <div className="flex items-center gap-2.5">
         {Icon && <Icon size={16} className="text-ash shrink-0" aria-hidden="true" />}
         <span className="text-sm font-medium text-ink">{label}</span>
       </div>
       <div className="flex items-center gap-3">
         {pressure != null && <PressureBadge score={pressure} size="sm" />}
+        {pressureDrop > 0 && <span className="text-xs text-relief">{Math.round(pressureDrop * 100)}pt lower</span>}
         {/* Saving is shown only when genuinely nonzero -- matching the
             backend's own honesty convention (a date shift with
             savingINR: 0 does not invent a saving to display). */}
@@ -81,16 +86,19 @@ function AlternativeRow({ label, icon: Icon, pressure, savingINR, onSelect }) {
 // per the doc's central integrity rule.
 function DecisionPanel() {
   const { pressure, alternatives, submitDecision, isPlanning } = usePlannerStore()
+  const [selectedAlternative, setSelectedAlternative] = useState(null)
   const places = alternatives?.places ?? []
   const dates = alternatives?.dates ?? []
   const destLabel = getDestinationLabel(alternatives?.requested?.destId)
+  const requestedPressure = alternatives?.requested?.pressure ?? pressure?.score
 
   return (
     <div className="isobar-canvas rounded-lg p-5 sm:p-6">
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
         <PressureRing score={pressure?.score} variant="requested" size={96} />
         <div className="flex-1 text-center sm:text-left">
-          <h3 className="font-display text-xl text-paper">{destLabel} is under pressure</h3>
+          <h3 className="font-display text-xl text-paper">Your selected destination currently has high tourism pressure.</h3>
+          <p className="mt-1 text-sm text-paper/70">{destLabel} is the destination you selected.</p>
           <div className="mt-1"><PressureBadge score={pressure?.score} size="lg" /></div>
           <p className="mt-2 text-sm text-paper/60">Here are less-crowded options. Pick one, or continue with your original plan anyway -- declining is a first-class outcome here, not a mistake to talk you out of.</p>
         </div>
@@ -101,8 +109,8 @@ function DecisionPanel() {
           <div className="mb-2 text-xs font-medium uppercase tracking-wide text-paper/50">Other destinations</div>
           <div className="space-y-2">
             {places.map((p) => (
-              <AlternativeRow key={p.destId} label={p.displayName || getDestinationLabel(p.destId)} pressure={p.pressure} savingINR={p.savingINR}
-                onSelect={() => submitDecision('accept', { destId: p.destId })} />
+              <AlternativeRow key={p.destId} label={p.displayName || getDestinationLabel(p.destId)} pressure={p.pressure} requestedPressure={requestedPressure} savingINR={p.savingINR}
+                selected={selectedAlternative?.destId === p.destId} onSelect={() => setSelectedAlternative({ destId: p.destId })} />
             ))}
           </div>
         </div>
@@ -115,8 +123,8 @@ function DecisionPanel() {
             {dates.map((d) => (
               <AlternativeRow key={d.startDate} icon={CalendarClock}
                 label={new Date(d.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                pressure={d.pressure} savingINR={d.savingINR}
-                onSelect={() => submitDecision('accept', { date: d.startDate })} />
+                pressure={d.pressure} requestedPressure={requestedPressure} savingINR={d.savingINR}
+                selected={selectedAlternative?.date === d.startDate} onSelect={() => setSelectedAlternative({ date: d.startDate })} />
             ))}
           </div>
         </div>
@@ -126,9 +134,22 @@ function DecisionPanel() {
         <p className="mt-5 text-sm text-paper/60">No better place or date was found -- continuing anyway is the only option here.</p>
       )}
 
+      {alternatives?.relaxedRelief && (
+        <p className="mt-4 text-xs text-paper/60">These suggestions meet a relaxed relief threshold, so the improvement may be modest.</p>
+      )}
+
+      {(pressure?.lowConfidence || pressure?.stale || pressure?.dropped?.length > 0 || pressure?.degraded?.length > 0) && (
+        <p className="mt-4 text-xs text-paper/60">
+          {pressure.stale ? 'This reading uses the latest available stored data. ' : ''}
+          {pressure.lowConfidence ? 'The reading has lower confidence. ' : ''}
+          {pressure.degraded?.length > 0 ? 'Some signals use fallback data. ' : ''}
+          {pressure.dropped?.length > 0 ? 'Some pressure signals were unavailable.' : ''}
+        </p>
+      )}
+
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Button variant="relief" icon={Check} loading={isPlanning} disabled={places.length === 0 && dates.length === 0}
-          onClick={() => places[0] ? submitDecision('accept', { destId: places[0].destId }) : dates[0] && submitDecision('accept', { date: dates[0].startDate })}>
+        <Button variant="outline" icon={Check} loading={isPlanning} disabled={!selectedAlternative}
+          onClick={() => submitDecision('accept', selectedAlternative)} className="border-paper/30 text-paper hover:bg-paper/10">
           Take the relief
         </Button>
         <Button variant="outline" icon={X} loading={isPlanning} onClick={() => submitDecision('decline')}
@@ -141,7 +162,7 @@ function DecisionPanel() {
 }
 
 function PlanResult() {
-  const { plan } = usePlannerStore()
+  const { plan, request, pressure } = usePlannerStore()
   if (!plan) return null
   const { trip, redistribution, destId, startDate } = plan
   const switched = redistribution?.kind && redistribution.kind !== 'none'
@@ -160,6 +181,20 @@ function PlanResult() {
         ) : (
           <span className="text-xs font-medium text-pressure">proceeding as requested · pressure disclosed</span>
         )}
+      </div>
+
+      <div className="mb-4 rounded-lg bg-paper-dim/50 p-3 text-sm text-ink/70">
+        <div><span className="font-medium text-ink/80">Requested:</span> {getDestinationLabel(request?.destId)} · {request?.startDate}</div>
+        {switched && (
+          <div className="mt-1">
+            <span className="font-medium text-relief">Redistributed:</span>{' '}
+            {redistribution.pressureBefore != null && redistribution.pressureAfter != null
+              ? `${Math.round(redistribution.pressureBefore * 100)}% → ${Math.round(redistribution.pressureAfter * 100)}% pressure`
+              : 'alternative accepted'}
+            {redistribution.savingINR > 0 && ` · saved ₹${redistribution.savingINR.toLocaleString('en-IN')}`}
+          </div>
+        )}
+        {!switched && pressure?.score != null && <div className="mt-1">Original pressure: {Math.round(pressure.score * 100)}% · proceeding as requested</div>}
       </div>
 
       <p className="text-sm text-ink/70">{trip?.summary}</p>
@@ -199,6 +234,9 @@ function PlanResult() {
             </div>
           ))}
         </div>
+      )}
+      {!trip?.itinerary?.days?.length && (
+        <p className="mt-4 text-sm text-ink/60">Detailed day-by-day itinerary was not returned for this plan.</p>
       )}
     </Card>
   )

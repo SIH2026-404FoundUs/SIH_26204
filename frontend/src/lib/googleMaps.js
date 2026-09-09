@@ -65,7 +65,7 @@ export function loadGoogleMaps() {
       }
     };
 
-    script.onerror = (error) => {
+    script.onerror = () => {
       googleMapsPromise = null;
       reject(new Error('Failed to load Google Maps JavaScript SDK script.'));
     };

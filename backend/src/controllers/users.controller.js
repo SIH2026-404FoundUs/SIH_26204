@@ -6,6 +6,9 @@ import User from "../models/user.model.js";
 // businesses). Exposes only the `preferences` subdocument, never passwordHash.
 export const getUserPreferencesController = async (req, res) => {
   try {
+    if (!req.isInternalService && String(req.user._id) !== String(req.params.id)) {
+      return res.status(403).json({ message: "You can only read your own preferences" });
+    }
     // A malformed id (not a 24-char hex ObjectId) makes findById throw a
     // CastError -- that's caller error, not a server fault, so surface it as
     // 400 rather than letting the catch-all below turn it into a 500.

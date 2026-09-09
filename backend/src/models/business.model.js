@@ -61,6 +61,10 @@ const businessSchema = new mongoose.Schema({
     unique: true,
     select: false,
   },
+  ownerUserId: {
+    type: String,
+    index: true,
+  },
   languages: {
     type: [String],
     default: [],

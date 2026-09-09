@@ -4,6 +4,7 @@ import PageHeader from '../ui/PageHeader'
 import AccountCard from './AccountCard'
 import PreferencesCard from './PreferencesCard'
 import QuickLinksCard from './QuickLinksCard'
+import ChangePasswordCard from './ChangePasswordCard'
 
 // The page itself only wires auth state to its sections -- each section
 // fetches (PreferencesCard) or derives (QuickLinksCard) what it needs from
@@ -21,6 +22,7 @@ export default function Profile() {
       <AccountCard authUser={authUser} onLogout={logout} />
       <QuickLinksCard role={authUser.role} />
       <PreferencesCard userId={authUser._id} />
+      <ChangePasswordCard />
     </div>
   )
 }

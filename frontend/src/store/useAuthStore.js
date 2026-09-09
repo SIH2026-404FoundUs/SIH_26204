@@ -24,15 +24,17 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+  // No email verification step -- signup logs the traveller straight in,
+  // same shape as login's own success response.
   signup: async (data) => {
     set({ isSigningUp: true, error: null })
     try {
       const res = await api.post('/auth/signup', data)
       set({ authUser: res.data })
-      return true
+      return res.data
     } catch (error) {
       set({ error: getErrorMessage(error, 'Could not create your account') })
-      return false
+      return null
     } finally {
       set({ isSigningUp: false })
     }
@@ -74,6 +76,35 @@ export const useAuthStore = create((set) => ({
       return false
     } finally {
       set({ isUpdatingProfile: false })
+    }
+  },
+
+  // ---- forgot / reset password ----
+  forgotPassword: async (email) => {
+    try {
+      const res = await api.post('/auth/forgot-password', { email })
+      return { ok: true, message: res.data.message }
+    } catch (error) {
+      return { ok: false, message: getErrorMessage(error, 'Could not send the reset email') }
+    }
+  },
+
+  resetPassword: async ({ token, password, confirmPassword }) => {
+    try {
+      const res = await api.post('/auth/reset-password', { token, password, confirmPassword })
+      return { ok: true, message: res.data.message }
+    } catch (error) {
+      return { ok: false, message: getErrorMessage(error, 'Could not reset your password') }
+    }
+  },
+
+  // ---- change password (logged in) ----
+  changePassword: async ({ currentPassword, newPassword, confirmNewPassword }) => {
+    try {
+      await api.patch('/auth/change-password', { currentPassword, newPassword, confirmNewPassword })
+      return { ok: true, message: 'Password changed.' }
+    } catch (error) {
+      return { ok: false, message: getErrorMessage(error, 'Could not change your password') }
     }
   },
 }))

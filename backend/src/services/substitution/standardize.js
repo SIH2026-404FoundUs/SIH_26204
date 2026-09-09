@@ -1,11 +1,4 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const SEEDS_DESTINATIONS_DIR = path.join(__dirname, '../../seeds/destinations');
+import { loadDestinations } from '../pressure/seed.js';
 
 const ATTR_LIST = [
   'snow',
@@ -19,35 +12,9 @@ const ATTR_LIST = [
 ];
 
 let statsCache = null;
-let cachedDestinations = null;
-
-function loadDestinationsFromJSON() {
-  if (!cachedDestinations) {
-    try {
-      if (!fs.existsSync(SEEDS_DESTINATIONS_DIR)) {
-        console.warn(`Seed destinations directory not found at ${SEEDS_DESTINATIONS_DIR}`);
-        cachedDestinations = [];
-        return cachedDestinations;
-      }
-      const files = fs.readdirSync(SEEDS_DESTINATIONS_DIR).filter((f) => f.endsWith('.json'));
-      cachedDestinations = files.map((file) => {
-        const content = fs.readFileSync(path.join(SEEDS_DESTINATIONS_DIR, file), 'utf-8');
-        return JSON.parse(content);
-      });
-    } catch (err) {
-      console.error('Error loading destination JSON seeds:', err.message);
-      cachedDestinations = [];
-    }
-  }
-  return cachedDestinations;
-}
 
 function getTrackedDestinations() {
-  return loadDestinationsFromJSON().filter((d) => d.trackingTier === 'tracked');
-}
-
-function getDestinationById(id) {
-  return loadDestinationsFromJSON().find((d) => d._id === id || d.id === id) || null;
+  return loadDestinations().filter((d) => d.trackingTier === 'tracked');
 }
 
 /**
@@ -138,7 +105,6 @@ async function zScore(destination) {
  */
 async function reloadStats() {
   statsCache = null;
-  cachedDestinations = null;
   return await getStats();
 }
 
@@ -151,8 +117,5 @@ export {
   getStats,
   zScore,
   reloadStats,
-  initializeStats,
-  loadDestinationsFromJSON,
-  getTrackedDestinations,
-  getDestinationById
+  initializeStats
 };

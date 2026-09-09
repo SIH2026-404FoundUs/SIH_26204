@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Trip from "../models/trip.model.js";
+import { saveOfferedAlternatives, markAcceptedAlternative } from "../services/alternatives/alternativeSuggestions.js";
 
 // A malformed :id (not a 24-char hex ObjectId) makes Mongoose throw a CastError
 // -- caller error, not a server fault -- so both handlers below check this
@@ -16,14 +17,18 @@ export const createTripController = async (req, res) => {
       userId, origin, requestedDestId, requestedDates, travellers, budgetINR, interests,
       _draftPressure, _draftAlternatives,
     } = req.body;
-    if (!userId || !requestedDestId) {
+    const ownerId = req.isInternalService ? userId : String(req.user._id);
+    if (!ownerId || !requestedDestId) {
       return res.status(400).json({ message: "userId and requestedDestId are required" });
     }
     const trip = await Trip.create({
-      userId, origin, requestedDestId, requestedDates, travellers, budgetINR, interests,
+      userId: ownerId, origin, requestedDestId, requestedDates, travellers, budgetINR, interests,
       _draftPressure, _draftAlternatives,
       state: "draft",
     });
+    // Best-effort, never blocks the response: the trip itself is already
+    // saved and is what /confirm actually depends on.
+    saveOfferedAlternatives(trip, _draftAlternatives).catch(() => {});
     res.status(201).json(trip);
   } catch (error) {
     console.log("Error in createTrip controller", error.message);
@@ -38,7 +43,7 @@ export const createTripController = async (req, res) => {
 // already in the schema.
 export const listTripsController = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = req.isInternalService ? req.query.userId : String(req.user._id);
     if (!userId) return res.status(400).json({ message: "userId query param required" });
     const trips = await Trip.find({ userId }).sort({ createdAt: -1 }).lean();
     res.status(200).json(trips);
@@ -104,7 +109,10 @@ export const getTripController = async (req, res) => {
     if (!isValidId(req.params.id)) {
       return res.status(400).json({ message: "invalid trip id" });
     }
-    const trip = await Trip.findById(req.params.id).lean();
+    const query = req.isInternalService
+      ? { _id: req.params.id }
+      : { _id: req.params.id, userId: String(req.user._id) };
+    const trip = await Trip.findOne(query).lean();
     if (!trip) return res.status(404).json({ message: "trip not found" });
     res.status(200).json(trip);
   } catch (error) {
@@ -129,8 +137,16 @@ export const updateTripController = async (req, res) => {
     for (const key of allowed) {
       if (req.body[key] !== undefined) update[key] = req.body[key];
     }
-    const trip = await Trip.findByIdAndUpdate(req.params.id, { $set: update }, { new: true });
+    const query = req.isInternalService
+      ? { _id: req.params.id }
+      : { _id: req.params.id, userId: String(req.user._id) };
+    const trip = await Trip.findOneAndUpdate(query, { $set: update }, { new: true });
     if (!trip) return res.status(404).json({ message: "trip not found" });
+    if (update.redistribution) {
+      // Best-effort, never blocks the response -- same reasoning as the
+      // create-side save above.
+      markAcceptedAlternative(trip).catch(() => {});
+    }
     res.status(200).json(trip);
   } catch (error) {
     console.log("Error in updateTrip controller", error.message);

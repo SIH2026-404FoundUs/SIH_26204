@@ -7,7 +7,7 @@ import { getAlternatives } from '../services/substitution/alternatives.service.j
 import { getPressure } from '../services/pressure/service.js';
 import { travelTimeFn } from '../services/travelTime.js';
 import { calculateBudget } from '../services/budgetService.js';
-import { getDestinationById } from '../services/substitution/standardize.js';
+import { getDestination } from '../services/pressure/seed.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,7 +41,7 @@ const pressureFn = async (dest, date) => {
 /** Dynamic destination budget estimator using budgetService and seeded baselines */
 const budgetFn = async (dest, date, travellers = 2) => {
   const id = destIdOf(dest);
-  const destDoc = getDestinationById(id);
+  const destDoc = getDestination(id);
   const medianPrice = destDoc?.baseline?.hotelMedianINR || 3500;
   const days = 2;
   const pricePerPersonPerDay = 600;
@@ -78,6 +78,19 @@ router.post('/', async (req, res) => {
   const { origin, destId, startDate, endDate, travellers, budgetINR, interests } = req.body;
   if (!origin || !destId || !startDate || !endDate) {
     return res.status(400).json({ ok: false, error: 'origin, destId, startDate, endDate are required' });
+  }
+
+  // QA finding (brutal-qa-report.md, P1): destId="fake-xyz" (not a tracked
+  // destination at all) returned a fully-formed, entirely fabricated
+  // response -- pressure 0.5 across every component -- rather than an
+  // error. Root cause was the `?? 0.5` fallbacks below, which exist to
+  // handle a *candidate* destination's pressure being momentarily
+  // unavailable, but were also firing for the *requested* destination not
+  // existing at all. Reject that case up front, the same way
+  // GET /api/v1/pressure/:destId already does, instead of letting the rest
+  // of this pipeline invent a plausible-looking profile for it.
+  if (!getDestination(destId)) {
+    return res.status(404).json({ ok: false, error: `unknown destId: ${destId}` });
   }
 
   try {

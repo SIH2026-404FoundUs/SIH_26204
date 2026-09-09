@@ -4,6 +4,8 @@ import { useAuthStore } from './store/useAuthStore'
 import Header, { FullPageLoader } from './components/shell/Header'
 import { Page, RequireAuth, RequireAuthBare, RequireRole } from './components/shell/Guards'
 import AuthScreen from './components/auth/AuthScreen'
+import ForgotPassword from './components/auth/ForgotPassword'
+import ResetPassword from './components/auth/ResetPassword'
 import PressureHeatmap from './components/pressure/PressureHeatmap'
 import { SwapPage, TripConfirmation } from './components/swap'
 import TripPlanner from './components/planner/TripPlanner'
@@ -18,14 +20,21 @@ import OffersWaitlist from './components/trust/OffersWaitlist'
 import Alerts from './components/trust/Alerts'
 import Safety from './components/trust/Safety'
 import Businesses from './components/trust/Businesses'
+import MapPreview from './pages/MapPreview'
+
+// Where each role lands after authenticating (auth spec §7/§20) -- mirrors
+// AuthScreen's own ROLE_HOME, used here for the post-refresh/direct-URL
+// case (AuthScreen only handles the moment of submitting the login form).
+const ROLE_HOME = { traveller: '/home', operator: '/operator', authority: '/authority' }
+const roleHome = (authUser) => ROLE_HOME[authUser?.role] || '/home'
 
 // Sahyatri's application shell (§53-58 of the frontend spec): a public
 // experience (landing/signin, signup, explore, destination detail,
-// businesses) and an authenticated experience behind a persistent header/nav
-// that exposes every implemented feature -- nothing reachable only via a
-// hidden URL. Role-specific routes (operator/authority) are gated in the UI
-// only; the backend remains the real authority on every call these pages
-// make (§56).
+// businesses, and the auth-recovery pages) and an authenticated experience
+// behind a persistent header/nav that exposes every implemented feature --
+// nothing reachable only via a hidden URL. Role-specific routes
+// (operator/authority) are gated in the UI only; the backend remains the
+// real authority on every call these pages make (§56).
 function App() {
   const authUser = useAuthStore((state) => state.authUser)
   const isCheckingAuth = useAuthStore((state) => state.isCheckingAuth)
@@ -43,9 +52,15 @@ function App() {
         <Header />
         <Routes>
           {/* Public experience (§53) */}
-          <Route path="/" element={authUser ? <Navigate to="/home" replace /> : <AuthScreen mode="login" />} />
-          <Route path="/signin" element={authUser ? <Navigate to="/home" replace /> : <AuthScreen mode="login" />} />
-          <Route path="/signup" element={authUser ? <Navigate to="/home" replace /> : <AuthScreen mode="signup" />} />
+          <Route path="/" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <AuthScreen mode="login" />} />
+          <Route path="/signin" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <AuthScreen mode="login" />} />
+          <Route path="/signup" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <AuthScreen mode="signup" />} />
+          {/* Auth-recovery routes are never gated on auth state (§19: "Do
+              not protect public authentication routes unnecessarily") -- a
+              logged-in user following a stale reset link from an old email
+              should still be able to use it. */}
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/explore" element={<Page wide><PressureHeatmap /></Page>} />
           <Route path="/explore/:destId" element={<Page><DestinationDetail /></Page>} />
           <Route path="/businesses" element={<Page><Businesses /></Page>} />
@@ -55,6 +70,10 @@ function App() {
 
           {/* Authenticated experience (§57/§58) */}
           <Route path="/home" element={<RequireAuth><TripPlanner /></RequireAuth>} />
+          {/* RequireAuthBare, not RequireAuth: the map is a full-bleed canvas
+              (near-full-viewport, its own <main>), not the standard
+              max-w-6xl centred page shell RequireAuth would force it into. */}
+          <Route path="/map" element={<RequireAuthBare><MapPreview /></RequireAuthBare>} />
           <Route path="/trips" element={<RequireAuth><MyTrips /></RequireAuth>} />
           <Route path="/swap" element={<RequireAuthBare><SwapPage /></RequireAuthBare>} />
           <Route path="/trip-confirmation" element={<RequireAuthBare><TripConfirmation /></RequireAuthBare>} />
@@ -72,8 +91,12 @@ function App() {
           <Route path="/login" element={<Navigate to="/signin" replace />} />
           <Route path="/pressure" element={<Navigate to="/explore" replace />} />
           <Route path="/planner" element={<Navigate to="/home" replace />} />
+          <Route path="/map-preview" element={<Navigate to="/map" replace />} />
+          {/* Email verification was removed -- redirect any stale link
+              (an old email, a bookmark) somewhere real instead of 404ing. */}
+          <Route path="/verify-email" element={<Navigate to="/signin" replace />} />
 
-          <Route path="*" element={<Navigate to={authUser ? '/home' : '/'} replace />} />
+          <Route path="*" element={<Navigate to={authUser ? roleHome(authUser) : '/'} replace />} />
         </Routes>
       </div>
     </BrowserRouter>

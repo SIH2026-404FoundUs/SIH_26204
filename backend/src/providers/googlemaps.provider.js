@@ -68,7 +68,7 @@ async function calculateRoute(originLat, originLng, destLat, destLng, mode = 'DR
           headers: {
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': apiKey,
-            'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters'
+            'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline'
           }
         }
       );
@@ -83,7 +83,8 @@ async function calculateRoute(originLat, originLng, destLat, destLng, mode = 'DR
       return ok(
         {
           distanceKm: route.distanceMeters / 1000,
-          durationMinutes: Math.round(durationSeconds / 60)
+          durationMinutes: Math.round(durationSeconds / 60),
+          polyline: route.polyline?.encodedPolyline || null
         },
         { source: 'googlemaps', confidence: 'high' }
       );
