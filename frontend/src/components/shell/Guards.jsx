@@ -7,7 +7,7 @@ import { Lock } from 'lucide-react'
 // background/padding classes.
 export function Page({ children, wide = false }) {
   return (
-    <main className="flex-1 bg-paper px-4 py-10 sm:px-6">
+    <main className="flex-1 bg-paper px-4 py-10 sm:px-6 md:pl-72">
       <div className={wide ? 'mx-auto max-w-6xl' : 'mx-auto max-w-3xl'}>{children}</div>
     </main>
   )

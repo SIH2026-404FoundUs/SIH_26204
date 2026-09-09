@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import {
   Loader2, LogOut, Menu, X, ChevronDown, Compass, MapPinned,
   ShieldCheck, Store, Route, UserRound, Wrench, Landmark,
-  Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users,
+  Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users, Bot,
+  PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -27,11 +28,13 @@ import { useOperatorStore } from '../../store/useOperatorStore'
 // Waitlist (unchanged page -- travellers see offers operators have
 // posted and join a waitlist, same as before it was hidden from nav).
 const TRAVELLER_PRIMARY = [
-  { to: '/home', label: 'Home', icon: Compass },
-  { to: '/map', label: 'Maps', icon: MapIcon },
+  { to: '/home', label: 'Plan a trip', icon: Compass },
+  { to: '/map', label: 'One Map', icon: MapIcon },
   { to: '/trips', label: 'My Trips', icon: Route },
 ]
 const TRAVELLER_MORE = [
+  { to: '/explore', label: 'Explore pressure', icon: Compass },
+  { to: '/multimodal-agent', label: 'Multimodal agent', icon: Bot },
   { to: '/services', label: 'Available Services', icon: Wrench },
   { to: '/community', label: 'Suggest a Place', icon: MapPinned },
   { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
@@ -55,6 +58,7 @@ const OPERATOR_PRIMARY_BASE = [
   { to: '/hire-people', label: 'Hire People', icon: Users },
   { to: '/operator/waitlist', label: 'Waitlist & Offers', icon: Tag },
   { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
+  { to: '/multimodal-agent', label: 'Multimodal Agent', icon: Bot },
 ]
 const OPERATOR_MORE = []
 // Authority nav trimmed to exactly two destinations, no More section --
@@ -63,6 +67,7 @@ const OPERATOR_MORE = []
 const AUTHORITY_PRIMARY = [
   { to: '/authority', label: 'Authority Dashboard', icon: Landmark },
   { to: '/community', label: 'Community Review', icon: ClipboardCheck },
+  { to: '/multimodal-agent', label: 'Multimodal Agent', icon: Bot },
 ]
 const AUTHORITY_MORE = []
 
@@ -96,48 +101,11 @@ function NavLink({ to, label, icon: Icon, onClick }) {
     <Link
       to={to}
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition hover:bg-ink/5 ${active ? 'text-pressure' : 'text-ink/70'}`}
+      className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition hover:bg-white/70 ${active ? 'bg-white text-pressure shadow-sm' : 'text-ink/70'}`}
     >
       {Icon && <Icon size={16} aria-hidden="true" />}
       {label}
     </Link>
-  )
-}
-
-function MoreMenu({ items }) {
-  const [open, setOpen] = useState(false)
-  const location = useLocation()
-  const isMoreActive = items.some((item) => item.to === location.pathname)
-
-  useEffect(() => {
-    if (!open) return
-    const close = () => setOpen(false)
-    document.addEventListener('click', close)
-    return () => document.removeEventListener('click', close)
-  }, [open])
-
-  if (items.length === 0) return null
-
-  return (
-    <div className="relative" onClick={(e) => e.stopPropagation()}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition hover:bg-ink/5 ${isMoreActive ? 'text-pressure' : 'text-ink/70'}`}
-        aria-haspopup="menu"
-        aria-expanded={open}
-      >
-        More
-        <ChevronDown size={14} aria-hidden="true" />
-      </button>
-      {open && (
-        <div role="menu" className="glass-surface absolute right-0 z-20 mt-1 w-56 rounded-xl p-1.5 shadow-lg">
-          {items.map((item) => (
-            <NavLink key={item.to} {...item} onClick={() => setOpen(false)} />
-          ))}
-        </div>
-      )}
-    </div>
   )
 }
 
@@ -188,9 +156,35 @@ function ProfileMenu() {
   )
 }
 
+function WorkspaceSidebar({ items, more, collapsed, onToggle }) {
+  return (
+    <aside className={`fixed bottom-0 left-0 top-[4.5rem] z-40 hidden overflow-y-auto border-r border-ink/5 bg-white/95 px-3 py-5 shadow-[8px_0_30px_rgba(16,25,43,0.04)] backdrop-blur-xl transition-all duration-200 md:block ${collapsed ? 'w-[76px]' : 'w-64'}`}>
+      <button type="button" onClick={onToggle} className="mb-5 flex w-full items-center justify-center rounded-xl border border-paper-dim bg-paper px-3 py-2 text-xs font-semibold text-ink/70 transition hover:bg-paper-dim" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+        {collapsed ? <PanelLeftOpen size={17} /> : <><PanelLeftClose size={17} /><span className="ml-2">Collapse menu</span></>}
+      </button>
+      <div className="space-y-1">
+        {!collapsed && <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-ash">Workspace</p>}
+        {items.map((item) => <SidebarLink key={item.to} item={item} collapsed={collapsed} />)}
+      </div>
+      {more.length > 0 && <div className="mt-7 border-t border-paper-dim pt-5">
+        {!collapsed && <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-ash">Discover &amp; support</p>}
+        {more.map((item) => <SidebarLink key={item.to} item={item} collapsed={collapsed} />)}
+      </div>}
+    </aside>
+  )
+}
+
+function SidebarLink({ item, collapsed }) {
+  const location = useLocation()
+  const active = location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
+  const Icon = item.icon
+  return <Link to={item.to} title={collapsed ? item.label : undefined} className={`group flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition ${collapsed ? 'justify-center' : 'gap-3'} ${active ? 'bg-ink text-paper shadow-sm' : 'text-ink/65 hover:bg-paper hover:text-ink'}`}><Icon size={17} className={active ? 'text-pressure' : 'text-ink/45 group-hover:text-ink'} /><span className={collapsed ? 'sr-only' : ''}>{item.label}</span></Link>
+}
+
 export default function Header() {
   const authUser = useAuthStore((state) => state.authUser)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -216,22 +210,22 @@ export default function Header() {
     : { primary: PUBLIC_NAV, more: [] }
 
   return (
-    <header className="glass-surface sticky top-0 z-30 border-b-0">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link to={authUser ? '/home' : '/'} className="flex items-center gap-2 font-display text-lg tracking-tight text-ink">
-          Sahyatri
+    <>
+    <header className="glass-surface sticky top-0 z-50 border-b border-ink/5">
+      <div className="mx-auto flex min-h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+        <Link to={authUser ? '/home' : '/'} className="group flex shrink-0 items-center gap-2.5 text-ink">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-paper shadow-sm transition group-hover:bg-ink-soft"><Compass size={19} aria-hidden="true" /></span>
+          <span className="font-display text-xl tracking-tight">Sahyatri</span>
           {authUser && (
-            <span className="rounded-full bg-paper-dim px-2 py-0.5 text-xs font-sans font-medium tracking-normal text-ink/60">
+            <span className="hidden rounded-full bg-paper-dim px-2 py-1 text-[11px] font-sans font-semibold tracking-normal text-ink/60 sm:inline-flex">
               {ROLE_LABEL[authUser.role] || authUser.role}
             </span>
           )}
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-1 md:flex">
-          {primary.map((item) => <NavLink key={item.to} {...item} />)}
-          <MoreMenu items={more} />
-          <span className="mx-2 h-6 w-px bg-paper-dim" aria-hidden="true" />
+        <div className="hidden items-center gap-3 md:flex">
+          {authUser && <span className="text-sm text-ink/50">{location.pathname === '/map' ? 'Your live travel map' : location.pathname === '/home' ? 'Plan your next escape' : 'Your travel workspace'}</span>}
+          <span className="mx-1 h-7 w-px bg-paper-dim" aria-hidden="true" />
           {authUser ? (
             <ProfileMenu />
           ) : (
@@ -242,13 +236,13 @@ export default function Header() {
               </Link>
             </>
           )}
-        </nav>
+        </div>
 
         {/* Mobile toggle */}
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
-          className="rounded-lg p-2 text-ink/70 hover:bg-ink/5 md:hidden"
+          className="rounded-xl border border-paper-dim bg-white p-2.5 text-ink/70 shadow-sm hover:bg-paper-dim md:hidden"
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileOpen}
         >
@@ -258,7 +252,9 @@ export default function Header() {
 
       {/* Mobile sheet */}
       {mobileOpen && (
-        <nav className="glass-surface border-t-0 px-4 py-3 md:hidden">
+        <nav className="glass-surface border-t border-ink/5 px-4 py-4 md:hidden">
+          {authUser && <div className="mb-3 rounded-xl bg-ink px-4 py-3 text-paper"><p className="text-xs text-paper/55">Your travel workspace</p><p className="mt-1 font-display text-lg">Plan with confidence.</p></div>}
+          <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-[0.15em] text-relief">Your workspace</p>
           <div className="grid grid-cols-2 gap-1">
             {[...primary, ...more].map((item) => <NavLink key={item.to} {...item} />)}
           </div>
@@ -290,6 +286,8 @@ export default function Header() {
         </nav>
       )}
     </header>
+    {authUser && <WorkspaceSidebar items={primary} more={more} collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((value) => !value)} />}
+    </>
   )
 }
 

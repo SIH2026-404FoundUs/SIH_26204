@@ -503,6 +503,32 @@ class ChatResponse(BaseModel):
     answer: str
 
 
+class MultimodalChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=CHAT_MAX_MESSAGE_CHARS)
+
+
+class MultimodalChatRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=CHAT_MAX_MESSAGE_CHARS)
+    language: Literal["en", "te", "hi"] = "en"
+    role: str = "traveller"
+    history: List[MultimodalChatMessage] = Field(default_factory=list)
+    context: Dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("role", mode="before")
+    @classmethod
+    def normalize_role(cls, value: Any) -> str:
+        aliases = {"traveler": "traveller", "tourist": "traveller"}
+        normalized = aliases.get(str(value or "traveller").strip().lower(), str(value or "traveller").strip().lower())
+        return normalized if normalized in {"traveller", "operator", "authority"} else "traveller"
+
+
+class MultimodalChatResponse(BaseModel):
+    answer: str
+    language: Literal["en", "te", "hi"]
+    results: Dict[str, Any] = Field(default_factory=dict)
+
+
 def _chat_rate_key(request: Request, authenticated_id: Optional[str]) -> str:
     if authenticated_id:
         return f"user:{authenticated_id}"
@@ -1648,6 +1674,121 @@ async def chat_endpoint(
     except Exception as exc:
         logger.exception("chat generation failed")
         raise HTTPException(status_code=503, detail="Ask AI is temporarily unavailable. Please try again.") from exc
+
+
+MULTIMODAL_AGENT_TIMEOUT_S = 90
+
+
+@app.get("/api/multimodal/meta")
+def multimodal_meta() -> dict:
+    """Describe the Phase 1 agent surface for the future frontend."""
+    from app.agents.multimodal_agent import tool_inventory
+
+    return {
+        "languages": ["en", "te", "hi"],
+        "modes": ["chat", "voice"],
+        "tools": tool_inventory(),
+        "voice": {"status": "planned", "transport": "webrtc"},
+    }
+
+
+@app.post("/api/multimodal/transcribe")
+async def multimodal_transcribe_endpoint(audio: UploadFile = File(...)) -> dict:
+    """Transcribe one short push-to-talk recording for the tourism agent."""
+    audio_bytes = await audio.read()
+    if not audio_bytes:
+        raise HTTPException(status_code=400, detail="Voice recording was empty.")
+    if len(audio_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Voice recording must be smaller than 10 MB.")
+    try:
+        result = await run_in_threadpool(run_transcription, audio_bytes)
+        transcript = (result.get("transcript") or "").strip()
+        if not transcript:
+            raise ValueError("No speech was detected.")
+        return result
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("multimodal voice transcription failed")
+        raise HTTPException(status_code=503, detail="Voice transcription is temporarily unavailable.") from exc
+
+
+@app.post("/api/multimodal/chat", response_model=MultimodalChatResponse)
+async def multimodal_chat_endpoint(
+    req: MultimodalChatRequest,
+    request: Request,
+    authenticated_id: Optional[str] = Depends(authenticated_user_id),
+) -> MultimodalChatResponse:
+    """Run the focused Phase 1 ADK tourism agent.
+
+    Sessions are intentionally ephemeral: the browser sends a short history
+    on each request, and no conversation is persisted by this endpoint.
+    """
+    _check_chat_rate_limit(_chat_rate_key(request, authenticated_id))
+    from app.agents.multimodal_agent import multimodal_agent
+    from google.adk.runners import InMemoryRunner
+    from google.genai import types
+
+    language_names = {"en": "English", "te": "Telugu", "hi": "Hindi"}
+    history = req.history[-CHAT_MAX_HISTORY_MESSAGES:]
+    prompt = (
+        f"User role: {req.role}. Respond in {language_names[req.language]}.\n"
+        "Use the available tourism tools when real data is needed.\n"
+        f"Current UI context (may be empty): {json.dumps(req.context, ensure_ascii=False)}\n"
+        f"Conversation:\n{json.dumps([item.model_dump() for item in history], ensure_ascii=False)}\n"
+        f"User message: {req.message}"
+    )
+
+    async def run_agent() -> tuple[str, Dict[str, Any]]:
+        runner = InMemoryRunner(agent=multimodal_agent, app_name="sahyatri_multimodal")
+        session = await runner.session_service.create_session(
+            app_name=runner.app_name,
+            user_id=authenticated_id or "anonymous-demo-user",
+        )
+        answer = ""
+        tool_results: Dict[str, Any] = {}
+        async for event in runner.run_async(
+            user_id=authenticated_id or "anonymous-demo-user",
+            session_id=session.id,
+            new_message=types.Content(role="user", parts=[types.Part(text=prompt)]),
+        ):
+            for function_response in event.get_function_responses():
+                payload = function_response.response or {}
+                if isinstance(payload, dict) and "result" in payload:
+                    payload = payload["result"]
+                tool_results[function_response.name or "tool"] = payload
+            if event.is_final_response() and event.content and event.content.parts:
+                answer = "".join(part.text or "" for part in event.content.parts).strip()
+        if not answer:
+            raise ValueError("the multimodal agent returned an empty answer")
+        return answer, tool_results
+
+    try:
+        answer, tool_results = await asyncio.wait_for(run_agent(), timeout=MULTIMODAL_AGENT_TIMEOUT_S)
+        results = {"hotels": [], "places": [], "pressure": None, "alternatives": {}}
+        for name, payload in tool_results.items():
+            if not isinstance(payload, dict):
+                continue
+            if name == "plan_trip":
+                results["pressure"] = payload.get("pressure")
+                results["alternatives"] = payload.get("alternatives") or {}
+                hotel_payload = payload.get("hotels") or {}
+                place_payload = payload.get("places") or {}
+                results["hotels"] = hotel_payload.get("data", []) if isinstance(hotel_payload, dict) else []
+                results["places"] = place_payload.get("data", []) if isinstance(place_payload, dict) else []
+            elif name == "search_hotels":
+                results["hotels"] = payload.get("data", [])
+            elif name == "search_places":
+                results["places"] = payload.get("data", [])
+            elif name == "get_pressure":
+                results["pressure"] = payload
+        return MultimodalChatResponse(answer=answer, language=req.language, results=results)
+    except asyncio.TimeoutError as exc:
+        logger.warning("multimodal agent timed out after %ss", MULTIMODAL_AGENT_TIMEOUT_S)
+        raise HTTPException(status_code=503, detail="The tourism agent took too long to respond. Please try again.") from exc
+    except Exception as exc:
+        logger.exception("multimodal agent failed")
+        raise HTTPException(status_code=503, detail="The tourism agent is temporarily unavailable. Please try again.") from exc
 
 
 async def _generate_travel_brief(req: TravelBriefRequest) -> TravelBriefResult:

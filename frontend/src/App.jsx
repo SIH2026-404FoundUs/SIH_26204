@@ -29,6 +29,7 @@ import AvailableServices from './components/trust/AvailableServices'
 import Notifications from './components/trust/Notifications'
 import MapPreview from './pages/MapPreview'
 import LandingPage from './pages/LandingPage'
+import MultimodalTravelAgent from './components/ai/MultimodalTravelAgent'
 
 // Where each role lands after authenticating (auth spec §7/§20) -- mirrors
 // AuthScreen's own ROLE_HOME, used here for the post-refresh/direct-URL
@@ -80,6 +81,7 @@ function App() {
 
           {/* Authenticated experience (§57/§58) */}
           <Route path="/home" element={<RequireAuth wide><TripPlanner /></RequireAuth>} />
+          <Route path="/multimodal-agent" element={<RequireAuth wide><MultimodalTravelAgent /></RequireAuth>} />
           {/* RequireAuthBare, not RequireAuth: the map is a full-bleed canvas
               (near-full-viewport, its own <main>), not the standard
               max-w-6xl centred page shell RequireAuth would force it into. */}
