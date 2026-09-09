@@ -22,6 +22,7 @@ import AuthorityDashboard from './components/authority/AuthorityDashboard'
 import VisitVerify from './components/trust/VisitVerify'
 import CommunitySubmit from './components/trust/CommunitySubmit'
 import CommunityReview from './components/trust/CommunityReview'
+import CommunityForum from './components/trust/CommunityForum'
 import OffersWaitlist from './components/trust/OffersWaitlist'
 import Alerts from './components/trust/Alerts'
 import Safety from './components/trust/Safety'
@@ -105,6 +106,7 @@ function App() {
               403 anyone whose server-side role isn't "authority"), so this
               branch is a UI convenience, not a security control. */}
           <Route path="/community" element={<RequireAuth>{authUser?.role === 'authority' ? <CommunityReview /> : <CommunitySubmit />}</RequireAuth>} />
+          <Route path="/forum" element={<RequireAuth><CommunityForum /></RequireAuth>} />
           <Route path="/services" element={<RequireAuth><AvailableServices /></RequireAuth>} />
           <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
           <Route path="/offers" element={<RequireAuth><OffersWaitlist /></RequireAuth>} />

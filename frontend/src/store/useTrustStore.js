@@ -59,10 +59,10 @@ export const useTrustStore = create((set, get) => ({
     }
   },
 
-  submitCommunityPlace: async ({ name, lat, lng, description, photos }) => {
+  submitCommunityPlace: async ({ name, lat, lng, description, photos, state }) => {
     set({ isSubmittingPlace: true, communityError: null, communityResult: null })
     try {
-      const res = await api.post('/community/submissions', { name, lat, lng, description, photos })
+      const res = await api.post('/community/submissions', { name, lat, lng, description, photos, state })
       set({ communityResult: res.data })
       return true
     } catch (error) {
@@ -91,6 +91,36 @@ export const useTrustStore = create((set, get) => ({
       // Non-critical for the submit form itself -- leave silently empty.
     } finally {
       set({ isLoadingMySubmissions: false })
+    }
+  },
+
+  // Community Forum: approved, anonymized suggestions -- public read
+  // (GET /community/submissions/approved), reused by the Landing page's
+  // "suggested places" section and the trip planner's nearby-suggestion count.
+  forumPosts: [],
+  isLoadingForum: false,
+  forumError: null,
+
+  fetchForumPosts: async ({ state, limit } = {}) => {
+    set({ isLoadingForum: true, forumError: null })
+    try {
+      const res = await api.get('/community/submissions/approved', { params: { state, limit } })
+      set({ forumPosts: res.data })
+    } catch (error) {
+      set({ forumError: getErrorMessage(error, 'Could not load the community forum') })
+    } finally {
+      set({ isLoadingForum: false })
+    }
+  },
+
+  nearbySuggestionCount: null,
+  fetchNearbySuggestionCount: async (destId) => {
+    if (!destId) return
+    try {
+      const res = await api.get('/community/nearby-count', { params: { destId } })
+      set({ nearbySuggestionCount: res.data.count })
+    } catch {
+      set({ nearbySuggestionCount: null })
     }
   },
 

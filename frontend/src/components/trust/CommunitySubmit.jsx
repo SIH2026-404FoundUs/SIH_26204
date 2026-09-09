@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { MapPinned, Upload, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { MapPinned, Upload, X, Users } from 'lucide-react'
 import { useTrustStore } from '../../store/useTrustStore'
 import { submissionStatus } from '../../lib/labels'
 import PageHeader from '../ui/PageHeader'
@@ -11,6 +12,11 @@ import FormField, { inputClass } from '../ui/FormField'
 import LocationPickerMap from './LocationPickerMap'
 
 const POLL_MS = 15_000 // matches the operator pages -- an authority's review can land while this is open
+
+// The only two states this platform actually has seeded destinations/
+// pressure data for (same list as frontend/src/lib/destinations.js's
+// DESTINATION_GROUPS) -- not a full India state list this app doesn't cover.
+const STATES = ['Himachal Pradesh', 'Telangana']
 
 // "Suggest a Place" -- the traveller-facing rename and UX rebuild of what
 // was "Community"/CommunitySubmit. Same backend contract throughout
@@ -24,6 +30,7 @@ export default function CommunitySubmit() {
   } = useTrustStore()
   const [name, setName] = useState('')
   const [location, setLocation] = useState(null)
+  const [state, setState] = useState('')
   const [description, setDescription] = useState('')
   const [photoFiles, setPhotoFiles] = useState([]) // [{file, previewUrl}]
   const [validationError, setValidationError] = useState(null)
@@ -73,7 +80,7 @@ export default function CommunitySubmit() {
       }
     }
 
-    const ok = await submitCommunityPlace({ name: name.trim(), lat: location.lat, lng: location.lng, description: description.trim(), photos: photoUrls })
+    const ok = await submitCommunityPlace({ name: name.trim(), lat: location.lat, lng: location.lng, description: description.trim(), photos: photoUrls, state: state || undefined })
     if (ok) fetchMySubmissions() // don't wait up to 15s for the poll to pick up the one just sent
   }
 
@@ -88,6 +95,10 @@ export default function CommunitySubmit() {
         description="Know somewhere worth visiting that isn't on the map yet? Tell us about it. You'll need at least one verified visit anywhere on the platform to submit -- this keeps suggestions coming from real travellers."
       />
 
+      <Link to="/forum" className="mb-4 flex items-center gap-1.5 text-sm font-medium text-pressure hover:underline">
+        <Users size={15} aria-hidden="true" /> See what other travellers have suggested
+      </Link>
+
       <Card>
         <form onSubmit={handleSubmit} className="space-y-4">
           <FormField label="Place name">
@@ -96,6 +107,13 @@ export default function CommunitySubmit() {
 
           <FormField label="Location">
             <LocationPickerMap value={location} onChange={setLocation} />
+          </FormField>
+
+          <FormField label="State" optional hint="Helps other travellers browsing the Community Forum find this">
+            <select value={state} onChange={(e) => setState(e.target.value)} className={inputClass}>
+              <option value="">Not specified</option>
+              {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
           </FormField>
 
           <FormField label="What makes it worth visiting?">

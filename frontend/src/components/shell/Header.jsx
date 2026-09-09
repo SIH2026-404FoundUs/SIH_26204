@@ -34,6 +34,7 @@ const TRAVELLER_PRIMARY = [
 const TRAVELLER_MORE = [
   { to: '/services', label: 'Available Services', icon: Wrench },
   { to: '/community', label: 'Suggest a Place', icon: MapPinned },
+  { to: '/forum', label: 'Community Forum', icon: Users },
   { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
   { to: '/safety', label: 'Safety', icon: ShieldCheck },
   { to: '/notifications', label: 'Notifications', icon: Bell },
