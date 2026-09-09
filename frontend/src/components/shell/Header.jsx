@@ -20,21 +20,23 @@ import { useOperatorStore } from '../../store/useOperatorStore'
 // UX rebuilt) to Suggest a Place; Alerts was replaced by Notifications,
 // which filters the same verified-alert data down to what's relevant to
 // the traveller's own planned trips instead of showing every alert to
-// everyone. Primary bar is exactly Home/Maps/My Trips/More -- Profile
+// everyone. Primary bar is Home/Maps/My Trips/Community Forum -- Profile
 // stays reachable via the existing account menu (ProfileMenu) instead of
-// duplicating it here. More leads with Available Services/Suggest a
-// Place/Verify a Visit/Safety, then Notifications, then Offers &
-// Waitlist (unchanged page -- travellers see offers operators have
-// posted and join a waitlist, same as before it was hidden from nav).
+// duplicating it here. Community Forum was promoted out of More into the
+// primary bar itself (a traveller shouldn't need an extra click for it).
+// More leads with Available Services/Suggest a Place/Verify a
+// Visit/Safety, then Notifications, then Offers & Waitlist (unchanged
+// page -- travellers see offers operators have posted and join a
+// waitlist, same as before it was hidden from nav).
 const TRAVELLER_PRIMARY = [
   { to: '/home', label: 'Home', icon: Compass },
   { to: '/map', label: 'Maps', icon: MapIcon },
   { to: '/trips', label: 'My Trips', icon: Route },
+  { to: '/forum', label: 'Community Forum', icon: Users },
 ]
 const TRAVELLER_MORE = [
   { to: '/services', label: 'Available Services', icon: Wrench },
   { to: '/community', label: 'Suggest a Place', icon: MapPinned },
-  { to: '/forum', label: 'Community Forum', icon: Users },
   { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
   { to: '/safety', label: 'Safety', icon: ShieldCheck },
   { to: '/notifications', label: 'Notifications', icon: Bell },
