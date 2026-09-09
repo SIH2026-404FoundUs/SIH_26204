@@ -11,17 +11,27 @@ import ChangePasswordCard from './ChangePasswordCard'
 // section's markup and data-fetching at once.
 // QuickLinksCard removed per spec: Profile focuses on account details +
 // preferences + editing/saving, not a shortcut grid.
+// Travel preferences (interests/budget/languages) are a traveller-only
+// concept -- an operator's profile is account details + password only, same
+// AccountCard/ChangePasswordCard components, just without a section that
+// wouldn't mean anything for a business account.
 export default function Profile() {
   const authUser = useAuthStore((state) => state.authUser)
   const logout = useAuthStore((state) => state.logout)
 
   if (!authUser) return null
 
+  const isTraveller = authUser.role === 'traveller'
+
   return (
     <div>
-      <PageHeader icon={UserRound} title="Profile" description="Your account details and travel preferences." />
+      <PageHeader
+        icon={UserRound}
+        title="Profile"
+        description={isTraveller ? 'Your account details and travel preferences.' : 'Your account details.'}
+      />
       <AccountCard authUser={authUser} onLogout={logout} />
-      <PreferencesCard userId={authUser._id} />
+      {isTraveller && <PreferencesCard userId={authUser._id} />}
       <ChangePasswordCard />
     </div>
   )
