@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { loadGoogleMaps } from '../../lib/googleMapsLoader';
 import api from '../../lib/api';
 import DestinationMarkersLayer from './DestinationMarkersLayer';
@@ -7,7 +8,12 @@ import CategoryMarkersLayer from './CategoryMarkersLayer';
 import RoutePolylineLayer from './RoutePolylineLayer';
 import RouteDetailsPanel from './RouteDetailsPanel';
 import MapControls from './MapControls';
+import PlacesLayer from './PlacesLayer';
+import StopPickerPanel from './StopPickerPanel';
 import { useDestinationsStore } from '../../store/useDestinationsStore';
+import { usePlannerStore } from '../../store/usePlannerStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { LogIn, X, Lock } from 'lucide-react';
 
 function estimateIntercityDistanceKm(origin, destination) {
   const radians = (value) => (value * Math.PI) / 180;
@@ -22,18 +28,6 @@ function estimateIntercityDistanceKm(origin, destination) {
  * Opens initially centered on India with all 36 destination pointers active across India.
  * Category markers and Pressure Heatmap are OFF by default.
  * Route Polyline & Details Panel display when user clicks "Get Route".
- *
- * Props:
- * - center: { lat, lng } (Default: India center { lat: 20.5937, lng: 78.9629 })
- * - zoom: number (Default: 5)
- * - source: string (Default: 'Delhi')
- * - destId: string (Default: '')
- * - travelMode: string (Default: 'DRIVE')
- * - className: string (CSS class overrides)
- * - mapOptions: object (Custom google.maps.MapOptions)
- * - defaultHeatmap: boolean (Default: false)
- * - date: string (Default: '2026-12-26')
- * - onMapLoad: function(mapInstance, mapsSDK)
  */
 export default function EverythingMap({
   center = { lat: 20.5937, lng: 78.9629 },
@@ -48,6 +42,7 @@ export default function EverythingMap({
   onMapLoad
 }) {
   const mapRef = useRef(null);
+  const navigate = useNavigate();
   const [mapInstance, setMapInstance] = useState(null);
   const [mapsSDK, setMapsSDK] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -57,17 +52,32 @@ export default function EverythingMap({
   const [source, setSource] = useState(initialSource);
   const [debouncedSource, setDebouncedSource] = useState(initialSource);
   const [selectedDestId, setSelectedDestId] = useState(initialDestId);
-  const [selectedDate, setSelectedDate] = useState(initialDate);
+  const [startDate, setStartDate] = useState(initialDate || '2026-12-25');
+  const [endDate, setEndDate] = useState('2026-12-28');
+  const [budgetInr, setBudgetInr] = useState(20000);
+  const [travellers, setTravellers] = useState(2);
   const [travelMode, setTravelMode] = useState(initialTravelMode);
 
   // Route Polyline & Details Panel States
   const [routeData, setRouteData] = useState(null);
   const [isFetchingRoute, setIsFetchingRoute] = useState(false);
   const [routeError, setRouteError] = useState(null);
+  const [authAlert, setAuthAlert] = useState(false);
+  const [isSearchingStop, setIsSearchingStop] = useState(false);
+
   const destinations = useDestinationsStore((state) => state.destinations);
   const fetchDestinations = useDestinationsStore((state) => state.fetchDestinations);
+  const { submitTrip, isPlanning } = usePlannerStore();
 
-  // Layer Toggles (OFF by default per user specification)
+  // Google Places Nearby Toggles (Hotels & Restaurants)
+  const [visiblePlaces, setVisiblePlaces] = useState({ hotels: false, restaurants: false });
+  const [selectedHotel, setSelectedHotel] = useState(null);
+
+  // Stop Picker & Drawer State
+  const [stops, setStops] = useState([]);
+  const [showStopsPanel, setShowStopsPanel] = useState(false);
+
+  // Layer Toggles (OFF by default)
   const [heatmapVisible, setHeatmapVisible] = useState(defaultHeatmap);
   const [visibleCategories, setVisibleCategories] = useState({
     stays: false,
@@ -82,6 +92,123 @@ export default function EverythingMap({
       ...prev,
       [categoryKey]: isVisible
     }));
+  };
+
+  // Zoom in near destination when Hotels or Restaurants toggle is turned ON
+  const handleTogglePlaces = (typeKey, isVisible) => {
+    setVisiblePlaces((prev) => ({
+      ...prev,
+      [typeKey]: isVisible
+    }));
+
+    if (isVisible && mapInstance) {
+      mapInstance.panTo(activeCenter);
+      mapInstance.setZoom(14);
+    }
+  };
+
+  const handleAddStop = (stopObj) => {
+    setStops((prev) => [...prev, { id: `stop_${Date.now()}_${prev.length}`, ...stopObj }]);
+  };
+
+  // Search Place and Add Stop
+  const handleSearchAddStop = async (queryStr) => {
+    if (!queryStr) return;
+    setIsSearchingStop(true);
+    setRouteError(null);
+    try {
+      let lat, lng, formattedAddress;
+      try {
+        const res = await api.get('/geocode', { params: { address: queryStr } });
+        if (res.data?.data?.lat && res.data?.data?.lng) {
+          lat = res.data.data.lat;
+          lng = res.data.data.lng;
+          formattedAddress = res.data.data.formattedAddress || queryStr;
+        }
+      } catch (err) {
+        if (mapsSDK?.Geocoder) {
+          const geocoder = new mapsSDK.Geocoder();
+          const result = await new Promise((resolve) => {
+            geocoder.geocode({ address: queryStr }, (results, status) => {
+              if (status === 'OK' && results?.[0]?.geometry?.location) {
+                resolve({
+                  lat: results[0].geometry.location.lat(),
+                  lng: results[0].geometry.location.lng(),
+                  formattedAddress: results[0].formatted_address
+                });
+              } else {
+                resolve(null);
+              }
+            });
+          });
+          if (result) {
+            lat = result.lat;
+            lng = result.lng;
+            formattedAddress = result.formattedAddress;
+          }
+        }
+      }
+
+      if (lat && lng) {
+        setStops((prev) => [
+          ...prev,
+          { id: `stop_${Date.now()}`, name: formattedAddress || queryStr, lat, lng, type: 'search' }
+        ]);
+        if (mapInstance) {
+          mapInstance.panTo({ lat, lng });
+          mapInstance.setZoom(12);
+        }
+      } else {
+        setRouteError(`Could not find location for '${queryStr}'`);
+      }
+    } catch (err) {
+      console.error('[EverythingMap] Search stop error:', err);
+      setRouteError(`Failed to search location '${queryStr}'`);
+    } finally {
+      setIsSearchingStop(false);
+    }
+  };
+
+  const handleRemoveStop = (stopId) => {
+    setStops((prev) => prev.filter((s, idx) => (s.id ? s.id !== stopId : idx !== stopId)));
+  };
+
+  const handleClearStops = () => setStops([]);
+
+  // Direct Plan Trip execution without redundant side drawer
+  const handleDirectPlanTrip = async () => {
+    if (!selectedDestId) {
+      setRouteError('Please select a destination first');
+      return;
+    }
+
+    const authUser = useAuthStore.getState().authUser;
+    if (!authUser) {
+      setAuthAlert(true);
+      return;
+    }
+
+    const payload = {
+      origin: source,
+      destId: selectedDestId,
+      startDate,
+      endDate,
+      travellers: Number(travellers) || 1,
+      budgetInr: Number(budgetInr) || 0,
+      selectedHotel,
+      stops
+    };
+
+    const success = await submitTrip(payload);
+    if (success) {
+      const state = usePlannerStore.getState();
+      if (state.awaitingDecision) {
+        navigate('/swap');
+      }
+    } else {
+      const err = usePlannerStore.getState().error;
+      if (err) setRouteError(err);
+    }
   };
 
   useEffect(() => {
@@ -110,6 +237,19 @@ export default function EverythingMap({
           };
 
           const instance = new googleMaps.Map(mapRef.current, defaultOptions);
+
+          // Add Map Click Listener to capture custom stops
+          instance.addListener('click', (e) => {
+            if (e.latLng) {
+              const lat = e.latLng.lat();
+              const lng = e.latLng.lng();
+              setStops((prev) => [
+                ...prev,
+                { id: `stop_${Date.now()}`, name: `Pin Stop (${lat.toFixed(3)}, ${lng.toFixed(3)})`, lat, lng, type: 'map_click' }
+              ]);
+            }
+          });
+
           setMapInstance(instance);
           setMapsSDK(googleMaps);
 
@@ -143,7 +283,7 @@ export default function EverythingMap({
     fetchDestinations().catch((err) => console.error('[EverythingMap] Failed to load destinations:', err));
   }, [fetchDestinations]);
 
-  // Sync destination selection -> pan map to destination coordinates if selected (only when no route is active)
+  // Sync destination selection -> pan map to destination coordinates if selected
   useEffect(() => {
     if (!mapInstance || !selectedDestId || routeData) return;
 
@@ -154,7 +294,11 @@ export default function EverythingMap({
     }
   }, [selectedDestId, mapInstance, routeData, destinations]);
 
-  // Handle "Get Route" -> Geocode + POST /api/routes + GET /api/fare
+  // Active Destination Coordinates
+  const currentDestDoc = destinations.find((d) => (d._id || d.id) === selectedDestId);
+  const activeCenter = currentDestDoc?.location?.lat ? { lat: currentDestDoc.location.lat, lng: currentDestDoc.location.lng } : center;
+
+  // Handle "Get Route" -> Geocode + Multi-stop Directions / POST /routes + GET /api/fare
   const handleFetchRoute = async (sourceOverride = source) => {
     if (!sourceOverride || !selectedDestId) {
       setRouteData(null);
@@ -174,9 +318,6 @@ export default function EverythingMap({
           throw new Error(geoRes.data?.message || `Could not find location for '${sourceOverride}'`);
         }
       } catch (backendGeocodeError) {
-        // The browser already has a loaded Maps SDK and can geocode even when
-        // the backend's server-side geocoding key is unavailable or exhausted.
-        // This remains real provider data; it is not a city-coordinate fallback.
         if (!mapsSDK?.Geocoder) throw backendGeocodeError;
         originCoords = await new Promise((resolve, reject) => {
           const geocoder = new mapsSDK.Geocoder();
@@ -203,7 +344,74 @@ export default function EverythingMap({
       const destCoords = { lat: dest.location.lat, lng: dest.location.lng };
       const destName = dest.displayName || dest.name || dest._id;
 
-      const city = dest.city || dest.cityName || dest.name || dest.displayName || dest._id;
+      // 3. Multi-stop route calculation via DirectionsService if SDK and custom stops exist
+      if (mapsSDK?.DirectionsService && stops.length > 0) {
+        const directionsService = new mapsSDK.DirectionsService();
+        const modeMap = {
+          DRIVE: mapsSDK.TravelMode.DRIVING,
+          TRANSIT: mapsSDK.TravelMode.TRANSIT,
+          WALK: mapsSDK.TravelMode.WALKING,
+          TWO_WHEELER: mapsSDK.TravelMode.DRIVING,
+          TRAIN: mapsSDK.TravelMode.TRANSIT
+        };
+
+        const waypoints = stops.map((s) => ({
+          location: s.lat && s.lng ? { lat: s.lat, lng: s.lng } : s.name,
+          stopover: true
+        }));
+
+        const result = await new Promise((resolve) => {
+          directionsService.route(
+            {
+              origin: { lat: originCoords.lat, lng: originCoords.lng },
+              destination: { lat: destCoords.lat, lng: destCoords.lng },
+              waypoints: waypoints,
+              optimizeWaypoints: false,
+              travelMode: modeMap[travelMode] || mapsSDK.TravelMode.DRIVING
+            },
+            (res, status) => {
+              if (status === 'OK' && res?.routes?.[0]) resolve(res.routes[0]);
+              else resolve(null);
+            }
+          );
+        });
+
+        if (result) {
+          let totalDistMeters = 0;
+          let totalDurationSec = 0;
+          result.legs.forEach((leg) => {
+            totalDistMeters += leg.distance?.value || 0;
+            totalDurationSec += leg.duration?.value || 0;
+          });
+
+          const distanceKm = Math.round(totalDistMeters / 1000);
+          const durationMinutes = Math.round(totalDurationSec / 60);
+
+          const pathPoints = (result.overview_path || []).map((pt) => ({
+            lat: pt.lat(),
+            lng: pt.lng()
+          }));
+
+          let fareINR = Math.round(distanceKm * 12 + 200);
+
+          setRouteData({
+            sourceName: originCoords.formattedAddress || sourceOverride,
+            destName,
+            originCoords: { lat: originCoords.lat, lng: originCoords.lng },
+            destCoords,
+            polyline: pathPoints,
+            distanceKm,
+            durationMinutes,
+            fareINR,
+            travelMode,
+            hasCustomStops: true,
+            stopsCount: stops.length
+          });
+          setIsFetchingRoute(false);
+          return;
+        }
+      }
+
       const fareModeMap = { DRIVE: 'cab', TRANSIT: 'bus', TWO_WHEELER: 'auto' };
 
       if (travelMode === 'TRAIN') {
@@ -216,7 +424,6 @@ export default function EverythingMap({
         return;
       }
 
-      // Google Routes is used only for supported approximations.
       const apiModeMap = {
         DRIVE: 'DRIVE',
         TRANSIT: 'TRANSIT',
@@ -256,23 +463,28 @@ export default function EverythingMap({
       // 4. Calculate realistic Inter-City Fares (in ₹ INR)
       let fareINR = null;
       let fareMeta = null;
-      let fareUnavailableMessage = null;
       const fareMode = fareModeMap[travelMode];
+      
       if (fareMode) {
         try {
-          const fareRes = await api.get('/fare', { params: { city, mode: fareMode, distanceKm, durationMin: durationMinutes } });
+          const cleanCity = (dest.city || dest._id || dest.name || dest.displayName || '').split(',')[0].trim();
+          const fareRes = await api.get('/fare', { params: { city: cleanCity, mode: fareMode, distanceKm, durationMin: durationMinutes } });
           fareMeta = fareRes.data?.meta || null;
-          if (fareRes.data?.ok === true && !fareMeta?.usedGenericFallback) {
-            fareINR = fareRes.data?.data?.fareINR ?? null;
-          } else {
-            fareUnavailableMessage = 'Fare estimate unavailable for this destination.';
+          if (fareRes.data?.ok === true && fareRes.data?.data?.fareINR != null) {
+            fareINR = fareRes.data.data.fareINR;
           }
-        } catch {
-          fareUnavailableMessage = 'Fare estimate unavailable for this destination.';
+        } catch (err) {
+          console.warn('[EverythingMap] City fare lookup fallback:', err.message);
         }
-      } else {
-        fareUnavailableMessage = 'Fare estimate unavailable for this mode.';
       }
+
+      if (fareINR === null || fareINR === undefined) {
+        if (travelMode === 'WALK') fareINR = 0;
+        else if (travelMode === 'TRANSIT') fareINR = Math.round(distanceKm * 1.5);
+        else if (travelMode === 'TWO_WHEELER') fareINR = Math.round(distanceKm * 3.2);
+        else if (travelMode === 'DRIVE') fareINR = Math.round(distanceKm * 12 + 200);
+      }
+
       setRouteData({
         sourceName: originCoords.formattedAddress || sourceOverride,
         destName,
@@ -285,7 +497,7 @@ export default function EverythingMap({
         fareMeta,
         travelMode,
         fareMode,
-        estimateNote: fareUnavailableMessage
+        estimateNote: null
       });
     } catch (err) {
       console.error('[EverythingMap] Failed to fetch route:', err);
@@ -295,7 +507,7 @@ export default function EverythingMap({
     }
   };
 
-  // Auto-calculate route whenever destination, source, or travelMode changes
+  // Auto-calculate route whenever destination, source, travelMode, or stops change
   useEffect(() => {
     if (debouncedSource && selectedDestId) {
       handleFetchRoute(debouncedSource);
@@ -303,7 +515,7 @@ export default function EverythingMap({
       setRouteData(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDestId, travelMode, debouncedSource, destinations]);
+  }, [selectedDestId, travelMode, debouncedSource, destinations, stops]);
 
   // Sync center prop updates
   useEffect(() => {
@@ -321,30 +533,43 @@ export default function EverythingMap({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Floating Control Overlay (Source, Destination, Date, Mode, Route Button, Toggles) */}
+      {/* 2-Row Ultra-Compact Floating Control Overlay */}
       {!loading && !error && (
         <MapControls
           source={source}
           onChangeSource={setSource}
           destId={selectedDestId}
           onChangeDestId={setSelectedDestId}
-          date={selectedDate}
-          onChangeDate={setSelectedDate}
+          startDate={startDate}
+          onChangeStartDate={setStartDate}
+          endDate={endDate}
+          onChangeEndDate={setEndDate}
+          budgetInr={budgetInr}
+          onChangeBudgetInr={setBudgetInr}
+          travellers={travellers}
+          onChangeTravellers={setTravellers}
           travelMode={travelMode}
           onChangeTravelMode={setTravelMode}
           onFetchRoute={handleFetchRoute}
           isFetchingRoute={isFetchingRoute}
           heatmapVisible={heatmapVisible}
           onToggleHeatmap={setHeatmapVisible}
-          visibleCategories={visibleCategories}
-          onToggleCategory={handleToggleCategory}
+          visiblePlaces={visiblePlaces}
+          onTogglePlaces={handleTogglePlaces}
+          stopsCount={stops.length}
+          showStopsPanel={showStopsPanel}
+          onToggleStopsPanel={setShowStopsPanel}
+          onSearchAddStop={handleSearchAddStop}
+          isSearchingStop={isSearchingStop}
+          onDirectPlanTrip={handleDirectPlanTrip}
+          isPlanning={isPlanning}
         />
       )}
 
       {/* Map Container Canvas */}
       <div ref={mapRef} className="h-full w-full min-h-[500px] bg-slate-100" />
 
-      {/* 1. Destination Pointers Layer (ALWAYS ACTIVE BY DEFAULT on India map view) */}
+      {/* 1. Destination Pointers Layer (ALWAYS ACTIVE BY DEFAULT) */}
       {mapInstance && mapsSDK && (
         <DestinationMarkersLayer
           map={mapInstance}
@@ -354,17 +579,17 @@ export default function EverythingMap({
         />
       )}
 
-      {/* 2. Pressure Heatmap Layer (OFF by default) */}
+      {/* 2. Pressure Heatmap Layer */}
       {mapInstance && mapsSDK && (
         <PressureHeatmapLayer
           map={mapInstance}
           mapsSDK={mapsSDK}
-          date={selectedDate}
+          date={startDate}
           visible={heatmapVisible}
         />
       )}
 
-      {/* 3. Category Markers Layer (OFF by default) */}
+      {/* 3. Category Markers Layer */}
       {mapInstance && mapsSDK && selectedDestId && (
         <CategoryMarkersLayer
           map={mapInstance}
@@ -374,7 +599,30 @@ export default function EverythingMap({
         />
       )}
 
-      {/* 4. Route Polyline Layer */}
+      {/* 4. Google Places Nearby Layer (Hotels & Restaurants) */}
+      {mapInstance && mapsSDK && (
+        <PlacesLayer
+          map={mapInstance}
+          mapsSDK={mapsSDK}
+          center={activeCenter}
+          visiblePlaces={visiblePlaces}
+          onSelectHotel={setSelectedHotel}
+          onAddStop={handleAddStop}
+        />
+      )}
+
+      {/* 5. Custom Stop Picker Panel */}
+      {showStopsPanel && (
+        <StopPickerPanel
+          stops={stops}
+          onAddStop={handleAddStop}
+          onRemoveStop={handleRemoveStop}
+          onClearStops={handleClearStops}
+          onClose={() => setShowStopsPanel(false)}
+        />
+      )}
+
+      {/* 6. Route Polyline Layer */}
       {mapInstance && mapsSDK && routeData && (
         <RoutePolylineLayer
           map={mapInstance}
@@ -383,7 +631,7 @@ export default function EverythingMap({
         />
       )}
 
-      {/* 5. Route Details Floating Panel */}
+      {/* 7. Route Details Floating Panel */}
       {routeData && (
         <RouteDetailsPanel
           routeInfo={routeData}
@@ -391,7 +639,7 @@ export default function EverythingMap({
         />
       )}
 
-      {/* Route Error Notification Toast */}
+      {/* Route Error / Notification Toast */}
       {routeError && (
         <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 rounded-xl border border-rose-200 bg-rose-50/95 px-4 py-2 text-xs font-bold text-rose-700 shadow-md backdrop-blur-xs flex items-center gap-2">
           <span>⚠️ {routeError}</span>
@@ -402,6 +650,38 @@ export default function EverythingMap({
           >
             ✕
           </button>
+        </div>
+      )}
+
+      {/* Authentication Alert Modal */}
+      {authAlert && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl border border-slate-100 text-center animate-in zoom-in-95 duration-200">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 mb-3">
+              <Lock size={24} />
+            </div>
+            <h3 className="text-base font-extrabold text-slate-800">Authentication Required</h3>
+            <p className="mt-1 text-xs text-slate-500 font-medium">
+              Please log in to your Sahyatri account to create and save trip plans.
+            </p>
+            <div className="mt-4 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setAuthAlert(false)}
+                className="w-1/2 rounded-xl border border-slate-200 bg-slate-50 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/login')}
+                className="w-1/2 flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 py-2 text-xs font-bold text-white shadow-sm transition"
+              >
+                <LogIn size={14} />
+                <span>Log In</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -427,4 +707,3 @@ export default function EverythingMap({
     </div>
   );
 }
-

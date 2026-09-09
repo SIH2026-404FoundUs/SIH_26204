@@ -15,7 +15,7 @@ import jwt from "jsonwebtoken";
 const isSecureContext = process.env.NODE_ENV !== "development";
 export const AUTH_COOKIE_OPTIONS = {
   httpOnly: true, // prevent XSS attacks cross-site scripting attacks
-  sameSite: isSecureContext ? "none" : "strict", // CSRF attacks cross-site request forgery attacks
+  sameSite: isSecureContext ? "none" : "lax", // CSRF attacks cross-site request forgery attacks
   secure: isSecureContext,
 };
 
