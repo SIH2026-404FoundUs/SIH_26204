@@ -38,7 +38,7 @@ from faster_whisper import WhisperModel
 
 logger = logging.getLogger(__name__)
 
-MODEL_NAME = "distil-large-v3"
+MODEL_NAME = "large-v3-turbo"
 
 # 1 second of silence at 16kHz (Whisper's expected sample rate) — enough to
 # force the model's encode/language-detection step without needing any real

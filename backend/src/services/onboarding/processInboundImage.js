@@ -73,29 +73,60 @@ export async function processInboundImage({ ownerPhone, mediaId, fetchFn, upload
   const imageBuffer = await fetchWhatsAppMedia(mediaId, fetchFn);
   const photoUrl = await uploadPhotoToCloudinary(imageBuffer, uploadFn);
 
-  const newPhotoCount = currentPhotoCount + 1;
-  const photosSatisfied = newPhotoCount >= MIN_PHOTOS;
+  // Push photo URL to MongoDB first, guarding against unbounded growth beyond MAX_PHOTOS
+  let saved = await Business.findOneAndUpdate(
+    { _id: existing._id, [`photos.${MAX_PHOTOS - 1}`]: { $exists: false } },
+    { $push: { photos: photoUrl } },
+    { new: true, runValidators: true, context: "query" }
+  );
 
-  const updateFields = {
-    $push: { photos: photoUrl },
-  };
+  if (!saved) {
+    const latest = await Business.findById(existing._id);
+    return {
+      applied: false,
+      reason: "max_photos_reached",
+      businessId: existing._id,
+      photoCount: latest?.photos?.length ?? MAX_PHOTOS,
+    };
+  }
+
+  // Post-update MongoDB ground truth: check count on the updated document
+  const postUpdatePhotoCount = saved.photos?.length ?? 0;
+  const photosSatisfied = postUpdatePhotoCount >= MIN_PHOTOS;
 
   let shouldTransitionToDates = false;
   if (photosSatisfied) {
-    if (existing.onboardingState !== "AWAITING_DATES" && existing.onboardingState !== "DRAFT_CONFIRM" && existing.onboardingState !== "LIVE") {
-      const attempt = transitionDraft(existing, "AWAITING_DATES");
-      updateFields.$set = {
-        onboardingState: attempt.applied ? attempt.state : "AWAITING_DATES",
-      };
-      shouldTransitionToDates = true;
+    if (
+      saved.onboardingState !== "AWAITING_DATES" &&
+      saved.onboardingState !== "DRAFT_CONFIRM" &&
+      saved.onboardingState !== "LIVE"
+    ) {
+      const attempt = transitionDraft(saved, "AWAITING_DATES");
+      const targetState = attempt.applied ? attempt.state : "AWAITING_DATES";
+
+      // Atomically transition onboardingState only if it has not already been
+      // transitioned to AWAITING_DATES (or beyond) by a concurrent image worker
+      const transitioned = await Business.findOneAndUpdate(
+        {
+          _id: saved._id,
+          onboardingState: { $nin: ["AWAITING_DATES", "DRAFT_CONFIRM", "LIVE"] },
+        },
+        { $set: { onboardingState: targetState } },
+        { new: true, runValidators: true, context: "query" }
+      );
+
+      if (transitioned) {
+        saved = transitioned;
+        shouldTransitionToDates = true;
+      } else {
+        // A concurrent worker already performed the transition to AWAITING_DATES
+        const latest = await Business.findById(saved._id);
+        if (latest) {
+          saved = latest;
+        }
+      }
     }
   }
-
-  const saved = await Business.findOneAndUpdate(
-    { _id: existing._id },
-    updateFields,
-    { new: true, runValidators: true, context: "query" }
-  );
 
   if (shouldTransitionToDates) {
     try {

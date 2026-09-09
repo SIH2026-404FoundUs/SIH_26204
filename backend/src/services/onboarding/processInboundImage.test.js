@@ -340,4 +340,111 @@ describe("processInboundImage", () => {
     expect(Buffer.isBuffer(uploadFn.mock.calls[0][0])).toBe(true);
     expect(uploadFn.mock.calls[0][0]).toEqual(imageBuffer);
   });
+
+  test("concurrent arrival of 4 photos from AWAITING_PHOTOS: transitions to AWAITING_DATES, photosSatisfied is true once >= 3, and dates prompt sent exactly once", async () => {
+    await Business.create({
+      _id: "biz_test_concurrent_photos",
+      destId: "shimla",
+      ownerPhone: "919000000070",
+      onboardingState: "AWAITING_PHOTOS",
+      photos: [],
+    });
+
+    const sendMessageFn = jest.fn();
+    // Simulate concurrent uploads with slight delays to mimic real async I/O
+    let uploadCount = 0;
+    const concurrentUploadFn = jest.fn(async () => {
+      uploadCount++;
+      const id = uploadCount;
+      // Slight delay to ensure interleaving
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      return `https://res.cloudinary.com/test/concurrent_${id}.jpg`;
+    });
+
+    const results = await Promise.all([
+      processInboundImage({
+        ownerPhone: "919000000070",
+        mediaId: "m1",
+        fetchFn: makeTwoStepFetchFn(Buffer.from("img1")),
+        uploadFn: concurrentUploadFn,
+        sendMessageFn,
+      }),
+      processInboundImage({
+        ownerPhone: "919000000070",
+        mediaId: "m2",
+        fetchFn: makeTwoStepFetchFn(Buffer.from("img2")),
+        uploadFn: concurrentUploadFn,
+        sendMessageFn,
+      }),
+      processInboundImage({
+        ownerPhone: "919000000070",
+        mediaId: "m3",
+        fetchFn: makeTwoStepFetchFn(Buffer.from("img3")),
+        uploadFn: concurrentUploadFn,
+        sendMessageFn,
+      }),
+      processInboundImage({
+        ownerPhone: "919000000070",
+        mediaId: "m4",
+        fetchFn: makeTwoStepFetchFn(Buffer.from("img4")),
+        uploadFn: concurrentUploadFn,
+        sendMessageFn,
+      }),
+    ]);
+
+    // All 4 applied successfully
+    expect(results.every((r) => r.applied)).toBe(true);
+
+    const saved = await Business.findOne({ _id: "biz_test_concurrent_photos" });
+    expect(saved.photos.length).toBe(4);
+    expect(saved.onboardingState).toBe("AWAITING_DATES");
+
+    // The availability date prompt must be sent exactly once despite concurrent workers
+    expect(sendMessageFn).toHaveBeenCalledTimes(1);
+    expect(sendMessageFn).toHaveBeenCalledWith(
+      "919000000070",
+      expect.stringContaining("dates your property will be open")
+    );
+
+    // Any result whose post-update photoCount reached >= 3 must report photosSatisfied: true and AWAITING_DATES
+    const satisfiedResults = results.filter((r) => r.photoCount >= MIN_PHOTOS);
+    expect(satisfiedResults.length).toBeGreaterThanOrEqual(2);
+    for (const r of satisfiedResults) {
+      expect(r.photosSatisfied).toBe(true);
+      expect(r.onboardingState).toBe("AWAITING_DATES");
+    }
+  });
+
+  test("when business is in DRAFT_CONFIRM, an incoming photo does not revert state back to AWAITING_DATES", async () => {
+    await Business.create({
+      _id: "biz_test_draft_confirm_no_revert",
+      destId: "shimla",
+      ownerPhone: "919000000071",
+      onboardingState: "DRAFT_CONFIRM",
+      photos: [
+        "https://res.cloudinary.com/p1.jpg",
+        "https://res.cloudinary.com/p2.jpg",
+        "https://res.cloudinary.com/p3.jpg",
+      ],
+    });
+
+    const sendMessageFn = jest.fn();
+    const result = await processInboundImage({
+      ownerPhone: "919000000071",
+      mediaId: "m_extra",
+      fetchFn: makeTwoStepFetchFn(Buffer.from("img_extra")),
+      uploadFn: stubUpload,
+      sendMessageFn,
+    });
+
+    expect(result.applied).toBe(true);
+    expect(result.photoCount).toBe(4);
+    expect(result.photosSatisfied).toBe(true);
+    expect(result.onboardingState).toBe("DRAFT_CONFIRM");
+    expect(sendMessageFn).not.toHaveBeenCalled();
+
+    const saved = await Business.findOne({ _id: "biz_test_draft_confirm_no_revert" });
+    expect(saved.onboardingState).toBe("DRAFT_CONFIRM");
+  });
 });
+
