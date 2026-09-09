@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   Loader2, LogOut, Menu, X, ChevronDown, Compass, Activity, MapPinned, Tag,
   ShieldCheck, TriangleAlert, Phone, Store, Route, UserRound, Wrench, Landmark,
+  Map as MapIcon,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -13,6 +14,7 @@ import { useAuthStore } from '../../store/useAuthStore'
 const TRAVELLER_PRIMARY = [
   { to: '/home', label: 'Home', icon: Compass },
   { to: '/explore', label: 'Explore', icon: Activity },
+  { to: '/map', label: 'Map', icon: MapIcon },
   { to: '/businesses', label: 'Businesses', icon: Store },
   { to: '/trips', label: 'My Trips', icon: Route },
 ]
@@ -30,6 +32,7 @@ const OPERATOR_PRIMARY = [
 ]
 const OPERATOR_MORE = [
   { to: '/explore', label: 'Explore', icon: Activity },
+  { to: '/map', label: 'Map', icon: MapIcon },
   { to: '/visits', label: 'Verify a visit', icon: ShieldCheck },
   { to: '/alerts', label: 'Alerts', icon: TriangleAlert },
 ]
@@ -40,6 +43,7 @@ const AUTHORITY_PRIMARY = [
 ]
 const AUTHORITY_MORE = [
   { to: '/community', label: 'Community review', icon: MapPinned },
+  { to: '/map', label: 'Map', icon: MapIcon },
   { to: '/alerts', label: 'Alerts', icon: TriangleAlert },
   { to: '/safety', label: 'Safety', icon: Phone },
 ]

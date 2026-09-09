@@ -1,4 +1,4 @@
-import { Car, Bus, Train, Bike, Footprints } from 'lucide-react';
+import { TRAVEL_MODES } from './travelModes';
 
 /**
  * TravelModeSelector - UI selector component for travel modes.
@@ -14,14 +14,6 @@ import { Car, Bus, Train, Bike, Footprints } from 'lucide-react';
  * - value: string (Default: 'DRIVE')
  * - onChange: function(modeKey)
  */
-export const TRAVEL_MODES = [
-  { key: 'DRIVE', label: 'Car', icon: Car, emoji: '🚗', fareMode: 'cab' },
-  { key: 'TRANSIT', label: 'Bus', icon: Bus, emoji: '🚌', fareMode: 'bus' },
-  { key: 'TRAIN', label: 'Train', icon: Train, emoji: '🚆', fareMode: 'train' },
-  { key: 'TWO_WHEELER', label: 'Bike', icon: Bike, emoji: '🛵', fareMode: 'auto' },
-  { key: 'WALK', label: 'Walk', icon: Footprints, emoji: '🚶', fareMode: 'walk' },
-];
-
 export default function TravelModeSelector({ value = 'DRIVE', onChange }) {
   return (
     <div className="flex flex-wrap items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200">

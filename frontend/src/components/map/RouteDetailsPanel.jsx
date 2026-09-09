@@ -1,5 +1,5 @@
 import { X, Navigation, Clock, IndianRupee } from 'lucide-react';
-import { TRAVEL_MODES } from './TravelModeSelector';
+import { TRAVEL_MODES } from './travelModes';
 
 /**
  * RouteDetailsPanel - Floating card overlay displaying travel route metrics.

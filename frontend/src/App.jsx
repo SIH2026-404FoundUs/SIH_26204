@@ -4,7 +4,6 @@ import { useAuthStore } from './store/useAuthStore'
 import Header, { FullPageLoader } from './components/shell/Header'
 import { Page, RequireAuth, RequireAuthBare, RequireRole } from './components/shell/Guards'
 import AuthScreen from './components/auth/AuthScreen'
-import VerifyEmail from './components/auth/VerifyEmail'
 import ForgotPassword from './components/auth/ForgotPassword'
 import ResetPassword from './components/auth/ResetPassword'
 import PressureHeatmap from './components/pressure/PressureHeatmap'
@@ -60,11 +59,9 @@ function App() {
               not protect public authentication routes unnecessarily") -- a
               logged-in user following a stale reset link from an old email
               should still be able to use it. */}
-          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/explore" element={<Page wide><PressureHeatmap /></Page>} />
-          <Route path="/map-preview" element={<MapPreview />} />
           <Route path="/explore/:destId" element={<Page><DestinationDetail /></Page>} />
           <Route path="/businesses" element={<Page><Businesses /></Page>} />
           {/* Public safety advisory read (spec §3.3) -- also reachable from
@@ -73,6 +70,10 @@ function App() {
 
           {/* Authenticated experience (§57/§58) */}
           <Route path="/home" element={<RequireAuth><TripPlanner /></RequireAuth>} />
+          {/* RequireAuthBare, not RequireAuth: the map is a full-bleed canvas
+              (near-full-viewport, its own <main>), not the standard
+              max-w-6xl centred page shell RequireAuth would force it into. */}
+          <Route path="/map" element={<RequireAuthBare><MapPreview /></RequireAuthBare>} />
           <Route path="/trips" element={<RequireAuth><MyTrips /></RequireAuth>} />
           <Route path="/swap" element={<RequireAuthBare><SwapPage /></RequireAuthBare>} />
           <Route path="/trip-confirmation" element={<RequireAuthBare><TripConfirmation /></RequireAuthBare>} />
@@ -90,6 +91,10 @@ function App() {
           <Route path="/login" element={<Navigate to="/signin" replace />} />
           <Route path="/pressure" element={<Navigate to="/explore" replace />} />
           <Route path="/planner" element={<Navigate to="/home" replace />} />
+          <Route path="/map-preview" element={<Navigate to="/map" replace />} />
+          {/* Email verification was removed -- redirect any stale link
+              (an old email, a bookmark) somewhere real instead of 404ing. */}
+          <Route path="/verify-email" element={<Navigate to="/signin" replace />} />
 
           <Route path="*" element={<Navigate to={authUser ? roleHome(authUser) : '/'} replace />} />
         </Routes>
