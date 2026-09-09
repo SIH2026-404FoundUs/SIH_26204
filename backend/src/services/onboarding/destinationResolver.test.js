@@ -63,4 +63,36 @@ describe("resolveDestId — against the real seed data (src/seeds/destinations/)
     // "kasol" is a real destination name; "kasoline" must not match it.
     expect(resolveDestId("We sell kasoline nearby.")).toBeNull();
   });
+
+  describe("multilingual / Hindi destination resolution", () => {
+    test("direct specific Hindi destination matches", () => {
+      expect(resolveDestId("जिभी")).toBe("jibhi");
+      expect(resolveDestId("मनाली में है")).toBe("manali");
+      expect(resolveDestId("कसोल")).toBe("kasol");
+      expect(resolveDestId("तोश")).toBe("tosh");
+      expect(resolveDestId("खज्जियार")).toBe("khajjiar");
+      expect(resolveDestId("शिमला")).toBe("shimla");
+    });
+
+    test("Hindi landmark embedded with Hyderabad context resolves to specific destination", () => {
+      expect(resolveDestId("यह हैदराबाद में चारमीनार के पास है")).toBe("charminar-hyderabad");
+      expect(resolveDestId("चार मिनार")).toBe("charminar-hyderabad");
+      expect(resolveDestId("यह हैदराबाद में गोलकोंडा के पास है")).toBe("golconda-hyderabad");
+      expect(resolveDestId("यह हैदराबाद में हुसैन सागर के पास है")).toBe("hussain-sagar-hyderabad");
+    });
+
+    test("ambiguous broader region in Hindi remains null without landmark", () => {
+      expect(resolveDestId("शहर हैदराबाद है")).toBeNull();
+      expect(resolveDestId("हैदराबाद में")).toBeNull();
+      expect(resolveDestId("कुल्लू में है")).toBeNull();
+      expect(resolveDestId("किन्नौर में स्थित है")).toBeNull();
+    });
+
+    test("landmark context disambiguates broader regional match", () => {
+      expect(resolveDestId("शहर हैदराबाद है", { landmark: "Charminar" })).toBe("charminar-hyderabad");
+      expect(resolveDestId("शहर हैदराबाद है", { landmark: "चारमीनार" })).toBe("charminar-hyderabad");
+      expect(resolveDestId("कुल्लू में है", { landmark: "मनाली" })).toBe("manali");
+      expect(resolveDestId("कुल्लू में है", { landmark: "Unrelated Landmark" })).toBeNull();
+    });
+  });
 });
