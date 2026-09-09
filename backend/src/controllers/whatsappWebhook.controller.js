@@ -54,8 +54,11 @@
 // processing runs in the background; failures are logged, never surfaced
 // back to Meta (the response has already gone out by then).
 
+import Business from "../models/business.model.js";
 import { fetchWhatsAppMedia } from "../services/onboarding/mediaDownload.js";
 import { processInboundAudio, isDuplicateMessage } from "../services/onboarding/processInboundAudio.js";
+import { processInboundImage } from "../services/onboarding/processInboundImage.js";
+import { processDraftConfirmReply } from "../services/onboarding/draftConfirm.js";
 
 /**
  * GET /api/webhook/whatsapp — Meta's one-time verification handshake.
@@ -91,8 +94,14 @@ export function verifyWebhook(req, res) {
  * @param {Function} [deps.fetchFn] - injectable, passed through to fetchWhatsAppMedia().
  * @param {Function} [deps.transcribeFn] - injectable, passed through to transcribeAudio().
  * @param {Function} [deps.extractFn] - injectable, passed through to extractFields().
+ * @param {Function} [deps.sendMessageFn] - injectable, passed through to
+ *   sendWhatsAppMessage() for the FOLLOWUP question. Left unset in
+ *   production (see createReceiveWebhookHandler) so the real send fires —
+ *   this is the one path where a real WhatsApp message SHOULD go out.
+ * @param {Function} [deps.uploadFn] - injectable, passed through to
+ *   uploadPhotoToCloudinary() for inbound "image" messages.
  */
-async function processWebhookMessage(message, { fetchFn, transcribeFn, extractFn } = {}) {
+async function processWebhookMessage(message, { fetchFn, transcribeFn, extractFn, sendMessageFn, uploadFn } = {}) {
   const from = message?.from ?? null;
   const type = message?.type ?? null;
   const messageId = message?.id ?? null;
@@ -136,11 +145,60 @@ async function processWebhookMessage(message, { fetchFn, transcribeFn, extractFn
       messageId,
       transcribeFn,
       extractFn,
+      sendMessageFn,
     });
     console.log("WhatsApp audio message processed:", result);
+  } else if (type === "image") {
+    // AWAITING_PHOTOS (bharani-tasks.md Section 1.1: "3-5 images ->
+    // Cloudinary") -- runs in parallel to the audio/extraction pipeline,
+    // not gated on onboardingState. Same media_id pattern as audio,
+    // fetchWhatsAppMedia() needs no changes for it.
+    const mediaId = message?.image?.id ?? null;
+    console.log("Inbound WhatsApp image message:", { from, messageId, mediaId });
+
+    if (!from || !mediaId) {
+      console.error("Inbound WhatsApp image message missing from/image.id — cannot process:", { from, mediaId });
+      return;
+    }
+
+    // processInboundImage() downloads the media itself (mediaId in,
+    // Cloudinary URL persisted out) -- unlike the audio path, there's no
+    // other caller needing the raw bytes handed to it separately.
+    const result = await processInboundImage({ ownerPhone: from, mediaId, fetchFn, uploadFn, sendMessageFn });
+    console.log("WhatsApp image message processed:", result);
   } else if (type === "text") {
     const text = message?.text?.body ?? null;
     console.log("Inbound WhatsApp text message:", { from, messageId, text });
+
+    if (!from || !messageId || !text) {
+      console.error("Inbound WhatsApp text message missing from/id/text.body — cannot process:", {
+        from,
+        messageId,
+        text,
+      });
+      return;
+    }
+
+    if (await isDuplicateMessage(from, messageId)) {
+      console.log("WhatsApp text message is a replay of already-processed messageId — skipping:", {
+        from,
+        messageId,
+      });
+      return;
+    }
+
+    const business = await Business.findOne({ ownerPhone: from });
+    if (business && business.onboardingState === "DRAFT_CONFIRM") {
+      const result = await processDraftConfirmReply({
+        ownerPhone: from,
+        text,
+        messageId,
+        sendMessageFn,
+        extractFn,
+        language: business.transcriptLang,
+      });
+      console.log("WhatsApp DRAFT_CONFIRM text message processed:", result);
+    }
   } else {
     console.log("Inbound WhatsApp message of unhandled type:", { from, messageId, type });
   }
@@ -161,16 +219,23 @@ async function processWebhookPayload(body, deps) {
 
 /**
  * Builds the POST /api/webhook/whatsapp handler. `fetchFn`/`transcribeFn`/
- * `extractFn` are injectable for tests, exactly like eligibility.js's
- * pressureFn — production callers omit all three and get the real network
- * calls (media download, transcription, and extraction respectively).
+ * `extractFn`/`sendMessageFn` are injectable for tests, exactly like
+ * eligibility.js's pressureFn — production callers omit all four and get
+ * the real network calls (media download, transcription, extraction, and
+ * the FOLLOWUP-question send respectively). Unlike the internal fallback
+ * endpoint (onboarding.controller.js), sendMessageFn is left unset here
+ * by default deliberately — this is the real WhatsApp path, where a real
+ * follow-up message reaching the operator is the intended behavior, not
+ * a risk to guard against.
  *
  * @param {Object} [deps]
  * @param {Function} [deps.fetchFn]
  * @param {Function} [deps.transcribeFn]
  * @param {Function} [deps.extractFn]
+ * @param {Function} [deps.sendMessageFn]
+ * @param {Function} [deps.uploadFn]
  */
-export function createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn } = {}) {
+export function createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn, sendMessageFn, uploadFn } = {}) {
   function handleReceiveWebhook(req, res) {
     console.log("WhatsApp webhook payload:", JSON.stringify(req.body, null, 2));
 
@@ -178,7 +243,13 @@ export function createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn }
     // the actual processing below.
     res.sendStatus(200);
 
-    const backgroundWork = processWebhookPayload(req.body, { fetchFn, transcribeFn, extractFn }).catch((error) => {
+    const backgroundWork = processWebhookPayload(req.body, {
+      fetchFn,
+      transcribeFn,
+      extractFn,
+      sendMessageFn,
+      uploadFn,
+    }).catch((error) => {
       // The response is already sent; nothing to return this to. Log only.
       console.error("Error processing WhatsApp webhook payload:", error.message);
     });

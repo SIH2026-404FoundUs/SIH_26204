@@ -32,6 +32,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 from app.agents.travel_agent import DEFAULT_MODEL, TripSummary, travel_agent
+from app.onboarding.extraction_prompt import build_extraction_prompt
 from app.onboarding.transcribe import run_transcription
 from app.services import trip_drafts
 from app.tools.alternatives import find_alternatives
@@ -599,6 +600,15 @@ class ExtractionResult(BaseModel):
 class ExtractRequest(BaseModel):
     transcript: str
     language: Optional[str] = None
+    # Name of the REQUIRED_FIELDS_FOR_LIVE field (Node's stateMachine.js)
+    # a FOLLOWUP question was just asked about, if this transcript is a
+    # reply to one -- e.g. "capacity". None for a spontaneous message with
+    # no pending question (the existing, unchanged contract). See
+    # build_extraction_prompt()'s docstring for why this matters: a terse
+    # reply like "Six" has no stated subject in isolation, and without
+    # this hint the "return null if in doubt" rule below means it's
+    # likely to extract nothing at all.
+    pendingField: Optional[str] = None
 
 
 # Same model string as the agent (see travel_agent.DEFAULT_MODEL), routed
@@ -612,26 +622,15 @@ EXTRACTION_MODEL = os.environ.get("MODEL", DEFAULT_MODEL)
 # knowledge unless told not to. checkExtractionHonesty() on the Node side
 # exists to catch exactly this if it slips through, but the prompt itself
 # should already be trying hard not to need that safety net.
-EXTRACTION_PROMPT_TEMPLATE = """You are extracting structured business-listing details from a transcript of a homestay/guesthouse/guide/driver/cook owner describing their business, for bharani-tasks.md Section 1.3's voice onboarding flow.
-
-Transcript language: {language}
-Transcript: {transcript}
-
-Extract ONLY what is explicitly and unambiguously stated in the transcript above. Return null (or an empty list, for list fields) for anything not explicitly stated in the transcript -- do not infer, guess, estimate, or fill in a plausible-sounding value for any field, even if it seems like a reasonable assumption for this kind of business. The transcript is the ONLY source of truth; do not use outside knowledge of typical homestays/guesthouses/guides to fill gaps. If in doubt about whether something was actually said, return null rather than a guess."""
-
-
 @app.post("/onboarding/extract")
 async def extract_endpoint(req: ExtractRequest) -> dict:
     """
     bharani-tasks.md Section 1.3 -- real contract this must satisfy,
     matching backend/src/services/onboarding/extraction.js's extractFn:
-    given a transcript (+ detected language), return the strict JSON
-    object shape ExtractionResult above.
+    given a transcript (+ detected language, + optional pendingField
+    context), return the strict JSON object shape ExtractionResult above.
     """
-    prompt = EXTRACTION_PROMPT_TEMPLATE.format(
-        language=req.language or "unknown",
-        transcript=req.transcript,
-    )
+    prompt = build_extraction_prompt(req.transcript, req.language, req.pendingField)
     try:
         # acompletion() is LiteLLM's natively async entry point, so unlike
         # run_transcription() above this needs no threadpool hop to stay off

@@ -39,6 +39,11 @@ describe("BusinessAvailability model", () => {
     expect(saved.source).toBe("business_declared");
   });
 
+  test("rejects when source is not business_declared", async () => {
+    const availability = new BusinessAvailability({ ...validAvailability(), source: "voice" });
+    await expect(availability.save()).rejects.toThrow(mongoose.Error.ValidationError);
+  });
+
   test("rejects when businessId is missing", async () => {
     const availability = new BusinessAvailability({ ...validAvailability(), businessId: undefined });
     await expect(availability.save()).rejects.toThrow(mongoose.Error.ValidationError);

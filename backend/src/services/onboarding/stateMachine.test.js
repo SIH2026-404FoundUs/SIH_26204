@@ -4,6 +4,7 @@ import {
   REQUIRED_FIELDS_FOR_LIVE,
   isValidTransition,
   hasRequiredFieldsForLive,
+  isRequiredFieldPresent,
   transitionDraft,
 } from "./stateMachine.js";
 
@@ -110,6 +111,46 @@ describe("hasRequiredFieldsForLive", () => {
 
   test("extra non-required fields being null doesn't affect the result", () => {
     expect(hasRequiredFieldsForLive({ ...completeFields, amenities: null, meals: null })).toBe(true);
+  });
+
+  describe("priceRangeINR — Mongoose {} default regression", () => {
+    // Mongoose auto-instantiates a nested-object schema path
+    // (priceRangeINR: { min, max }) as `{}` the instant a document is
+    // created, even when nothing was ever written to it. `{}` is neither
+    // null nor undefined, so a naive presence check would treat a
+    // completely empty price range as "already known" — confirmed
+    // against a real Mongo document (business.model.test.js), reproduced
+    // here as a fast plain-object unit test.
+    test("false when priceRangeINR is {} (Mongoose's real default, not null/undefined)", () => {
+      expect(hasRequiredFieldsForLive({ ...completeFields, priceRangeINR: {} })).toBe(false);
+    });
+
+    test("false when priceRangeINR has only min set, max still missing", () => {
+      expect(hasRequiredFieldsForLive({ ...completeFields, priceRangeINR: { min: 1000 } })).toBe(false);
+    });
+
+    test("false when priceRangeINR has only max set, min still missing", () => {
+      expect(hasRequiredFieldsForLive({ ...completeFields, priceRangeINR: { max: 2000 } })).toBe(false);
+    });
+
+    test("true when priceRangeINR genuinely has both min and max as numbers", () => {
+      expect(hasRequiredFieldsForLive({ ...completeFields, priceRangeINR: { min: 1000, max: 2000 } })).toBe(true);
+    });
+
+    test("isRequiredFieldPresent directly: {} does not count as present for priceRangeINR", () => {
+      expect(isRequiredFieldPresent("priceRangeINR", {})).toBe(false);
+      expect(isRequiredFieldPresent("priceRangeINR", { min: 1000, max: 2000 })).toBe(true);
+    });
+
+    test("isRequiredFieldPresent is unaffected for every other field (plain null/undefined check)", () => {
+      expect(isRequiredFieldPresent("name", null)).toBe(false);
+      expect(isRequiredFieldPresent("name", undefined)).toBe(false);
+      expect(isRequiredFieldPresent("name", "Green Valley Homestay")).toBe(true);
+      // An empty object is meaningless for a string field, but this
+      // function only special-cases priceRangeINR -- confirms no
+      // over-broad change leaked into other fields.
+      expect(isRequiredFieldPresent("name", {})).toBe(true);
+    });
   });
 });
 

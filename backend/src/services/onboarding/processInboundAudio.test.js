@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import Business from "../../models/business.model.js";
 import { processInboundAudio } from "./processInboundAudio.js";
+import { getNextFollowUpQuestion } from "./followUp.js";
 
 let mongod;
 
@@ -21,6 +22,16 @@ afterEach(async () => {
 });
 
 const stubTranscribe = async () => ({ transcript: "hello world", detectedLanguage: "en" });
+
+// sendMessageFn now defaults, at the processInboundAudio level, to a REAL
+// WhatsApp send (consistent with transcribeFn/extractFn) -- and none of
+// the drafts in this file's other tests supply all six
+// REQUIRED_FIELDS_FOR_LIVE, so getNextFollowUpQuestion() will find
+// something missing and attempt a send on essentially every test unless
+// one is injected. This shared stub keeps every test in this file free of
+// any real-network risk; tests that specifically care about send
+// behavior use their own dedicated jest.fn() instead.
+const stubSendMessage = async () => ({ ok: true });
 
 // A shape-valid extraction with every field null/empty — matches
 // validateExtractionShape's exact expected-field set (extraction.js),
@@ -53,6 +64,7 @@ describe("processInboundAudio — destId handling", () => {
       messageId: "wamid.1",
       transcribeFn: stubTranscribe,
       extractFn: async () => emptyExtraction(),
+      sendMessageFn: stubSendMessage,
     });
 
     expect(result.applied).toBe(true);
@@ -76,6 +88,7 @@ describe("processInboundAudio — destId handling", () => {
       messageId: "wamid.2",
       transcribeFn: stubTranscribe,
       extractFn,
+      sendMessageFn: stubSendMessage,
     });
 
     expect(result.applied).toBe(true);
@@ -114,6 +127,7 @@ describe("processInboundAudio — destId handling", () => {
       messageId: "wamid.3",
       transcribeFn: stubTranscribe,
       extractFn: async () => emptyExtraction(),
+      sendMessageFn: stubSendMessage,
       // no destId — the webhook path never has one to give
     });
 
@@ -143,13 +157,20 @@ describe("processInboundAudio — extractedFields: null explicitly opts out of e
       messageId: "wamid.4",
       transcribeFn: stubTranscribe,
       extractedFields: null, // explicit opt-out, not omission
+      sendMessageFn: stubSendMessage,
     });
 
-    // Already at EXTRACTING, which is past TRANSCRIBING (the walk target)
-    // — not eligible for another transcription-only hop, so this attempt
-    // is correctly rejected outright. The real regression proof is what
-    // happens to the document, checked below regardless of this outcome.
-    expect(result.applied).toBe(false);
+    // Already at EXTRACTING -- since the "second message for an
+    // already-progressed draft" fix, this is now correctly PROCESSED
+    // (not rejected with already_past_target; see
+    // processInboundAudio.test.js's dedicated regression describe block
+    // for that fix). extractedFields: null still means "don't attempt
+    // extraction" though, so the state stays at EXTRACTING and nothing
+    // extraction-related is touched -- the real regression proof here is
+    // still what happens to the document, checked below.
+    expect(result.applied).toBe(true);
+    expect(result.onboardingState).toBe("EXTRACTING");
+    expect(result.extraction).toEqual({ attempted: false });
 
     const saved = await Business.findOne({ _id: "biz_test_no_clobber" });
     expect(saved.name).toBe("Ramesh's Homestay");
@@ -175,6 +196,7 @@ describe("processInboundAudio — extractedFields: null explicitly opts out of e
       messageId: "wamid.5",
       transcribeFn: stubTranscribe,
       extractedFields: null,
+      sendMessageFn: stubSendMessage,
     });
 
     expect(result.applied).toBe(true);
@@ -191,7 +213,7 @@ describe("processInboundAudio — extractedFields: null explicitly opts out of e
 });
 
 describe("processInboundAudio — real extraction (extractFn) wiring", () => {
-  test("extractedFields omitted calls extractFn with the transcript and detected language", async () => {
+  test("extractedFields omitted calls extractFn with the transcript, detected language, and pendingField", async () => {
     const extractFn = jest.fn().mockResolvedValue(emptyExtraction());
 
     await processInboundAudio({
@@ -201,10 +223,13 @@ describe("processInboundAudio — real extraction (extractFn) wiring", () => {
       messageId: "wamid.6",
       transcribeFn: async () => ({ transcript: "Teen kamre hain, geyser hai.", detectedLanguage: "hi" }),
       extractFn,
+      sendMessageFn: stubSendMessage,
     });
 
     expect(extractFn).toHaveBeenCalledTimes(1);
-    expect(extractFn).toHaveBeenCalledWith("Teen kamre hain, geyser hai.", "hi");
+    // Brand-new draft (bootstrap path) -- no pending question to be a
+    // reply to, so pendingField is null.
+    expect(extractFn).toHaveBeenCalledWith("Teen kamre hain, geyser hai.", "hi", null);
   });
 
   test("a real (stubbed) extraction that omits previously-known fields does not clobber them — only newly-stated fields are updated", async () => {
@@ -235,6 +260,7 @@ describe("processInboundAudio — real extraction (extractFn) wiring", () => {
       messageId: "wamid.7",
       transcribeFn: async () => ({ transcript: "Hum paanch log rakh sakte hain.", detectedLanguage: "hi" }),
       extractFn: async () => partialExtraction,
+      sendMessageFn: stubSendMessage,
     });
 
     expect(result.applied).toBe(true);
@@ -266,6 +292,7 @@ describe("processInboundAudio — real extraction (extractFn) wiring", () => {
       messageId: "wamid.8",
       transcribeFn: async () => ({ transcript: "Teen kamre hain, geyser hai.", detectedLanguage: "hi" }),
       extractFn: async () => dishonestExtraction,
+      sendMessageFn: stubSendMessage,
     });
 
     expect(result.applied).toBe(true);
@@ -291,6 +318,7 @@ describe("processInboundAudio — real extraction (extractFn) wiring", () => {
       messageId: "wamid.9",
       transcribeFn: stubTranscribe,
       extractFn: async () => malformed,
+      sendMessageFn: stubSendMessage,
     });
 
     expect(result.applied).toBe(true);
@@ -298,5 +326,644 @@ describe("processInboundAudio — real extraction (extractFn) wiring", () => {
     expect(result.extractionAccepted).toBe(false);
     expect(result.extraction.shapeValid).toBe(false);
     expect(result.extraction.shapeErrors.length).toBeGreaterThan(0);
+  });
+});
+
+describe("processInboundAudio — FOLLOWUP question send", () => {
+  test("a message reaching a state with missing required fields triggers a follow-up send with the correct question and phone number", async () => {
+    const sendMessageFn = jest.fn().mockResolvedValue({ ok: true });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000011",
+      destId: "shimla", // one required field present...
+      messageId: "wamid.11",
+      transcribeFn: async () => ({ transcript: "hello", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(), // ...but nothing else was actually stated
+      sendMessageFn,
+    });
+
+    expect(result.applied).toBe(true);
+    expect(sendMessageFn).toHaveBeenCalledTimes(1);
+    // name is first in REQUIRED_FIELDS_FOR_LIVE's order and still missing
+    // here — derive the expected text from the real function rather than
+    // hardcoding English wording a second time in this test.
+    const expectedQuestion = getNextFollowUpQuestion({ destId: "shimla" }, "en");
+    expect(sendMessageFn).toHaveBeenCalledWith("919000000011", expectedQuestion);
+  });
+
+  test("a fully-complete draft (every required field already known) transitions to AWAITING_PHOTOS and sends photo prompt instead of a follow-up question", async () => {
+    await Business.create({
+      _id: "biz_test_complete_no_send",
+      destId: "shimla",
+      ownerPhone: "919000000010",
+      onboardingState: "AWAITING_VOICE",
+      name: "Complete Homestay",
+      type: "homestay",
+      capacity: 4,
+      priceRangeINR: { min: 1000, max: 2000 },
+      nearestLandmark: "Main Chowk",
+    });
+
+    const sendMessageFn = jest.fn().mockResolvedValue({ ok: true });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000010",
+      messageId: "wamid.10",
+      transcribeFn: stubTranscribe,
+      extractFn: async () => emptyExtraction(), // nothing new stated, nothing clobbered
+      sendMessageFn,
+    });
+
+    expect(result.applied).toBe(true);
+    const saved = await Business.findOne({ _id: "biz_test_complete_no_send" });
+    expect(getNextFollowUpQuestion(saved, "en")).toBeNull(); // sanity: fixture really is complete
+    expect(saved.onboardingState).toBe("AWAITING_PHOTOS");
+    expect(sendMessageFn).toHaveBeenCalledWith("919000000010", expect.stringContaining("photos"));
+  });
+
+  test("a send failure is caught and logged without affecting the persisted draft state", async () => {
+    const failingSend = jest.fn().mockRejectedValue(new Error("Meta returned 500"));
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      const result = await processInboundAudio({
+        audioBuffer: Buffer.from("audio"),
+        ownerPhone: "919000000012",
+        destId: "shimla",
+        messageId: "wamid.12",
+        transcribeFn: async () => ({ transcript: "hello", detectedLanguage: "en" }),
+        extractFn: async () => emptyExtraction(),
+        sendMessageFn: failingSend,
+      });
+
+      // The pipeline's own result is unaffected -- extraction/state
+      // advancement already succeeded before the send was even attempted,
+      // and a failed send must not undo it.
+      expect(result.applied).toBe(true);
+      expect(result.onboardingState).toBe("EXTRACTING");
+
+      const saved = await Business.findOne({ ownerPhone: "919000000012" });
+      expect(saved.onboardingState).toBe("EXTRACTING");
+
+      expect(failingSend).toHaveBeenCalledTimes(1);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("failed to send follow-up question")
+      );
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
+  });
+});
+
+describe("processInboundAudio — a SECOND message for an already-progressed draft (regression)", () => {
+  // Directly reproduces the bug confirmed before this fix: walkStates(...,
+  // "TRANSCRIBING", ...) targets a fixed ceiling, so once a draft reaches
+  // EXTRACTING (which a successful first message does, within the same
+  // call), every subsequent message -- including a real reply to a
+  // getNextFollowUpQuestion() question -- was rejected outright with
+  // already_past_target, before any transcription/extraction/merge. The
+  // EXTRACTING->EXTRACTING self-transition had the identical problem one
+  // level deeper.
+  test("message 2 (a genuinely new messageId) supplying a previously-missing field is correctly merged, not rejected", async () => {
+    const ownerPhone = "919000000020";
+
+    // Message 1: first-ever voice note. Honest extraction, capacity still
+    // unknown -> advances to EXTRACTING within this same call.
+    const message1 = await processInboundAudio({
+      audioBuffer: Buffer.from("audio-1"),
+      ownerPhone,
+      destId: "shimla",
+      messageId: "wamid.followup.1",
+      transcribeFn: async () => ({
+        transcript: "This is Ramesh's Homestay near Golconda Fort.",
+        detectedLanguage: "en",
+      }),
+      extractFn: async () => ({
+        name: "Ramesh's Homestay",
+        type: "homestay",
+        capacity: null,
+        priceRangeINR: null,
+        amenities: [],
+        meals: [],
+        nearestLandmark: "Golconda Fort",
+        languages: [],
+        seasonalNotes: null,
+      }),
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(message1.applied).toBe(true);
+    expect(message1.onboardingState).toBe("EXTRACTING");
+
+    const afterMessage1 = await Business.findOne({ ownerPhone });
+    expect(afterMessage1.onboardingState).toBe("EXTRACTING");
+    expect(afterMessage1.capacity).toBeUndefined();
+
+    // Message 2: the operator's real reply to the "how many guests"
+    // follow-up question -- a genuinely new messageId, not a replay.
+    const message2 = await processInboundAudio({
+      audioBuffer: Buffer.from("audio-2"),
+      ownerPhone,
+      messageId: "wamid.followup.2",
+      transcribeFn: async () => ({ transcript: "We can host six guests.", detectedLanguage: "en" }),
+      extractFn: async () => ({
+        name: null,
+        type: null,
+        capacity: 6,
+        priceRangeINR: null,
+        amenities: [],
+        meals: [],
+        nearestLandmark: null,
+        languages: [],
+        seasonalNotes: null,
+      }),
+      sendMessageFn: stubSendMessage,
+    });
+
+    // The core regression: this must NOT be already_past_target.
+    expect(message2.applied).toBe(true);
+    expect(message2.reason).toBeUndefined();
+    expect(message2.onboardingState).toBe("EXTRACTING");
+    expect(message2.extractionAccepted).toBe(true);
+
+    const afterMessage2 = await Business.findOne({ ownerPhone });
+    expect(afterMessage2.onboardingState).toBe("EXTRACTING");
+    expect(afterMessage2.capacity).toBe(6);
+    // Message 1's fields survive -- the null-filtering merge fix still
+    // applies on this second message (name/type weren't restated).
+    expect(afterMessage2.name).toBe("Ramesh's Homestay");
+    expect(afterMessage2.type).toBe("homestay");
+    expect(afterMessage2.nearestLandmark).toBe("Golconda Fort");
+  });
+
+  test("message 3, replaying message 2's exact messageId, correctly no-ops (idempotency still intact)", async () => {
+    const ownerPhone = "919000000021";
+
+    await processInboundAudio({
+      audioBuffer: Buffer.from("audio-1"),
+      ownerPhone,
+      destId: "shimla",
+      messageId: "wamid.idempotency.1",
+      transcribeFn: async () => ({ transcript: "This is a homestay.", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(),
+      sendMessageFn: stubSendMessage,
+    });
+
+    const transcribeFn2 = jest.fn().mockResolvedValue({ transcript: "We can host six guests.", detectedLanguage: "en" });
+    const extractFn2 = jest.fn().mockResolvedValue({
+      name: null,
+      type: null,
+      capacity: 6,
+      priceRangeINR: null,
+      amenities: [],
+      meals: [],
+      nearestLandmark: null,
+      languages: [],
+      seasonalNotes: null,
+    });
+
+    const message2 = await processInboundAudio({
+      audioBuffer: Buffer.from("audio-2"),
+      ownerPhone,
+      messageId: "wamid.idempotency.2",
+      transcribeFn: transcribeFn2,
+      extractFn: extractFn2,
+      sendMessageFn: stubSendMessage,
+    });
+    expect(message2.applied).toBe(true);
+    expect(message2.onboardingState).toBe("EXTRACTING");
+
+    const afterMessage2 = await Business.findOne({ ownerPhone });
+    expect(afterMessage2.capacity).toBe(6);
+
+    // Message 3: Meta retries the identical delivery -- same messageId as
+    // message 2, not a genuinely new message.
+    const message3 = await processInboundAudio({
+      audioBuffer: Buffer.from("audio-2"),
+      ownerPhone,
+      messageId: "wamid.idempotency.2", // identical to message 2's
+      transcribeFn: transcribeFn2,
+      extractFn: extractFn2,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(message3.applied).toBe(false);
+    expect(message3.reason).toBe("duplicate_message");
+    // No re-transcription, no re-extraction, no re-send for the replay.
+    expect(transcribeFn2).toHaveBeenCalledTimes(1);
+    expect(extractFn2).toHaveBeenCalledTimes(1);
+
+    const afterMessage3 = await Business.findOne({ ownerPhone });
+    expect(afterMessage3.capacity).toBe(6); // untouched, still whatever message 2 set
+    expect(afterMessage3.onboardingState).toBe("EXTRACTING");
+  });
+});
+
+describe("processInboundAudio — pendingField context passed to extraction", () => {
+  test("a brand-new draft's first (spontaneous) message passes pendingField: null — no question was ever asked", async () => {
+    const extractFn = jest.fn().mockResolvedValue(emptyExtraction());
+
+    await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000030",
+      destId: "shimla",
+      messageId: "wamid.pf.1",
+      transcribeFn: async () => ({ transcript: "This is a homestay.", detectedLanguage: "en" }),
+      extractFn,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(extractFn).toHaveBeenCalledWith("This is a homestay.", "en", null);
+  });
+
+  test("a reply to an already-progressed draft passes the exact field the FOLLOWUP question was about", async () => {
+    // Draft already at EXTRACTING with name/type/nearestLandmark/destId
+    // known; capacity is the next missing field in REQUIRED_FIELDS_FOR_LIVE
+    // order, so a question about capacity would have been sent after the
+    // draft reached this state -- this message is presumed to be that reply.
+    await Business.create({
+      _id: "biz_test_pending_field",
+      destId: "shimla",
+      ownerPhone: "919000000031",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      nearestLandmark: "Golconda Fort",
+    });
+
+    const extractFn = jest.fn().mockResolvedValue(emptyExtraction());
+
+    await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000031",
+      messageId: "wamid.pf.2",
+      transcribeFn: async () => ({ transcript: "Six.", detectedLanguage: "en" }),
+      extractFn,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(extractFn).toHaveBeenCalledWith("Six.", "en", "capacity");
+  });
+
+  test("pendingField advances to the NEXT missing field once the previous one is answered", async () => {
+    await Business.create({
+      _id: "biz_test_pending_field_2",
+      destId: "shimla",
+      ownerPhone: "919000000032",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      nearestLandmark: "Golconda Fort",
+      capacity: 6, // just answered -- priceRangeINR is next in order
+    });
+
+    const extractFn = jest.fn().mockResolvedValue(emptyExtraction());
+
+    await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000032",
+      messageId: "wamid.pf.3",
+      transcribeFn: async () => ({ transcript: "One to two thousand.", detectedLanguage: "en" }),
+      extractFn,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(extractFn).toHaveBeenCalledWith("One to two thousand.", "en", "priceRangeINR");
+  });
+
+  test("no pendingField (nothing was actually missing last time) even for an already-progressed draft", async () => {
+    // Every required field already present -- self-correcting property:
+    // no question would have been sent, so nothing to be a reply to.
+    await Business.create({
+      _id: "biz_test_pending_field_none",
+      destId: "shimla",
+      ownerPhone: "919000000033",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      nearestLandmark: "Golconda Fort",
+      capacity: 6,
+      priceRangeINR: { min: 1000, max: 2000 },
+    });
+
+    const extractFn = jest.fn().mockResolvedValue(emptyExtraction());
+
+    await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000033",
+      messageId: "wamid.pf.4",
+      transcribeFn: async () => ({ transcript: "Thanks!", detectedLanguage: "en" }),
+      extractFn,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(extractFn).toHaveBeenCalledWith("Thanks!", "en", null);
+  });
+
+  // The actual real-world risk this whole feature addresses: a terse
+  // reply like "Six" has no stated subject in isolation. This can't be
+  // proven against the real Gemini model in an automated test (no real
+  // network calls allowed in this suite) -- what CAN be proven is that
+  // the plumbing correctly delivers the pendingField context to
+  // extraction, using a stub that models the realistic difference a real
+  // extraction prompt should make: with the "capacity" hint, "Six" is
+  // interpretable; without any hint, a bare "Six" has no stated subject
+  // and a well-behaved extractor (real or stubbed) has nothing honest to
+  // extract it into.
+  test("a terse reply correctly resolves the intended field WITH pendingField context, and correctly stays null WITHOUT it", async () => {
+    // Models a transcript-in/extraction-out relationship a real,
+    // well-behaved Gemini call following the prompt's own rules would
+    // plausibly produce: "Six" alone -> nothing extractable without
+    // context; "Six" + told this answers capacity -> capacity: 6.
+    const contextAwareExtractFn = jest.fn(async (transcript, language, pendingField) => {
+      if (pendingField === "capacity" && /six/i.test(transcript)) {
+        return { ...emptyExtraction(), capacity: 6 };
+      }
+      return emptyExtraction();
+    });
+
+    // WITH context: draft already at EXTRACTING, capacity next-missing.
+    await Business.create({
+      _id: "biz_test_terse_with_context",
+      destId: "shimla",
+      ownerPhone: "919000000034",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      nearestLandmark: "Golconda Fort",
+    });
+
+    const withContext = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000034",
+      messageId: "wamid.terse.1",
+      transcribeFn: async () => ({ transcript: "Six.", detectedLanguage: "en" }),
+      extractFn: contextAwareExtractFn,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(contextAwareExtractFn).toHaveBeenCalledWith("Six.", "en", "capacity");
+    expect(withContext.extractionAccepted).toBe(true);
+    const savedWithContext = await Business.findOne({ _id: "biz_test_terse_with_context" });
+    expect(savedWithContext.capacity).toBe(6);
+
+    // WITHOUT context: same terse transcript, but a spontaneous
+    // brand-new draft with no pending question at all.
+    const withoutContext = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000035",
+      destId: "shimla",
+      messageId: "wamid.terse.2",
+      transcribeFn: async () => ({ transcript: "Six.", detectedLanguage: "en" }),
+      extractFn: contextAwareExtractFn,
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(contextAwareExtractFn).toHaveBeenCalledWith("Six.", "en", null);
+    const savedWithoutContext = await Business.findOne({ ownerPhone: "919000000035" });
+    // Nothing extracted -- proves the context genuinely mattered above,
+    // not that the stub always fills in capacity regardless.
+    expect(savedWithoutContext.capacity).toBeUndefined();
+    // And honesty/shape discipline for every OTHER field is completely
+    // unaffected -- this doesn't loosen anything beyond the one named field.
+    expect(withoutContext.extraction.shapeValid).toBe(true);
+    expect(withoutContext.extraction.honest).toBe(true);
+  });
+});
+
+describe("processInboundAudio — destId resolution wiring", () => {
+  test("pendingField === 'destId' with a confidently-resolvable transcript sets destId, independent of extraction", async () => {
+    // Draft already has every other required field except destId --
+    // getNextMissingRequiredField(existing) will report "destId" as the
+    // pendingField, and this reply names a real, unambiguous place.
+    await Business.create({
+      _id: "biz_test_destid_resolve",
+      ownerPhone: "919000000040",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      capacity: 6,
+      priceRangeINR: { min: 1000, max: 2000 },
+      nearestLandmark: "Golconda Fort",
+      // destId intentionally left unset.
+    });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000040",
+      messageId: "wamid.destid.1",
+      transcribeFn: async () => ({ transcript: "It's near the mall in Shimla.", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(), // extraction contributes nothing -- resolution is independent
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(result.applied).toBe(true);
+    const saved = await Business.findOne({ _id: "biz_test_destid_resolve" });
+    expect(saved.destId).toBe("shimla");
+  });
+
+  test("pendingField === 'destId' with an unresolvable transcript leaves destId null -- doesn't fabricate, asks again", async () => {
+    await Business.create({
+      _id: "biz_test_destid_no_match",
+      ownerPhone: "919000000041",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      capacity: 6,
+      priceRangeINR: { min: 1000, max: 2000 },
+      nearestLandmark: "Golconda Fort",
+    });
+
+    const sendMessageFn = jest.fn().mockResolvedValue({ ok: true });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000041",
+      messageId: "wamid.destid.2",
+      transcribeFn: async () => ({ transcript: "Somewhere nice, I'll tell you later.", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(),
+      sendMessageFn,
+    });
+
+    expect(result.applied).toBe(true);
+    const saved = await Business.findOne({ _id: "biz_test_destid_no_match" });
+    expect(saved.destId).toBeUndefined();
+    // The destId question is asked again, since it's still missing.
+    expect(sendMessageFn).toHaveBeenCalledTimes(1);
+    expect(sendMessageFn.mock.calls[0][1]).toBe("Which town or area is your property near?");
+  });
+
+  test("pendingField === 'destId' with a genuinely ambiguous transcript (real seed-data collision) leaves destId null", async () => {
+    await Business.create({
+      _id: "biz_test_destid_ambiguous",
+      ownerPhone: "919000000042",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      capacity: 6,
+      priceRangeINR: { min: 1000, max: 2000 },
+      nearestLandmark: "Some Landmark",
+    });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000042",
+      messageId: "wamid.destid.3",
+      // "Hyderabad" alone genuinely matches three real destinations --
+      // see destinationResolver.test.js for the same confirmed case.
+      transcribeFn: async () => ({ transcript: "It's in Hyderabad.", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(),
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(result.applied).toBe(true);
+    const saved = await Business.findOne({ _id: "biz_test_destid_ambiguous" });
+    expect(saved.destId).toBeUndefined();
+  });
+
+  test("resolution is only attempted when pendingField is 'destId' -- not run against every message's transcript", async () => {
+    // capacity is the pending field here, not destId, even though the
+    // transcript happens to mention a real place name. destId must stay
+    // untouched (still absent), proving resolution isn't run speculatively.
+    await Business.create({
+      _id: "biz_test_destid_not_pending",
+      ownerPhone: "919000000043",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      nearestLandmark: "Golconda Fort",
+      // capacity still missing -- that's the pending field, not destId.
+    });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000043",
+      messageId: "wamid.destid.4",
+      transcribeFn: async () => ({ transcript: "We're in Shimla and can host six guests.", detectedLanguage: "en" }),
+      extractFn: async () => ({ ...emptyExtraction(), capacity: 6 }),
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(result.applied).toBe(true);
+    const saved = await Business.findOne({ _id: "biz_test_destid_not_pending" });
+    expect(saved.capacity).toBe(6);
+    expect(saved.destId).toBeUndefined();
+  });
+
+  test("an explicit destId param still takes precedence and skips resolution entirely", async () => {
+    // Mutually exclusive by construction in practice (explicit destId is
+    // only ever passed for a brand-new draft), but verified defensively:
+    // when both could theoretically apply, the explicit param wins and
+    // resolution against the transcript never overrides it.
+    await Business.create({
+      _id: "biz_test_destid_explicit_wins",
+      ownerPhone: "919000000044",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      capacity: 6,
+      priceRangeINR: { min: 1000, max: 2000 },
+      nearestLandmark: "Golconda Fort",
+    });
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000044",
+      destId: "manali", // explicit param -- transcript below says "Shimla"
+      messageId: "wamid.destid.5",
+      transcribeFn: async () => ({ transcript: "It's near the mall in Shimla.", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(),
+      sendMessageFn: stubSendMessage,
+    });
+
+    expect(result.applied).toBe(true);
+    const saved = await Business.findOne({ _id: "biz_test_destid_explicit_wins" });
+    expect(saved.destId).toBe("manali");
+  });
+
+  test("destId resolution merges even when extraction FAILS the honesty check on this same message — independent of extractionAccepted, matching staff_skills/staff_serviceAreaDestIds's established pattern", async () => {
+    await Business.create({
+      _id: "biz_test_destid_survives_dishonest_extraction",
+      ownerPhone: "919000000045",
+      onboardingState: "EXTRACTING",
+      name: "Ramesh's Homestay",
+      type: "homestay",
+      capacity: 6,
+      priceRangeINR: { min: 1000, max: 2000 },
+      nearestLandmark: "Golconda Fort",
+      // destId still missing -- this is the pending field.
+    });
+
+    // The transcript resolves destId confidently ("near the mall in
+    // Shimla" -> "shimla"), but the SAME message's extraction attempt
+    // invents an amenity never mentioned in that transcript -- must fail
+    // checkExtractionHonesty(), exactly like the "rejected extraction"
+    // tests elsewhere in this file.
+    const dishonestExtraction = {
+      ...emptyExtraction(),
+      amenities: ["swimming pool"], // never mentioned below
+    };
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000045",
+      messageId: "wamid.destid.6",
+      transcribeFn: async () => ({ transcript: "It's near the mall in Shimla.", detectedLanguage: "en" }),
+      extractFn: async () => dishonestExtraction,
+      sendMessageFn: stubSendMessage,
+    });
+
+    // Confirm the honesty check genuinely failed on this message --
+    // otherwise this test wouldn't be proving anything.
+    expect(result.extractionAccepted).toBe(false);
+    expect(result.extraction.honest).toBe(false);
+    expect(result.extraction.failedFields).toEqual([{ field: "amenities[0]", value: "swimming pool" }]);
+
+    // destId resolution still merged, independent of that rejection.
+    const saved = await Business.findOne({ _id: "biz_test_destid_survives_dishonest_extraction" });
+    expect(saved.destId).toBe("shimla");
+    // And the rejected extraction's invented field correctly did NOT persist.
+    expect(saved.amenities).toEqual([]);
+  });
+
+  test("when the final required field (destId) is successfully merged and no required fields remain, transitions to AWAITING_PHOTOS and sends photo prompt", async () => {
+    await Business.create({
+      _id: "biz_test_final_destid_transitions_to_photos",
+      ownerPhone: "919000000046",
+      onboardingState: "EXTRACTING",
+      name: "Green Valley Homestay",
+      type: "homestay",
+      capacity: 6,
+      priceRangeINR: { min: 2500, max: 2500 },
+      nearestLandmark: "Golconda Fort Hyderabad",
+      // destId is the only missing required field
+    });
+
+    const sendMessageFn = jest.fn();
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000046",
+      messageId: "wamid.destid.final.photos",
+      transcribeFn: async () => ({ transcript: "It is near Golconda Fort in Hyderabad.", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(),
+      sendMessageFn,
+    });
+
+    expect(result.applied).toBe(true);
+    expect(result.onboardingState).toBe("AWAITING_PHOTOS");
+
+    const saved = await Business.findOne({ _id: "biz_test_final_destid_transitions_to_photos" });
+    expect(saved.destId).toBe("golconda-hyderabad");
+    expect(saved.onboardingState).toBe("AWAITING_PHOTOS");
+
+    // Verify photo prompt was sent
+    expect(sendMessageFn).toHaveBeenCalledTimes(1);
+    expect(sendMessageFn).toHaveBeenCalledWith(
+      "919000000046",
+      expect.stringContaining("photos")
+    );
   });
 });

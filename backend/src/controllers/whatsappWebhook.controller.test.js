@@ -69,6 +69,39 @@ function createTestApp(handler) {
   return app;
 }
 
+// Same structure as buildAudioWebhookPayload, but type: "image" -- per
+// Meta's uniform media-message shape (image/audio/video/document/sticker
+// all carry the same { id, mime_type } object under their own type key).
+function buildImageWebhookPayload({ from, messageId, mediaId }) {
+  return {
+    object: "whatsapp_business_account",
+    entry: [
+      {
+        id: "wa_business_account_id",
+        changes: [
+          {
+            field: "messages",
+            value: {
+              messaging_product: "whatsapp",
+              metadata: { display_phone_number: "15550001111", phone_number_id: "phone_number_id_123" },
+              contacts: [{ profile: { name: "Test Operator" }, wa_id: from }],
+              messages: [
+                {
+                  from,
+                  id: messageId,
+                  timestamp: "1699999999",
+                  type: "image",
+                  image: { id: mediaId, mime_type: "image/jpeg" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ],
+  };
+}
+
 describe("WhatsApp webhook -> shared pipeline integration", () => {
   test("a real-shaped inbound audio payload downloads media, transcribes, and persists a state change", async () => {
     const ownerPhone = "919876543299"; // Meta's real convention: no leading "+"
@@ -133,7 +166,13 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       seasonalNotes: null,
     });
 
-    const handler = createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn });
+    // This draft's fields will still be missing several
+    // REQUIRED_FIELDS_FOR_LIVE after this message (only capacity/
+    // nearestLandmark get set) — without a stub here, the default real
+    // sendMessageFn would attempt an actual Meta API call.
+    const sendMessageFn = jest.fn().mockResolvedValue({ ok: true });
+
+    const handler = createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn, sendMessageFn });
     const app = createTestApp(handler);
     const server = app.listen(0);
 
@@ -169,7 +208,9 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       // not null), so it called the real extraction path itself, with the
       // transcript that was just produced.
       expect(extractFn).toHaveBeenCalledTimes(1);
-      expect(extractFn).toHaveBeenCalledWith(transcript, "hi");
+      // Draft started at AWAITING_VOICE (before TRANSCRIBING) -- the
+      // bootstrap path, no pending question to be a reply to.
+      expect(extractFn).toHaveBeenCalledWith(transcript, "hi", null);
 
       // And the actual persisted state change, including the extracted
       // fields — EXTRACTING now that a real (stubbed) extraction ran and
@@ -181,6 +222,12 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       expect(saved.lastWhatsAppMessageId).toBe(messageId);
       expect(saved.capacity).toBe(3);
       expect(saved.nearestLandmark).toBe("Main Chowk");
+
+      // The draft is still missing name/type/priceRangeINR/destId, so a
+      // real FOLLOWUP question was sent back to the operator.
+      expect(sendMessageFn).toHaveBeenCalledTimes(1);
+      expect(sendMessageFn.mock.calls[0][0]).toBe(ownerPhone);
+      expect(typeof sendMessageFn.mock.calls[0][1]).toBe("string");
     } finally {
       server.close();
     }
@@ -218,7 +265,9 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       seasonalNotes: null,
     });
 
-    const handler = createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn });
+    const sendMessageFn = jest.fn().mockResolvedValue({ ok: true });
+
+    const handler = createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn, sendMessageFn });
     const app = createTestApp(handler);
     const server = app.listen(0);
 
@@ -250,6 +299,65 @@ describe("WhatsApp webhook -> shared pipeline integration", () => {
       expect(fetchFn).toHaveBeenCalledTimes(2); // still just the first delivery's two calls
       expect(transcribeFn).toHaveBeenCalledTimes(1); // not called again
       expect(extractFn).toHaveBeenCalledTimes(1); // not called again
+      expect(sendMessageFn).toHaveBeenCalledTimes(1); // not called again
+    } finally {
+      server.close();
+    }
+  });
+
+  test("a real-shaped inbound IMAGE payload downloads the photo and uploads it to Cloudinary, independent of onboardingState", async () => {
+    const ownerPhone = "919876543297";
+    const mediaId = "media_photo_1";
+    const messageId = "wamid.photo-test-1";
+
+    // AWAITING_PHOTOS runs in parallel to the audio/extraction pipeline
+    // (explicit decision) -- a draft still mid-onboarding at TRANSCRIBING
+    // must still be able to receive a photo.
+    await Business.create({
+      _id: "biz_test_whatsapp_photo",
+      destId: "shimla",
+      ownerPhone,
+      onboardingState: "TRANSCRIBING",
+    });
+
+    const imageBytes = new Uint8Array([1, 2, 3, 4]);
+    const fetchFn = jest.fn(async (url) => {
+      if (url.includes("graph.facebook.com")) {
+        return { ok: true, status: 200, json: async () => ({ url: "https://lookaside.fbsbx.com/whatsapp_media/img" }) };
+      }
+      return {
+        ok: true,
+        status: 200,
+        arrayBuffer: async () => imageBytes.buffer.slice(imageBytes.byteOffset, imageBytes.byteOffset + imageBytes.byteLength),
+      };
+    });
+    const uploadFn = jest.fn().mockResolvedValue("https://res.cloudinary.com/test/onboarding-photo.jpg");
+
+    const handler = createReceiveWebhookHandler({ fetchFn, uploadFn });
+    const app = createTestApp(handler);
+    const server = app.listen(0);
+
+    try {
+      const { port } = server.address();
+      const payload = buildImageWebhookPayload({ from: ownerPhone, messageId, mediaId });
+
+      const response = await fetch(`http://127.0.0.1:${port}/api/webhook/whatsapp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      expect(response.status).toBe(200);
+      await Promise.all(handler.pendingWork);
+
+      expect(fetchFn).toHaveBeenCalledTimes(2);
+      expect(uploadFn).toHaveBeenCalledTimes(1);
+      expect(Buffer.isBuffer(uploadFn.mock.calls[0][0])).toBe(true);
+      expect(uploadFn.mock.calls[0][0]).toEqual(Buffer.from(imageBytes));
+
+      const saved = await Business.findOne({ _id: "biz_test_whatsapp_photo" });
+      expect(saved.photos).toEqual(["https://res.cloudinary.com/test/onboarding-photo.jpg"]);
+      expect(saved.onboardingState).toBe("TRANSCRIBING"); // untouched
     } finally {
       server.close();
     }
