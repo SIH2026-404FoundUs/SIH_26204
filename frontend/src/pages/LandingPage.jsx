@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Flame, ArrowLeftRight, ShieldCheck, MapPinned, Landmark, Wrench,
-  TriangleAlert, Tag, Compass, CheckCircle2,
+  TriangleAlert, Tag, Compass, CheckCircle2, UserRound,
 } from 'lucide-react'
+import { useTrustStore } from '../store/useTrustStore'
 
 // The public landing page at "/" -- separate from the sign-in form
 // (AuthScreen still owns /signin and /signup on its own). Describes what
@@ -63,6 +65,13 @@ const AUDIENCES = [
 ]
 
 export default function LandingPage() {
+  // A handful of real, authority-approved Suggest a Place submissions
+  // (GET /community/submissions/approved, public) -- not fabricated sample
+  // destinations. Section only renders once at least one exists.
+  const forumPosts = useTrustStore((s) => s.forumPosts)
+  const fetchForumPosts = useTrustStore((s) => s.fetchForumPosts)
+  useEffect(() => { fetchForumPosts({ limit: 3 }) }, [fetchForumPosts])
+
   return (
     <div>
       {/* Hero -- the one screen in the product where centred alignment is
@@ -108,6 +117,36 @@ export default function LandingPage() {
           ))}
         </div>
       </div>
+
+      {/* Suggested places to visit -- real, authority-approved community
+          submissions (spec: "few suggested places to visit"), same feed as
+          the Community Forum. Renders nothing if there are none yet, rather
+          than a fabricated set of sample destinations. */}
+      {forumPosts.length > 0 && (
+        <div className="border-t border-paper-dim">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+            <div className="mb-10 text-center">
+              <h2 className="font-display text-3xl text-ink">Suggested by travellers like you</h2>
+              <p className="mx-auto mt-2 max-w-2xl text-sm text-ink/60">
+                Real places, suggested through Suggest a Place and reviewed by a tourism authority.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {forumPosts.map((post) => (
+                <div key={post._id} className="rounded-lg border border-paper-dim bg-white p-5">
+                  <div className="flex items-center gap-2 text-ash">
+                    <UserRound size={14} aria-hidden="true" />
+                    <span className="text-xs">A traveller suggested</span>
+                  </div>
+                  <h3 className="mt-2 font-display text-lg text-ink">{post.name}</h3>
+                  <p className="mt-1.5 line-clamp-3 text-sm text-ink/60">{post.description}</p>
+                  {post.state && <p className="mt-2 text-xs font-medium text-pressure">{post.state}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Who it's built for */}
       <div className="border-t border-paper-dim bg-paper-dim/40">

@@ -16,11 +16,13 @@ import OperatorConsole from './components/operator/OperatorConsole'
 import RegisterBusiness from './components/operator/RegisterBusiness'
 import HirePeople from './components/operator/HirePeople'
 import OperatorWaitlistOffers from './components/operator/OperatorWaitlistOffers'
+import OperatorAnalytics from './components/operator/OperatorAnalytics'
 import OperatorVerifyVisit from './components/operator/OperatorVerifyVisit'
 import AuthorityDashboard from './components/authority/AuthorityDashboard'
 import VisitVerify from './components/trust/VisitVerify'
 import CommunitySubmit from './components/trust/CommunitySubmit'
 import CommunityReview from './components/trust/CommunityReview'
+import CommunityForum from './components/trust/CommunityForum'
 import OffersWaitlist from './components/trust/OffersWaitlist'
 import Alerts from './components/trust/Alerts'
 import Safety from './components/trust/Safety'
@@ -97,6 +99,7 @@ function App() {
           <Route path="/register-business" element={<RequireRole role="operator"><RegisterBusiness /></RequireRole>} />
           <Route path="/hire-people" element={<RequireRole role="operator"><HirePeople /></RequireRole>} />
           <Route path="/operator/waitlist" element={<RequireRole role="operator"><OperatorWaitlistOffers /></RequireRole>} />
+          <Route path="/operator/analytics" element={<RequireRole role="operator"><OperatorAnalytics /></RequireRole>} />
           {/* Same URL, role-branched (§14-19): travellers get "Suggest a
               Place" (CommunitySubmit), authorities get the "Community
               Review" moderation UI (CommunityReview) -- both nav entries
@@ -105,6 +108,7 @@ function App() {
               403 anyone whose server-side role isn't "authority"), so this
               branch is a UI convenience, not a security control. */}
           <Route path="/community" element={<RequireAuth>{authUser?.role === 'authority' ? <CommunityReview /> : <CommunitySubmit />}</RequireAuth>} />
+          <Route path="/forum" element={<RequireAuth><CommunityForum /></RequireAuth>} />
           <Route path="/services" element={<RequireAuth><AvailableServices /></RequireAuth>} />
           <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
           <Route path="/offers" element={<RequireAuth><OffersWaitlist /></RequireAuth>} />

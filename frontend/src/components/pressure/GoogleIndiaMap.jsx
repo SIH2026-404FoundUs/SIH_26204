@@ -113,7 +113,9 @@ function createRingOverlay(maps, map, row, onNavigate, getScale) {
  * to load (missing/blocked API key, offline) -- an honest degraded state
  * rather than a blank broken panel.
  */
-export default function GoogleIndiaMap({ rows, size = 'lg' }) {
+const FOCUS_ZOOM = 9 // close enough to read as "zoomed to this destination", not street-level tight
+
+export default function GoogleIndiaMap({ rows, size = 'lg', focusDestId }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const overlaysRef = useRef([])
@@ -162,6 +164,17 @@ export default function GoogleIndiaMap({ rows, size = 'lg' }) {
       overlays.forEach((o) => o.setMap(null))
     }
   }, [ready, rows, navigate])
+
+  // Selecting a destination (e.g. the Authority Dashboard's picker) pans
+  // and zooms the live map to it, instead of the selector and the map
+  // being two disconnected pieces of UI showing the same data.
+  useEffect(() => {
+    if (!ready || !mapRef.current || !focusDestId) return
+    const row = rows.find((r) => r.destId === focusDestId)
+    if (!row || typeof row.lat !== 'number' || typeof row.lng !== 'number') return
+    mapRef.current.panTo({ lat: row.lat, lng: row.lng })
+    mapRef.current.setZoom(FOCUS_ZOOM)
+  }, [ready, focusDestId, rows])
 
   if (error) {
     return (

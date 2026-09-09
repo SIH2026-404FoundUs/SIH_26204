@@ -17,7 +17,10 @@ import { getDestinationLabel } from '../../lib/destinations'
 // endpoint, and a destination picker sits alongside it so "select a
 // destination, see its name/score/tier" (spec) doesn't require touching
 // GoogleIndiaMap's own click-to-navigate behaviour, which the traveller
-// Explore page also depends on.
+// Explore page also depends on. Picking a destination here also pans/zooms
+// the live map to it (GoogleIndiaMap's focusDestId prop) -- previously the
+// picker and the map were two disconnected pieces of UI showing the same
+// data with no link between them.
 export default function PressureSection({ data, isLoading, error, date }) {
   const destinations = data?.destinations
   const [selectedId, setSelectedId] = useState('')
@@ -44,7 +47,7 @@ export default function PressureSection({ data, isLoading, error, date }) {
         <EmptyState icon={MapPin} title="No data available for this date" description="No destination has a computed pressure row for this date yet." />
       ) : !error ? (
         <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-          <GoogleIndiaMap rows={rows} />
+          <GoogleIndiaMap rows={rows} focusDestId={selected?.destId} />
 
           <div>
             <label htmlFor="dash-dest-picker" className="mb-2 block text-xs font-medium text-ink/80">

@@ -54,15 +54,39 @@ export const useOperatorStore = create((set) => ({
   isLoadingWaitlist: false,
   waitlistError: null,
 
-  fetchBusinessWaitlist: async (businessId) => {
-    set({ isLoadingWaitlist: true, waitlistError: null })
+  // silent: true skips the loading spinner -- used by the poll timer so the
+  // waitlist list doesn't flash a "Loading…" state every 15s, only the
+  // initial fetch and manual refresh do.
+  fetchBusinessWaitlist: async (businessId, { silent = false } = {}) => {
+    if (!silent) set({ isLoadingWaitlist: true })
+    set({ waitlistError: null })
     try {
       const res = await api.get(`/v1/waitlist/business/${businessId}`)
       set({ businessWaitlist: res.data })
     } catch (error) {
       set({ waitlistError: getErrorMessage(error, 'Could not load the waitlist') })
     } finally {
-      set({ isLoadingWaitlist: false })
+      if (!silent) set({ isLoadingWaitlist: false })
+    }
+  },
+
+  // -- Bookings for one of the operator's businesses (GET /v1/bookings/business/:id,
+  // shipped in the backend a release ago but never had a frontend consumer
+  // until now -- travellers could book, but an operator had no way to see it). --
+  businessBookings: [],
+  isLoadingBookings: false,
+  bookingsError: null,
+
+  fetchBusinessBookings: async (businessId, { silent = false } = {}) => {
+    if (!silent) set({ isLoadingBookings: true })
+    set({ bookingsError: null })
+    try {
+      const res = await api.get(`/v1/bookings/business/${businessId}`)
+      set({ businessBookings: res.data })
+    } catch (error) {
+      set({ bookingsError: getErrorMessage(error, 'Could not load bookings') })
+    } finally {
+      if (!silent) set({ isLoadingBookings: false })
     }
   },
 
@@ -162,6 +186,24 @@ export const useOperatorStore = create((set) => ({
       return false
     } finally {
       set({ isSubmittingHire: false })
+    }
+  },
+
+  // -- Analytics: real aggregate traveller activity across this operator's
+  // businesses (GET /v1/analytics/operator) --
+  analytics: null,
+  isLoadingAnalytics: false,
+  analyticsError: null,
+
+  fetchAnalytics: async () => {
+    set({ isLoadingAnalytics: true, analyticsError: null })
+    try {
+      const res = await api.get('/v1/analytics/operator')
+      set({ analytics: res.data })
+    } catch (error) {
+      set({ analyticsError: getErrorMessage(error, 'Could not load analytics') })
+    } finally {
+      set({ isLoadingAnalytics: false })
     }
   },
 }))

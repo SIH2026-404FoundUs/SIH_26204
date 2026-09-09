@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Store, Check } from 'lucide-react'
+import { Store, Check, Mic, MessageCircle } from 'lucide-react'
 import { useOperatorStore } from '../../store/useOperatorStore'
 import PageHeader from '../ui/PageHeader'
 import Card from '../ui/Card'
@@ -8,6 +8,13 @@ import Button from '../ui/Button'
 import Alert from '../ui/Alert'
 import FormField, { inputClass } from '../ui/FormField'
 import DestinationSelect from '../ui/DestinationSelect'
+
+const rawWhatsappNumber = import.meta.env.VITE_WHATSAPP_ONBOARDING_NUMBER || ''
+const cleanWhatsappNumber = rawWhatsappNumber.replace(/\D/g, '')
+const PREFILLED_MESSAGE = 'Hi, I want to register my business'
+const whatsappUrl = cleanWhatsappNumber
+  ? `https://wa.me/${cleanWhatsappNumber}?text=${encodeURIComponent(PREFILLED_MESSAGE)}`
+  : null
 
 const BUSINESS_TYPES = [
   { value: 'hotel', label: 'Hotel' },
@@ -81,6 +88,51 @@ export default function RegisterBusiness() {
         title="Register your business"
         description="Hotels, restaurants, homestays, guesthouses, guides, drivers, cooks -- listed directly, so travellers can find and book you the same way they find every other business on the platform."
       />
+
+      <Card className="mb-6 border-relief/30 bg-relief/5">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-relief/15 text-relief">
+              <Mic size={18} aria-hidden="true" />
+            </span>
+            <h2 className="text-base font-semibold text-ink">Register via WhatsApp Voice</h2>
+          </div>
+          <p className="text-sm text-ash">
+            Skip filling out the form manually. Tourism providers can register their business simply by sending a voice message on WhatsApp in their preferred language. Our AI assistant will automatically extract your business details, capacity, pricing, and amenities.
+          </p>
+        </div>
+
+        <div className="mt-4 flex flex-col items-start gap-2.5 sm:flex-row sm:items-center">
+          {whatsappUrl ? (
+            <Button
+              variant="relief"
+              icon={MessageCircle}
+              onClick={() => window.open(whatsappUrl, '_blank', 'noopener,noreferrer')}
+            >
+              Start on WhatsApp
+            </Button>
+          ) : (
+            <Button variant="relief" disabled icon={MessageCircle}>
+              Start on WhatsApp
+            </Button>
+          )}
+
+          {!whatsappUrl && (
+            <p className="text-xs text-pressure font-medium">
+              WhatsApp onboarding is temporarily unavailable: VITE_WHATSAPP_ONBOARDING_NUMBER is not configured.
+            </p>
+          )}
+        </div>
+      </Card>
+
+      <div className="relative mb-6 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-paper-dim" />
+        </div>
+        <div className="relative bg-paper px-3 text-xs font-semibold uppercase tracking-wider text-ash">
+          Or fill the registration form manually
+        </div>
+      </div>
 
       <Card className="mb-6">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">

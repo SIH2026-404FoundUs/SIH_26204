@@ -56,3 +56,33 @@ export const protectRoute = async (req, res, next) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// Sets req.user when a valid session cookie is present, but never blocks
+// the request when one isn't -- for routes that stay public (like the
+// Community Forum feed) but personalize slightly for a logged-in viewer
+// (e.g. "did I already like this?"). Mirrors protectRoute's own checks
+// (signature, tokenVersion) but every failure falls through to next()
+// instead of a 401/404 -- an expired/missing/invalid cookie here just
+// means "anonymous viewer", not an error.
+export const optionalAuth = async (req, res, next) => {
+  try {
+    const token = req.cookies.jwt;
+    if (!token) return next();
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return next();
+    }
+    if (!decoded || mongoose.connection.readyState !== 1) return next();
+
+    const user = await User.findById(decoded.userId).select("-passwordHash");
+    if (user && decoded.tokenVersion === user.tokenVersion) {
+      req.user = user;
+    }
+    next();
+  } catch (error) {
+    next();
+  }
+};

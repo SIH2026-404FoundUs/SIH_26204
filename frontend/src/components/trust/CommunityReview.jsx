@@ -10,6 +10,8 @@ import Alert from '../ui/Alert'
 import EmptyState from '../ui/EmptyState'
 import LoadingState from '../ui/LoadingState'
 
+const POLL_MS = 15_000 // matches Suggest a Place's own poll -- a new submission shows up here without a manual reload
+
 // Authority-facing "Community Review" -- the moderation UI the spec
 // requires (§18/§19) for traveller-submitted "Suggest a Place" entries.
 // Same queue/review endpoints and status machine as before (GET
@@ -25,6 +27,8 @@ export default function CommunityReview() {
 
   useEffect(() => {
     fetchQueuedSubmissions()
+    const interval = setInterval(() => fetchQueuedSubmissions({ silent: true }), POLL_MS)
+    return () => clearInterval(interval)
   }, [fetchQueuedSubmissions])
 
   async function handleReview(submissionId, action) {

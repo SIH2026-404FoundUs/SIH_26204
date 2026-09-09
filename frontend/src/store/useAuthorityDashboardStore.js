@@ -12,7 +12,15 @@ const today = () => new Date().toISOString().slice(0, 10)
 // Pressure and capacity are date-scoped; redistribution and acceptance are
 // not (trips don't carry a single filterable date -- see
 // dashboard.controller.js's own comment on this) and are only ever
-// refetched on mount or an explicit refresh, never by the date picker.
+// refetched on mount, an explicit refresh, or the poll timer, never by the
+// date picker.
+//
+// Every fetch* action takes an optional {silent} flag: silent skips the
+// loading-spinner flag so the poll timer (AuthorityDashboard.jsx, every
+// 15s) can refresh data in the background without flashing "Loading…" over
+// a tab an authority might already be reading -- travellers booking,
+// joining waitlists, or getting redirected all change these numbers while
+// this dashboard is open, so it can't just be a one-shot fetch on mount.
 export const useAuthorityDashboardStore = create((set, get) => ({
   date: today(),
 
@@ -37,63 +45,69 @@ export const useAuthorityDashboardStore = create((set, get) => ({
     get().fetchDateScoped(date)
   },
 
-  // Everything: called once on mount.
-  fetchAll: () => {
-    get().fetchDateScoped(get().date)
-    get().fetchRedistribution()
-    get().fetchAcceptance()
-  },
+  // Everything: called on mount and by the poll timer. Returns a Promise
+  // resolving once every section has actually finished, not just fired --
+  // callers use this to know when it's safe to show a real "last synced".
+  fetchAll: (opts) => Promise.all([
+    get().fetchDateScoped(get().date, opts),
+    get().fetchRedistribution(opts),
+    get().fetchAcceptance(opts),
+  ]),
 
-  fetchDateScoped: (date = get().date) => {
-    get().fetchPressure(date)
-    get().fetchCapacity(date)
-  },
+  fetchDateScoped: (date = get().date, opts) => Promise.all([
+    get().fetchPressure(date, opts),
+    get().fetchCapacity(date, opts),
+  ]),
 
-  fetchPressure: async (date = get().date) => {
-    set({ isLoadingPressure: true, pressureError: null })
+  fetchPressure: async (date = get().date, { silent = false } = {}) => {
+    if (!silent) set({ isLoadingPressure: true })
+    set({ pressureError: null })
     try {
       const res = await api.get('/v1/dashboard/pressure', { params: { date } })
       set({ pressure: res.data })
     } catch (error) {
       set({ pressureError: getErrorMessage(error, 'Could not load the pressure heatmap') })
     } finally {
-      set({ isLoadingPressure: false })
+      if (!silent) set({ isLoadingPressure: false })
     }
   },
 
-  fetchCapacity: async (date = get().date) => {
-    set({ isLoadingCapacity: true, capacityError: null })
+  fetchCapacity: async (date = get().date, { silent = false } = {}) => {
+    if (!silent) set({ isLoadingCapacity: true })
+    set({ capacityError: null })
     try {
       const res = await api.get('/v1/dashboard/capacity', { params: { date } })
       set({ capacity: res.data })
     } catch (error) {
       set({ capacityError: getErrorMessage(error, 'Could not load the capacity gap table') })
     } finally {
-      set({ isLoadingCapacity: false })
+      if (!silent) set({ isLoadingCapacity: false })
     }
   },
 
-  fetchRedistribution: async () => {
-    set({ isLoadingRedistribution: true, redistributionError: null })
+  fetchRedistribution: async ({ silent = false } = {}) => {
+    if (!silent) set({ isLoadingRedistribution: true })
+    set({ redistributionError: null })
     try {
       const res = await api.get('/v1/dashboard/redistribution')
       set({ redistribution: res.data })
     } catch (error) {
       set({ redistributionError: getErrorMessage(error, 'Could not load redistribution impact') })
     } finally {
-      set({ isLoadingRedistribution: false })
+      if (!silent) set({ isLoadingRedistribution: false })
     }
   },
 
-  fetchAcceptance: async () => {
-    set({ isLoadingAcceptance: true, acceptanceError: null })
+  fetchAcceptance: async ({ silent = false } = {}) => {
+    if (!silent) set({ isLoadingAcceptance: true })
+    set({ acceptanceError: null })
     try {
       const res = await api.get('/v1/dashboard/acceptance')
       set({ acceptance: res.data })
     } catch (error) {
       set({ acceptanceError: getErrorMessage(error, 'Could not load the acceptance rate') })
     } finally {
-      set({ isLoadingAcceptance: false })
+      if (!silent) set({ isLoadingAcceptance: false })
     }
   },
 }))

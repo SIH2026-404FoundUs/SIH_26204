@@ -13,6 +13,8 @@ import LoadingState from '../ui/LoadingState'
 import FormField, { inputClass } from '../ui/FormField'
 import DestinationSelect from '../ui/DestinationSelect'
 
+const POLL_MS = 15_000 // an operator's new flash offer, or this traveller's own waitlist state (e.g. "fulfilled"), can change while this page is open
+
 /** Flash offers you can claim right now, plus standing waitlist requests for when one opens up. */
 export default function OffersWaitlist() {
   const {
@@ -24,7 +26,21 @@ export default function OffersWaitlist() {
   const [destId, setDestId] = useState('manali')
   const [joinForm, setJoinForm] = useState({ windowFrom: '', windowTo: '', maxPriceINR: '' })
 
-  useEffect(() => { fetchMyWaitlists() }, [fetchMyWaitlists])
+  // Consistent with Businesses.jsx/Alerts.jsx: show something real on first
+  // paint instead of an empty state the traveller has to click Search to
+  // clear, and keep both offers and waitlist state live while the page is
+  // open -- an operator's new flash offer, or this traveller's own waitlist
+  // entry turning "fulfilled", can both happen while it's sitting there.
+  useEffect(() => {
+    fetchOffers(destId)
+    fetchMyWaitlists()
+    const interval = setInterval(() => {
+      fetchOffers(destId, { silent: true })
+      fetchMyWaitlists({ silent: true })
+    }, POLL_MS)
+    return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [destId])
 
   const loadOffers = (e) => { e?.preventDefault(); fetchOffers(destId) }
   const handleJoin = async (e) => {
