@@ -8,10 +8,21 @@ import FormField, { inputClass } from '../ui/FormField'
 import PasswordField from './PasswordField'
 import PasswordStrengthChecklist from './PasswordStrengthChecklist'
 
-// Where each role lands right after authenticating (auth spec §7/§20) --
-// the frontend never lets anyone pick this, it only reads what the backend
-// already decided.
+// Where each role lands right after authenticating (auth spec §7/§20).
 const ROLE_HOME = { traveller: '/home', operator: '/operator', authority: '/authority' }
+
+// Signup lets someone pick their account type up front. This is a UX
+// convenience only: the backend independently whitelists this value against
+// the same three-item enum before it ever reaches the database, so nothing
+// typed or replayed here can grant a role beyond what the server allows.
+// Every route that actually matters for an operator/authority account still
+// checks req.user.role on the server -- this selector controls nothing by
+// itself.
+const ROLE_OPTIONS = [
+  { value: 'traveller', label: 'Traveller' },
+  { value: 'operator', label: 'Operator' },
+  { value: 'authority', label: 'Authority' },
+]
 
 /**
  * Landing + Sign in are one screen (UI/UX doc Page 1): a static dark isobar
@@ -27,16 +38,13 @@ export default function AuthScreen({ mode }) {
 
   const signup = useAuthStore((state) => state.signup)
   const login = useAuthStore((state) => state.login)
-  const resendVerification = useAuthStore((state) => state.resendVerification)
   const clearError = useAuthStore((state) => state.clearError)
   const error = useAuthStore((state) => state.error)
-  const unverifiedEmail = useAuthStore((state) => state.unverifiedEmail)
   const isPending = useAuthStore((state) => (isLogin ? state.isLoggingIn : state.isSigningUp))
 
-  const [form, setForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '' })
+  const [form, setForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '', role: 'traveller' })
   const [passwordTouched, setPasswordTouched] = useState(false)
   const [localError, setLocalError] = useState(null)
-  const [resendState, setResendState] = useState({ sending: false, message: null })
 
   useEffect(() => clearError, [mode, clearError])
 
@@ -59,7 +67,7 @@ export default function AuthScreen({ mode }) {
         return
       }
       const result = await signup(form)
-      if (result) navigate('/verify-email', { state: { email: result.email, pending: true } })
+      if (result) navigate(ROLE_HOME[result.role] || '/home')
       return
     }
 
@@ -68,12 +76,6 @@ export default function AuthScreen({ mode }) {
       const role = useAuthStore.getState().authUser?.role
       navigate(ROLE_HOME[role] || '/home')
     }
-  }
-
-  async function handleResend() {
-    setResendState({ sending: true, message: null })
-    const result = await resendVerification(unverifiedEmail)
-    setResendState({ sending: false, message: result.message })
   }
 
   return (
@@ -100,6 +102,27 @@ export default function AuthScreen({ mode }) {
                 <div className="relative">
                   <UserRound size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ash" aria-hidden="true" />
                   <input required placeholder="Your name" value={form.fullName} onChange={update('fullName')} className={`${inputClass} pl-10`} />
+                </div>
+              </FormField>
+            )}
+
+            {!isLogin && (
+              <FormField label="I am a...">
+                <div className="grid grid-cols-3 gap-2">
+                  {ROLE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, role: opt.value }))}
+                      className={`rounded-lg border px-2 py-2 text-xs font-medium transition ${
+                        form.role === opt.value
+                          ? 'border-ink bg-ink text-paper'
+                          : 'border-paper-dim bg-paper text-ink/70 hover:border-ink/40'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </FormField>
             )}
@@ -134,17 +157,6 @@ export default function AuthScreen({ mode }) {
             {(localError || error) && (
               <Alert tone="error">
                 <div>{localError || error}</div>
-                {unverifiedEmail && (
-                  <button
-                    type="button"
-                    onClick={handleResend}
-                    disabled={resendState.sending}
-                    className="mt-1 text-xs font-semibold underline disabled:opacity-60"
-                  >
-                    {resendState.sending ? 'Sending…' : 'Resend verification email'}
-                  </button>
-                )}
-                {resendState.message && <div className="mt-1 text-xs">{resendState.message}</div>}
               </Alert>
             )}
 

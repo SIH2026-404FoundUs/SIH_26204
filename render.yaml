@@ -54,7 +54,22 @@ services:
         sync: false # same value as the backend's CLIENT_URL
       - key: BACKEND_URL
         sync: false # the deployed sahyatri-backend URL, e.g. https://sahyatri-backend.onrender.com
-      - key: GOOGLE_API_KEY
+      # Trip planning falls through Groq -> Mistral -> Gemini in that order
+      # (app/agents/travel_agent.py's PROVIDER_CHAIN), skipping whichever of
+      # these are left blank. Groq is primary -- Gemini is a last-resort
+      # fallback, off by default (blank GOOGLE_API_KEY), after repeatedly
+      # hitting its free tier's 20-calls/day quota during this feature's own
+      # testing. Groq is groq.com (fast inference hosting), not xAI's "Grok"
+      # model -- a different product/account despite the near-identical name.
+      - key: GROQ_API_KEY
         sync: false
+      - key: GROQ_MODEL
+        value: groq/qwen/qwen3.8-27b
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: MISTRAL_MODEL
+        value: mistral/mistral-small-latest
+      - key: GOOGLE_API_KEY
+        value: ""
       - key: MODEL
         value: gemini-2.5-flash

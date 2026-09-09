@@ -1,7 +1,7 @@
 import express from "express";
 import { protectRouteOrService } from "../middleware/serviceAuth.middleware.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
-import { requireRole } from "../middleware/requireRole.middleware.js";
+import { requireRole } from "../middleware/requireRole.js";
 import {
   createTripController, getTripController, updateTripController, listTripsController,
   getTripsSummaryController,

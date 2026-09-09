@@ -3,8 +3,8 @@ import nodemailer from "nodemailer";
 // This project has never had an email provider configured (confirmed: no
 // SMTP/SendGrid/Resend credentials anywhere in .env or package.json before
 // this file). Rather than either (a) silently doing nothing, which would
-// make email verification and password reset untestable and functionally
-// fake, or (b) inventing a "sent" response with no real delivery behind it,
+// make password reset untestable and functionally fake, or (b) inventing a
+// "sent" response with no real delivery behind it,
 // this reads real SMTP credentials when they're configured and otherwise
 // logs the actual email -- including the real, working link -- to the
 // server console. That's genuinely usable for local dev and for curl-testing
@@ -45,13 +45,6 @@ export async function sendMail({ to, subject, text, html }) {
     `[mailer] to: ${to}\n[mailer] subject: ${subject}\n[mailer] body:\n${text}\n`
   );
   return { delivered: false, reason: "no_smtp_configured" };
-}
-
-export function verificationEmail(link) {
-  return {
-    subject: "Verify your Sahyatri account",
-    text: `Welcome to Sahyatri. Verify your email to finish creating your account:\n\n${link}\n\nThis link expires in 24 hours and can only be used once. If you didn't create this account, you can ignore this email.`,
-  };
 }
 
 export function passwordResetEmail(link) {
