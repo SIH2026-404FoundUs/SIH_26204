@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import {
-  Loader2, LogOut, Menu, X, ChevronDown, Compass, Activity, MapPinned,
-  ShieldCheck, TriangleAlert, Store, Route, UserRound, Wrench, Landmark,
-  Map as MapIcon, Bell, ClipboardCheck, Tag,
+  Loader2, LogOut, Menu, X, ChevronDown, Compass, MapPinned,
+  ShieldCheck, Store, Route, UserRound, Wrench, Landmark,
+  Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
+import { useOperatorStore } from '../../store/useOperatorStore'
 
 // One nav model per role drives the desktop bar, the "More" menu, and the
 // mobile sheet, so all three can never drift out of sync with each other.
@@ -22,9 +23,9 @@ import { useAuthStore } from '../../store/useAuthStore'
 // everyone. Primary bar is exactly Home/Maps/My Trips/More -- Profile
 // stays reachable via the existing account menu (ProfileMenu) instead of
 // duplicating it here. More leads with Available Services/Suggest a
-// Place/Safety, then Notifications, then Offers & Waitlist (unchanged
-// page -- travellers see offers operators have posted and join a
-// waitlist, same as before it was hidden from nav).
+// Place/Verify a Visit/Safety, then Notifications, then Offers &
+// Waitlist (unchanged page -- travellers see offers operators have
+// posted and join a waitlist, same as before it was hidden from nav).
 const TRAVELLER_PRIMARY = [
   { to: '/home', label: 'Home', icon: Compass },
   { to: '/map', label: 'Maps', icon: MapIcon },
@@ -33,22 +34,29 @@ const TRAVELLER_PRIMARY = [
 const TRAVELLER_MORE = [
   { to: '/services', label: 'Available Services', icon: Wrench },
   { to: '/community', label: 'Suggest a Place', icon: MapPinned },
+  { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
   { to: '/safety', label: 'Safety', icon: ShieldCheck },
   { to: '/notifications', label: 'Notifications', icon: Bell },
   { to: '/offers', label: 'Offers & Waitlist', icon: Tag },
 ]
-// Operator nav intentionally untouched by this revision.
-const OPERATOR_PRIMARY = [
-  { to: '/home', label: 'Home', icon: Compass },
-  { to: '/operator', label: 'Operator console', icon: Wrench },
-  { to: '/businesses', label: 'Businesses', icon: Store },
+// Operator primary bar trimmed to exactly the four post-login features, no
+// More section (same pattern as Authority below), no Profile (reachable via
+// the account menu like every other role) -- Home, Operator console,
+// Businesses, Explore, Map, and Alerts are no longer operator nav items.
+// All of it stays reachable as a route (App.jsx) and still works for any
+// other role that links to it; only navigation was trimmed, per §56 UI-only
+// role gating. "Register Business" itself drops out of this list once the
+// operator has registered at least one (navForRole's hasBusinesses flag,
+// backed by the same useOperatorStore.myBusinesses RegisterBusiness.jsx
+// already populates) -- it did its job, no need for it to keep taking a
+// nav slot every time this operator logs back in.
+const OPERATOR_PRIMARY_BASE = [
+  { to: '/register-business', label: 'Register Business', icon: Store },
+  { to: '/hire-people', label: 'Hire People', icon: Users },
+  { to: '/operator/waitlist', label: 'Waitlist & Offers', icon: Tag },
+  { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
 ]
-const OPERATOR_MORE = [
-  { to: '/explore', label: 'Explore', icon: Activity },
-  { to: '/map', label: 'Map', icon: MapIcon },
-  { to: '/visits', label: 'Verify a visit', icon: ShieldCheck },
-  { to: '/alerts', label: 'Alerts', icon: TriangleAlert },
-]
+const OPERATOR_MORE = []
 // Authority nav trimmed to exactly two destinations, no More section --
 // Pressure Map and Businesses are removed as separate nav items (pressure
 // data still surfaces inside the Authority Dashboard itself, unchanged).
@@ -58,18 +66,28 @@ const AUTHORITY_PRIMARY = [
 ]
 const AUTHORITY_MORE = []
 
+// Shown next to the brand mark once logged in -- the account's own
+// server-side role (never a frontend guess), so a traveller/operator/
+// authority always sees which one they're signed in as.
+const ROLE_LABEL = { traveller: 'Traveller', operator: 'Operator', authority: 'Authority' }
+
 // Backend authorization remains the final authority (§56) -- this only
 // decides what a role is shown, never what it's allowed to call.
-function navForRole(role) {
-  if (role === 'operator') return { primary: OPERATOR_PRIMARY, more: OPERATOR_MORE }
+function navForRole(role, { hasBusinesses = false } = {}) {
+  if (role === 'operator') {
+    const primary = hasBusinesses
+      ? OPERATOR_PRIMARY_BASE.filter((item) => item.to !== '/register-business')
+      : OPERATOR_PRIMARY_BASE
+    return { primary, more: OPERATOR_MORE }
+  }
   if (role === 'authority') return { primary: AUTHORITY_PRIMARY, more: AUTHORITY_MORE }
   return { primary: TRAVELLER_PRIMARY, more: TRAVELLER_MORE }
 }
 
-const PUBLIC_NAV = [
-  { to: '/explore', label: 'Explore', icon: Activity },
-  { to: '/businesses', label: 'Businesses', icon: Store },
-]
+// Logged-out header is just the brand mark + Sign in/Sign up -- Explore and
+// Businesses (both real, working public pages) are no longer linked from
+// here, matching the same nav-only trim already applied everywhere else.
+const PUBLIC_NAV = []
 
 function NavLink({ to, label, icon: Icon, onClick }) {
   const location = useLocation()
@@ -153,7 +171,7 @@ function ProfileMenu() {
       {open && (
         <div role="menu" className="glass-surface absolute right-0 z-20 mt-1 w-52 rounded-xl p-1.5 shadow-lg">
           <div className="px-3 py-2 text-xs text-ash">
-            Signed in as <span className="text-ink/80">{authUser.role}</span>
+            Signed in as <span className="text-ink/80">{ROLE_LABEL[authUser.role] || authUser.role}</span>
           </div>
           <NavLink to="/profile" label="Profile" icon={UserRound} onClick={() => setOpen(false)} />
           <button
@@ -176,18 +194,37 @@ export default function Header() {
   const location = useLocation()
   const navigate = useNavigate()
 
+  // Only relevant for deciding whether "Register Business" still belongs in
+  // an operator's nav -- fetched here (not just inside RegisterBusiness.jsx)
+  // so the header itself knows on every page, not only after visiting that
+  // one. Same Zustand store RegisterBusiness.jsx reads/writes, so a
+  // successful registration there updates this nav reactively too.
+  const myBusinesses = useOperatorStore((state) => state.myBusinesses)
+  const fetchMyBusinesses = useOperatorStore((state) => state.fetchMyBusinesses)
+
   useEffect(() => {
     const closeMobileMenu = () => setMobileOpen(false)
     closeMobileMenu()
   }, [location.pathname])
 
-  const { primary, more } = authUser ? navForRole(authUser.role) : { primary: PUBLIC_NAV, more: [] }
+  useEffect(() => {
+    if (authUser?.role === 'operator') fetchMyBusinesses()
+  }, [authUser?.role, fetchMyBusinesses])
+
+  const { primary, more } = authUser
+    ? navForRole(authUser.role, { hasBusinesses: myBusinesses.length > 0 })
+    : { primary: PUBLIC_NAV, more: [] }
 
   return (
     <header className="glass-surface sticky top-0 z-30 border-b-0">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link to={authUser ? '/home' : '/'} className="flex items-center gap-2 font-display text-lg tracking-tight text-ink">
-          sahyatri
+          Sahyatri
+          {authUser && (
+            <span className="rounded-full bg-paper-dim px-2 py-0.5 text-xs font-sans font-medium tracking-normal text-ink/60">
+              {ROLE_LABEL[authUser.role] || authUser.role}
+            </span>
+          )}
         </Link>
 
         {/* Desktop nav */}
@@ -229,7 +266,7 @@ export default function Header() {
             {authUser ? (
               <div className="flex items-center justify-between">
                 <button type="button" onClick={() => navigate('/profile')} className="text-sm font-medium text-ink/80">
-                  {authUser.fullName} &middot; {authUser.role}
+                  {authUser.fullName} &middot; {ROLE_LABEL[authUser.role] || authUser.role}
                 </button>
                 <button
                   type="button"
