@@ -1,0 +1,260 @@
+{
+  "destinations": {
+    "alampur-jogulamba": [
+      "alampur",
+      "jogulamba",
+      "alampur temple",
+      "आलमपुर",
+      "जोगुलम्बा",
+      "आलमपुर जोगुलम्बा"
+    ],
+    "ananthagiri-hills": [
+      "ananthagiri",
+      "ananthagiri hills",
+      "vikarabad",
+      "अनंतगिरी",
+      "अनंतगिरि",
+      "अनंतगिरी हिल्स",
+      "विकाराबाद"
+    ],
+    "bhadrachalam": [
+      "bhadrachalam",
+      "bhadrachalam temple",
+      "भद्राचलम",
+      "भद्राचलम मंदिर"
+    ],
+    "bir-billing": [
+      "bir billing",
+      "bir",
+      "billing",
+      "बीर बिलिंग",
+      "बीर",
+      "बिलिंग"
+    ],
+    "bogatha-waterfalls": [
+      "bogatha",
+      "bogatha waterfalls",
+      "बोगाथा",
+      "बोगाथा जलप्रपात"
+    ],
+    "chail": [
+      "chail",
+      "चैल"
+    ],
+    "charminar-hyderabad": [
+      "charminar",
+      "char minar",
+      "charminar hyderabad",
+      "चारमीनार",
+      "चार मिनार",
+      "चारमीनार हैदराबाद"
+    ],
+    "chhitkul": [
+      "chhitkul",
+      "chitkul",
+      "छितकुल",
+      "चितकुल"
+    ],
+    "dalhousie": [
+      "dalhousie",
+      "डलहौजी",
+      "डलहौज़ी"
+    ],
+    "dharamshala": [
+      "dharamshala",
+      "dharamsala",
+      "धर्मशाला",
+      "धरमशाला"
+    ],
+    "golconda-hyderabad": [
+      "golconda",
+      "golconda fort",
+      "golconda hyderabad",
+      "गोलकोंडा",
+      "गोलकोण्डा",
+      "गोलकोंडा फोर्ट",
+      "गोलकोंडा किला"
+    ],
+    "hussain-sagar-hyderabad": [
+      "hussain sagar",
+      "hussain sagar lake",
+      "tank bund",
+      "हुसैन सागर",
+      "हुसैनसागर",
+      "टैंक बंड"
+    ],
+    "jibhi": [
+      "jibhi",
+      "जिभी",
+      "जिबी"
+    ],
+    "kalpa": [
+      "kalpa",
+      "कल्पा"
+    ],
+    "kasauli": [
+      "kasauli",
+      "कसौली"
+    ],
+    "kasol": [
+      "kasol",
+      "कसोल"
+    ],
+    "khajjiar": [
+      "khajjiar",
+      "खज्जियार",
+      "खजियार"
+    ],
+    "kondagattu": [
+      "kondagattu",
+      "कोंडागट्टू",
+      "कोंडागट्टू अंजनेय"
+    ],
+    "kuntala-waterfalls": [
+      "kuntala",
+      "kuntala waterfalls",
+      "कुंतला",
+      "कुंतला जलप्रपात"
+    ],
+    "laknavaram-lake": [
+      "laknavaram",
+      "laknavaram lake",
+      "लखनवरम",
+      "लखनवरम झील"
+    ],
+    "manali": [
+      "manali",
+      "मनाली"
+    ],
+    "mandi": [
+      "mandi",
+      "मंडी"
+    ],
+    "mcleodganj": [
+      "mcleodganj",
+      "mcleod ganj",
+      "मैकलोडगंज",
+      "मैकलोड गंज"
+    ],
+    "medak-church": [
+      "medak",
+      "medak church",
+      "medak cathedral",
+      "मेडक",
+      "मेडक चर्च"
+    ],
+    "nagarjuna-sagar": [
+      "nagarjuna sagar",
+      "nagarjunasagar",
+      "नागार्जुन सागर",
+      "नागार्जुनसागर"
+    ],
+    "naggar": [
+      "naggar",
+      "नग्गर"
+    ],
+    "palampur": [
+      "palampur",
+      "पालमपुर"
+    ],
+    "ramappa-temple": [
+      "ramappa",
+      "ramappa temple",
+      "रामप्पा",
+      "रामप्पा मंदिर"
+    ],
+    "shimla": [
+      "shimla",
+      "शिमला"
+    ],
+    "solan": [
+      "solan",
+      "सोलन"
+    ],
+    "spiti-kaza": [
+      "kaza",
+      "spiti",
+      "spiti valley",
+      "काजा",
+      "स्पीति",
+      "स्पीति घाटी"
+    ],
+    "thousand-pillar-temple": [
+      "thousand pillar",
+      "thousand pillar temple",
+      "हज़ार स्तंभ मंदिर",
+      "थाउजेंड पिलर"
+    ],
+    "tirthan-valley": [
+      "tirthan",
+      "tirthan valley",
+      "तीर्थन",
+      "तीर्थन घाटी"
+    ],
+    "tosh": [
+      "tosh",
+      "तोश"
+    ],
+    "warangal-fort": [
+      "warangal fort",
+      "वारंगल किला",
+      "वारंगल फोर्ट"
+    ],
+    "yadapalli-yadadri": [
+      "yadadri",
+      "yadapalli",
+      "yadagirigutta",
+      "यादाद्री",
+      "यादगिरिगुट्टा"
+    ]
+  },
+  "regions": {
+    "hyderabad": [
+      "hyderabad",
+      "हैदराबाद",
+      "हाइदरबाद"
+    ],
+    "kullu": [
+      "kullu",
+      "कुल्लू"
+    ],
+    "kinnaur": [
+      "kinnaur",
+      "किन्नौर"
+    ],
+    "kangra": [
+      "kangra",
+      "कांगड़ा",
+      "काँगड़ा"
+    ],
+    "solan": [
+      "solan district",
+      "सोलन ज़िला",
+      "सोलन जिला"
+    ],
+    "chamba": [
+      "chamba",
+      "चंबा"
+    ],
+    "mulugu": [
+      "mulugu",
+      "मुलुगु"
+    ],
+    "warangal": [
+      "warangal",
+      "hanamkonda",
+      "वारंगल",
+      "हनमकोंडा"
+    ],
+    "himachal-pradesh": [
+      "himachal",
+      "himachal pradesh",
+      "हिमाचल",
+      "हिमाचल प्रदेश"
+    ],
+    "telangana": [
+      "telangana",
+      "तेलंगाना"
+    ]
+  }
+}
