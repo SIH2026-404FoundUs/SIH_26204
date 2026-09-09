@@ -187,6 +187,20 @@ export const useTrustStore = create((set, get) => ({
     }
   },
 
+  // Reject a specific offer notification from a waitlist entry -- the
+  // other half of "accept or reject" alongside claimOffer above. Also
+  // starts a 7-day re-notify ban for that destination server-side.
+  declineOfferNotification: async (waitlistId, offerId) => {
+    set({ marketError: null })
+    try {
+      await api.post(`/v1/waitlist/${waitlistId}/decline`, { offerId })
+      return true
+    } catch (error) {
+      set({ marketError: getErrorMessage(error, 'Could not decline this offer') })
+      return false
+    }
+  },
+
   fetchMyWaitlists: async ({ silent = false } = {}) => {
     if (!silent) set({ isLoadingWaitlists: true })
     set({ marketError: null })

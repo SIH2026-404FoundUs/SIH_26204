@@ -1,4 +1,4 @@
-import { filterAndRankWaitlists } from "./matchingEngine.js";
+import { filterAndRankWaitlists, recordDestinationDecline } from "./matchingEngine.js";
 
 /**
  * Waitlist Service
@@ -216,6 +216,7 @@ export async function getUserOfferNotifications(userId, models = {}) {
         offerId: String(h.offerId),
         destId: w.destId,
         sentAt: h.sentAt,
+        response: h.response || null,
         offer: offer
           ? {
               discountPct: offer.discountPct,
@@ -241,4 +242,41 @@ export async function getUserOfferNotifications(userId, models = {}) {
 
   notifications.sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt));
   return notifications;
+}
+
+/**
+ * Reject a specific offer notification -- the traveller's own explicit
+ * "no" to a flash offer their waitlist was matched to. Two effects, both
+ * on the SAME waitlist entry (never any other user's): the matching
+ * notificationHistory row is stamped "declined" so the Notifications feed
+ * stops showing Accept/Reject on it (it's resolved now), and
+ * recordDestinationDecline runs the existing-but-previously-unwired 7-day
+ * re-notify ban (matchingEngine.js) for this destId, so the traveller
+ * isn't immediately re-matched to the very offer they just turned down.
+ * Accepting has no equivalent function here -- claiming an offer already
+ * goes through POST /v1/offers/:id/claim unchanged, which flips the
+ * waitlist to "fulfilled" and that's what the feed keys off of instead.
+ *
+ * @param {string} waitlistId - The waitlist entry the notification belongs to.
+ * @param {string} userId - Must own that waitlist entry.
+ * @param {string} offerId - The specific offer being declined.
+ * @param {Object} [models] - Database models (WaitlistModel).
+ * @returns {Promise<Object|null>} The updated waitlist doc, or null if not found/not owned.
+ */
+export async function declineOfferNotification(waitlistId, userId, offerId, models = {}) {
+  const { WaitlistModel } = models;
+  if (!waitlistId || !userId || !offerId) {
+    throw new Error("waitlistId, userId, and offerId are required to decline an offer notification");
+  }
+  if (!WaitlistModel || typeof WaitlistModel.findOne !== "function") return null;
+
+  const waitlist = await WaitlistModel.findOne({ _id: waitlistId, userId });
+  if (!waitlist) return null;
+
+  const entry = (waitlist.notificationHistory || []).find((h) => String(h.offerId) === String(offerId));
+  if (entry) entry.response = "declined";
+
+  recordDestinationDecline(waitlist, waitlist.destId);
+  await waitlist.save();
+  return waitlist;
 }
