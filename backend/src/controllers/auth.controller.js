@@ -118,11 +118,17 @@ export const login = async (req, res) => {
 
     generateToken(user._id, user.tokenVersion, res);
 
+    // Same shape checkAuth()/updateProfile() return -- without phone/
+    // preferredLanguage here, the just-logged-in authUser looks like it has
+    // no phone on record (blanking the new editable Profile form) until the
+    // next checkAuth() refetch happens to run.
     res.status(200).json({
       _id: user._id,
       fullName: user.fullName,
       email: user.email,
       role: user.role,
+      phone: user.phone,
+      preferredLanguage: user.preferredLanguage,
     });
   } catch (error) {
     console.log("Error in login controller", error.message);
@@ -263,6 +269,64 @@ export const changePassword = async (req, res) => {
     res.status(200).json({ message: "Password changed." });
   } catch (error) {
     console.log("Error in changePassword controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// ============================================================
+// UPDATE BASIC PROFILE DETAILS (logged in)
+// ============================================================
+// PUT /api/auth/update-profile -- fullName/phone/preferredLanguage only.
+// Email is deliberately NOT editable here: it's the unique login identifier
+// and, with email verification removed from this app, there is no
+// re-verification safety net for a self-service change to it -- allowing
+// one would let an account silently take over a different real inbox with
+// no confirmation step at all. Role is never accepted (mass-assignment
+// guard, same convention as signup) -- profile edits can never grant a
+// broader role.
+export const updateProfile = async (req, res) => {
+  try {
+    const { fullName, phone, preferredLanguage } = req.body;
+    const update = {};
+
+    if (fullName !== undefined) {
+      if (typeof fullName !== "string" || !fullName.trim()) {
+        return res.status(400).json({ message: "fullName cannot be empty" });
+      }
+      if (fullName.length > MAX_FULLNAME_LEN) {
+        return res.status(400).json({ message: `fullName must be ${MAX_FULLNAME_LEN} characters or fewer` });
+      }
+      update.fullName = fullName.trim();
+    }
+    if (phone !== undefined) {
+      if (typeof phone !== "string") {
+        return res.status(400).json({ message: "phone must be a string" });
+      }
+      update.phone = phone.trim();
+    }
+    if (preferredLanguage !== undefined) {
+      if (typeof preferredLanguage !== "string") {
+        return res.status(400).json({ message: "preferredLanguage must be a string" });
+      }
+      update.preferredLanguage = preferredLanguage.trim();
+    }
+    if (Object.keys(update).length === 0) {
+      return res.status(400).json({ message: "at least one of fullName, phone, preferredLanguage is required" });
+    }
+
+    const user = await User.findByIdAndUpdate(req.user._id, { $set: update }, { new: true });
+    if (!user) return res.status(404).json({ message: "user not found" });
+
+    res.status(200).json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      preferredLanguage: user.preferredLanguage,
+    });
+  } catch (error) {
+    console.log("Error in updateProfile controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
