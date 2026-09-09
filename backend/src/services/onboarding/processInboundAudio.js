@@ -22,6 +22,7 @@ import {
   getInvalidDatesQuestion,
   getMissingUnitsQuestion,
   getAvailabilityConfirmedMessage,
+  getPhotosFollowUpQuestion,
 } from "./followUp.js";
 import { parseAvailabilityDates, parseUnitCount, generateDateRange } from "./dateParser.js";
 import { sendWhatsAppMessage } from "./sendMessage.js";
@@ -483,7 +484,7 @@ export async function processInboundAudio({
   // never embeds the literal string "undefined".
   const draftId = existing ? existing._id : `biz_${destId || "unresolved-dest"}_${crypto.randomUUID()}`;
   setOnSave.lastWhatsAppMessageId = attemptMessageId;
-  const saved = await Business.findOneAndUpdate(
+  let saved = await Business.findOneAndUpdate(
     { _id: draftId },
     { $set: setOnSave },
     { upsert: true, new: true, runValidators: true, context: "query" }
@@ -500,6 +501,25 @@ export async function processInboundAudio({
     const nextQuestion = getNextFollowUpQuestion(saved, detectedLanguage);
     if (nextQuestion) {
       await sendWhatsAppMessage(ownerPhone, nextQuestion, sendMessageFn);
+    } else if (saved.onboardingState === "EXTRACTING") {
+      // All 6 required fields are present — transition from EXTRACTING to AWAITING_PHOTOS
+      const photoTransition = transitionDraft(
+        saved,
+        "AWAITING_PHOTOS",
+        `${attemptMessageId}::step_photos`
+      );
+      const nextState = photoTransition.applied ? photoTransition.state : "AWAITING_PHOTOS";
+      saved = await Business.findOneAndUpdate(
+        { _id: saved._id },
+        { $set: { onboardingState: nextState } },
+        { new: true, runValidators: true, context: "query" }
+      );
+      if (photoTransition.applied) {
+        appliedHops = [...appliedHops, "AWAITING_PHOTOS"];
+      }
+
+      const photoPrompt = getPhotosFollowUpQuestion(detectedLanguage);
+      await sendWhatsAppMessage(ownerPhone, photoPrompt, sendMessageFn);
     }
   } catch (sendError) {
     console.error(

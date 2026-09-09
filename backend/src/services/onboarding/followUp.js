@@ -179,3 +179,18 @@ export function getAvailabilityConfirmedMessage(language) {
   return AVAILABILITY_CONFIRMED_MESSAGES[language] ?? AVAILABILITY_CONFIRMED_MESSAGES[DEFAULT_LANGUAGE];
 }
 
+export const PHOTOS_QUESTIONS = {
+  en: "Please send 3 to 5 photos of your property.",
+  hi: "कृपया अपनी संपत्ति की 3 से 5 तस्वीरें भेजें।",
+};
+
+/**
+ * Returns the follow-up prompt asking the operator for property photos.
+ *
+ * @param {string} [language]
+ * @returns {string}
+ */
+export function getPhotosFollowUpQuestion(language) {
+  return PHOTOS_QUESTIONS[language] ?? PHOTOS_QUESTIONS[DEFAULT_LANGUAGE];
+}
+

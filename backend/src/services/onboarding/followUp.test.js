@@ -1,6 +1,6 @@
 import { describe, test, expect } from "@jest/globals";
 import { REQUIRED_FIELDS_FOR_LIVE } from "./stateMachine.js";
-import { getNextFollowUpQuestion, getNextMissingRequiredField } from "./followUp.js";
+import { getNextFollowUpQuestion, getNextMissingRequiredField, getPhotosFollowUpQuestion } from "./followUp.js";
 
 const completeFields = {
   name: "Green Valley Homestay",
@@ -173,5 +173,17 @@ describe("getNextMissingRequiredField", () => {
   test("handles the priceRangeINR Mongoose {} default the same way hasRequiredFieldsForLive does", () => {
     const fields = { ...completeFields, priceRangeINR: {} };
     expect(getNextMissingRequiredField(fields)).toBe("priceRangeINR");
+  });
+});
+
+describe("getPhotosFollowUpQuestion", () => {
+  test("returns English photo prompt by default or for 'en'", () => {
+    expect(getPhotosFollowUpQuestion("en")).toContain("photos");
+    expect(getPhotosFollowUpQuestion()).toContain("photos");
+  });
+
+  test("returns Hindi photo prompt for 'hi'", () => {
+    const question = getPhotosFollowUpQuestion("hi");
+    expect(question).toMatch(/[ऀ-ॿ]/);
   });
 });

@@ -108,12 +108,13 @@ describe("POST /upload (onboarding internal fallback)", () => {
       });
 
       expect(status).toBe(200);
-      expect(data.onboardingState).toBe("EXTRACTING");
+      expect(data.onboardingState).toBe("AWAITING_PHOTOS");
       expect(data.appliedHops).toEqual([
         "AWAITING_CONSENT",
         "AWAITING_VOICE",
         "TRANSCRIBING",
         "EXTRACTING",
+        "AWAITING_PHOTOS",
       ]);
       expect(data.transcript).toBe(transcript);
       expect(data.detectedLanguage).toBe("hi");
@@ -122,7 +123,7 @@ describe("POST /upload (onboarding internal fallback)", () => {
       expect(data.extraction.failedFields).toEqual([]);
 
       const saved = await Business.findOne({ _id: data.businessId });
-      expect(saved.onboardingState).toBe("EXTRACTING");
+      expect(saved.onboardingState).toBe("AWAITING_PHOTOS");
       expect(saved.name).toBe("Green Valley Homestay");
       expect(saved.type).toBe("homestay");
       expect(saved.rawTranscript).toBe(transcript);
@@ -222,7 +223,7 @@ describe("POST /upload (onboarding internal fallback)", () => {
       // Brand-new draft (bootstrap path) -- no pending question to be a
       // reply to, so pendingField is null.
       expect(extractStub).toHaveBeenCalledWith(transcript, "hi", null);
-      expect(data.onboardingState).toBe("EXTRACTING");
+      expect(data.onboardingState).toBe("AWAITING_PHOTOS");
       expect(data.extraction.attempted).toBe(true);
       expect(data.extraction.shapeValid).toBe(true);
       expect(data.extraction.honest).toBe(true);
@@ -419,7 +420,7 @@ describe("POST /upload (onboarding internal fallback)", () => {
       });
 
       expect(status).toBe(200);
-      expect(data.onboardingState).toBe("EXTRACTING");
+      expect(data.onboardingState).toBe("AWAITING_PHOTOS");
       expect(data.extraction.shapeValid).toBe(true);
       expect(data.extraction.honest).toBe(true);
 

@@ -352,7 +352,7 @@ describe("processInboundAudio — FOLLOWUP question send", () => {
     expect(sendMessageFn).toHaveBeenCalledWith("919000000011", expectedQuestion);
   });
 
-  test("a fully-complete draft (every required field already known) does NOT trigger a follow-up send", async () => {
+  test("a fully-complete draft (every required field already known) transitions to AWAITING_PHOTOS and sends photo prompt instead of a follow-up question", async () => {
     await Business.create({
       _id: "biz_test_complete_no_send",
       destId: "shimla",
@@ -379,7 +379,8 @@ describe("processInboundAudio — FOLLOWUP question send", () => {
     expect(result.applied).toBe(true);
     const saved = await Business.findOne({ _id: "biz_test_complete_no_send" });
     expect(getNextFollowUpQuestion(saved, "en")).toBeNull(); // sanity: fixture really is complete
-    expect(sendMessageFn).not.toHaveBeenCalled();
+    expect(saved.onboardingState).toBe("AWAITING_PHOTOS");
+    expect(sendMessageFn).toHaveBeenCalledWith("919000000010", expect.stringContaining("photos"));
   });
 
   test("a send failure is caught and logged without affecting the persisted draft state", async () => {
@@ -925,5 +926,44 @@ describe("processInboundAudio — destId resolution wiring", () => {
     expect(saved.destId).toBe("shimla");
     // And the rejected extraction's invented field correctly did NOT persist.
     expect(saved.amenities).toEqual([]);
+  });
+
+  test("when the final required field (destId) is successfully merged and no required fields remain, transitions to AWAITING_PHOTOS and sends photo prompt", async () => {
+    await Business.create({
+      _id: "biz_test_final_destid_transitions_to_photos",
+      ownerPhone: "919000000046",
+      onboardingState: "EXTRACTING",
+      name: "Green Valley Homestay",
+      type: "homestay",
+      capacity: 6,
+      priceRangeINR: { min: 2500, max: 2500 },
+      nearestLandmark: "Golconda Fort Hyderabad",
+      // destId is the only missing required field
+    });
+
+    const sendMessageFn = jest.fn();
+
+    const result = await processInboundAudio({
+      audioBuffer: Buffer.from("audio"),
+      ownerPhone: "919000000046",
+      messageId: "wamid.destid.final.photos",
+      transcribeFn: async () => ({ transcript: "It is near Golconda Fort in Hyderabad.", detectedLanguage: "en" }),
+      extractFn: async () => emptyExtraction(),
+      sendMessageFn,
+    });
+
+    expect(result.applied).toBe(true);
+    expect(result.onboardingState).toBe("AWAITING_PHOTOS");
+
+    const saved = await Business.findOne({ _id: "biz_test_final_destid_transitions_to_photos" });
+    expect(saved.destId).toBe("golconda-hyderabad");
+    expect(saved.onboardingState).toBe("AWAITING_PHOTOS");
+
+    // Verify photo prompt was sent
+    expect(sendMessageFn).toHaveBeenCalledTimes(1);
+    expect(sendMessageFn).toHaveBeenCalledWith(
+      "919000000046",
+      expect.stringContaining("photos")
+    );
   });
 });
