@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { MapPinned, Upload, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { MapPinned, Upload, X, Users } from 'lucide-react'
 import { useTrustStore } from '../../store/useTrustStore'
 import { submissionStatus } from '../../lib/labels'
 import PageHeader from '../ui/PageHeader'
@@ -10,18 +11,30 @@ import Badge from '../ui/Badge'
 import FormField, { inputClass } from '../ui/FormField'
 import LocationPickerMap from './LocationPickerMap'
 
+const POLL_MS = 15_000 // matches the operator pages -- an authority's review can land while this is open
+
 // "Suggest a Place" -- the traveller-facing rename and UX rebuild of what
 // was "Community"/CommunitySubmit. Same backend contract throughout
 // (POST /community/submissions, POST /community/photos): only the UI
 // changed -- a real map replaces manual lat/lng inputs, and photo upload
 // (optional, via the project's existing Cloudinary integration) was added.
 export default function CommunitySubmit() {
-  const { submitCommunityPlace, uploadCommunityPhotos, isSubmittingPlace, isUploadingPhotos, communityResult, communityError } = useTrustStore()
+  const {
+    submitCommunityPlace, uploadCommunityPhotos, isSubmittingPlace, isUploadingPhotos, communityResult, communityError,
+    mySubmissions, fetchMySubmissions,
+  } = useTrustStore()
   const [name, setName] = useState('')
   const [location, setLocation] = useState(null)
+  const [state, setState] = useState('')
   const [description, setDescription] = useState('')
   const [photoFiles, setPhotoFiles] = useState([]) // [{file, previewUrl}]
   const [validationError, setValidationError] = useState(null)
+
+  useEffect(() => {
+    fetchMySubmissions()
+    const interval = setInterval(fetchMySubmissions, POLL_MS)
+    return () => clearInterval(interval)
+  }, [fetchMySubmissions])
 
   function handlePhotoSelect(e) {
     const files = Array.from(e.target.files || [])
@@ -52,6 +65,10 @@ export default function CommunitySubmit() {
       setValidationError('Tell us what makes it worth visiting')
       return
     }
+    if (!state.trim()) {
+      setValidationError('Enter the state this place is in')
+      return
+    }
 
     let photoUrls = []
     if (photoFiles.length > 0) {
@@ -62,7 +79,8 @@ export default function CommunitySubmit() {
       }
     }
 
-    await submitCommunityPlace({ name: name.trim(), lat: location.lat, lng: location.lng, description: description.trim(), photos: photoUrls })
+    const ok = await submitCommunityPlace({ name: name.trim(), lat: location.lat, lng: location.lng, description: description.trim(), photos: photoUrls, state: state.trim() })
+    if (ok) fetchMySubmissions() // don't wait up to 15s for the poll to pick up the one just sent
   }
 
   const submission = communityResult?.success ? communityResult.submission : null
@@ -76,6 +94,10 @@ export default function CommunitySubmit() {
         description="Know somewhere worth visiting that isn't on the map yet? Tell us about it. You'll need at least one verified visit anywhere on the platform to submit -- this keeps suggestions coming from real travellers."
       />
 
+      <Link to="/forum" className="mb-4 flex items-center gap-1.5 text-sm font-medium text-pressure hover:underline">
+        <Users size={15} aria-hidden="true" /> See what other travellers have suggested
+      </Link>
+
       <Card>
         <form onSubmit={handleSubmit} className="space-y-4">
           <FormField label="Place name">
@@ -84,6 +106,16 @@ export default function CommunitySubmit() {
 
           <FormField label="Location">
             <LocationPickerMap value={location} onChange={setLocation} />
+          </FormField>
+
+          <FormField label="State" hint="Helps other travellers browsing the Community Forum find this">
+            <input
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              required
+              placeholder="e.g. Himachal Pradesh"
+              className={inputClass}
+            />
           </FormField>
 
           <FormField label="What makes it worth visiting?">
@@ -130,6 +162,27 @@ export default function CommunitySubmit() {
           <Alert tone="success" action={<Badge tone={submissionStatus(submission.status).tone}>{submissionStatus(submission.status).label}</Badge>}>
             Submitted. An authority will review it before it appears on the map.
           </Alert>
+        </div>
+      )}
+
+      {mySubmissions.length > 0 && (
+        <div className="mt-8">
+          <h2 className="mb-3 text-sm font-semibold text-ink">Your submissions</h2>
+          <div className="space-y-2">
+            {mySubmissions.map((s) => {
+              const status = submissionStatus(s.status)
+              return (
+                <Card key={s._id} padding="p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-ink">{s.name}</p>
+                    <Badge tone={status.tone}>{status.label}</Badge>
+                  </div>
+                  <p className="mt-0.5 text-xs text-ash">Submitted {new Date(s.createdAt).toLocaleDateString()}</p>
+                  {s.rejectionReason && <p className="mt-1 text-xs text-pressure">{s.rejectionReason}</p>}
+                </Card>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

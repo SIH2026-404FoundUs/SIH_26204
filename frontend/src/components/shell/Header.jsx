@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   Loader2, LogOut, Menu, X, ChevronDown, Compass, MapPinned,
   ShieldCheck, Store, Route, UserRound, Wrench, Landmark,
-  Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users,
+  Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users, BarChart3,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -20,16 +20,19 @@ import { useOperatorStore } from '../../store/useOperatorStore'
 // UX rebuilt) to Suggest a Place; Alerts was replaced by Notifications,
 // which filters the same verified-alert data down to what's relevant to
 // the traveller's own planned trips instead of showing every alert to
-// everyone. Primary bar is exactly Home/Maps/My Trips/More -- Profile
+// everyone. Primary bar is Home/Maps/My Trips/Community Forum -- Profile
 // stays reachable via the existing account menu (ProfileMenu) instead of
-// duplicating it here. More leads with Available Services/Suggest a
-// Place/Verify a Visit/Safety, then Notifications, then Offers &
-// Waitlist (unchanged page -- travellers see offers operators have
-// posted and join a waitlist, same as before it was hidden from nav).
+// duplicating it here. Community Forum was promoted out of More into the
+// primary bar itself (a traveller shouldn't need an extra click for it).
+// More leads with Available Services/Suggest a Place/Verify a
+// Visit/Safety, then Notifications, then Offers & Waitlist (unchanged
+// page -- travellers see offers operators have posted and join a
+// waitlist, same as before it was hidden from nav).
 const TRAVELLER_PRIMARY = [
   { to: '/home', label: 'Home', icon: Compass },
   { to: '/map', label: 'Maps', icon: MapIcon },
   { to: '/trips', label: 'My Trips', icon: Route },
+  { to: '/forum', label: 'Community Forum', icon: Users },
 ]
 const TRAVELLER_MORE = [
   { to: '/services', label: 'Available Services', icon: Wrench },
@@ -39,7 +42,7 @@ const TRAVELLER_MORE = [
   { to: '/notifications', label: 'Notifications', icon: Bell },
   { to: '/offers', label: 'Offers & Waitlist', icon: Tag },
 ]
-// Operator primary bar trimmed to exactly the four post-login features, no
+// Operator primary bar trimmed to exactly the five post-login features, no
 // More section (same pattern as Authority below), no Profile (reachable via
 // the account menu like every other role) -- Home, Operator console,
 // Businesses, Explore, Map, and Alerts are no longer operator nav items.
@@ -49,12 +52,16 @@ const TRAVELLER_MORE = [
 // operator has registered at least one (navForRole's hasBusinesses flag,
 // backed by the same useOperatorStore.myBusinesses RegisterBusiness.jsx
 // already populates) -- it did its job, no need for it to keep taking a
-// nav slot every time this operator logs back in.
+// nav slot every time this operator logs back in. Analytics is real
+// aggregate data over Bookings/Visits/Waitlist/Offers for this operator's
+// own businesses (GET /v1/analytics/operator) -- never per-traveller
+// identity, only counts.
 const OPERATOR_PRIMARY_BASE = [
   { to: '/register-business', label: 'Register Business', icon: Store },
   { to: '/hire-people', label: 'Hire People', icon: Users },
   { to: '/operator/waitlist', label: 'Waitlist & Offers', icon: Tag },
   { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
+  { to: '/operator/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 const OPERATOR_MORE = []
 // Authority nav trimmed to exactly two destinations, no More section --

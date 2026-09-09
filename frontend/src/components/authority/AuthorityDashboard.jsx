@@ -27,8 +27,15 @@ const TABS = [
 // checks req.user.role === "authority" server-side (dashboard.route.js) --
 // a traveller or operator account gets 403 from the backend regardless of
 // what the frontend would have rendered.
+// Polled, not fetched once: a traveller booking, joining a waitlist, or
+// getting redirected to a calmer destination all change these numbers
+// while an authority has this dashboard open. Same 15s cadence as the
+// operator/traveller pages this mirrors.
+const POLL_MS = 15_000
+
 export default function AuthorityDashboard() {
   const [activeTab, setActiveTab] = useState('pressure')
+  const [lastSyncedAt, setLastSyncedAt] = useState(null)
   const date = useAuthorityDashboardStore((s) => s.date)
   const setDate = useAuthorityDashboardStore((s) => s.setDate)
   const fetchAll = useAuthorityDashboardStore((s) => s.fetchAll)
@@ -50,8 +57,16 @@ export default function AuthorityDashboard() {
   const acceptanceError = useAuthorityDashboardStore((s) => s.acceptanceError)
 
   useEffect(() => {
-    fetchAll()
+    fetchAll().then(() => setLastSyncedAt(new Date()))
+    const interval = setInterval(() => {
+      fetchAll({ silent: true }).then(() => setLastSyncedAt(new Date()))
+    }, POLL_MS)
+    return () => clearInterval(interval)
   }, [fetchAll])
+
+  function handleManualRefresh() {
+    fetchAll().then(() => setLastSyncedAt(new Date()))
+  }
 
   return (
     <div>
@@ -73,7 +88,7 @@ export default function AuthorityDashboard() {
         <span className="text-xs text-ash">Applies to the pressure heatmap and capacity gap below -- redistribution and acceptance reflect all trips regardless of date.</span>
         <button
           type="button"
-          onClick={fetchAll}
+          onClick={handleManualRefresh}
           className="ml-auto flex items-center gap-1.5 rounded-lg border border-paper-dim bg-white px-3 py-2 text-xs font-medium text-ink/70 transition hover:border-ink/40"
           title="Refresh all sections"
         >
@@ -81,6 +96,9 @@ export default function AuthorityDashboard() {
           Refresh
         </button>
       </div>
+      {lastSyncedAt && (
+        <p className="-mt-4 mb-6 text-xs text-ash">Live -- updates automatically every 15s. Last synced {lastSyncedAt.toLocaleTimeString()}.</p>
+      )}
 
       <div className="mb-6 flex flex-wrap gap-1.5 rounded-lg border border-paper-dim bg-white p-1">
         {TABS.map((tab) => (

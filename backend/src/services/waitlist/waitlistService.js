@@ -1,4 +1,4 @@
-import { filterAndRankWaitlists } from "./matchingEngine.js";
+import { filterAndRankWaitlists, recordDestinationDecline } from "./matchingEngine.js";
 
 /**
  * Waitlist Service
@@ -171,4 +171,112 @@ export async function processOfferMatching(offer, models = {}) {
     matchCount: recipients.length,
     recipients,
   };
+}
+
+/**
+ * A traveller's own offer notifications: every offer they were actually
+ * matched/notified about (processOfferMatching already wrote this into each
+ * waitlist's notificationHistory when the offer was created -- this just
+ * surfaces it, not a new notification system), plus a "fulfilled" entry for
+ * any waitlist they've since claimed an offer through. Real events off real
+ * documents, nothing synthesized -- if a traveller has never been matched,
+ * this returns an empty list rather than fabricating placeholder offers.
+ *
+ * @param {string} userId - Traveller user ID.
+ * @param {Object} [models] - Database models (WaitlistModel, OfferModel).
+ * @returns {Promise<Array<Object>>} Notifications, most recent first.
+ */
+export async function getUserOfferNotifications(userId, models = {}) {
+  const { WaitlistModel, OfferModel } = models;
+  if (!userId || !WaitlistModel || typeof WaitlistModel.find !== "function") return [];
+
+  const waitlists = await WaitlistModel.find({ userId }).sort({ createdAt: -1 });
+  if (waitlists.length === 0) return [];
+
+  const offerIds = [
+    ...new Set(
+      waitlists.flatMap((w) => (w.notificationHistory || []).map((h) => h.offerId)).filter(Boolean)
+    ),
+  ];
+
+  let offersById = {};
+  if (OfferModel && typeof OfferModel.find === "function" && offerIds.length > 0) {
+    const offers = await OfferModel.find({ _id: { $in: offerIds } });
+    offersById = Object.fromEntries(offers.map((o) => [String(o._id), o]));
+  }
+
+  const notifications = [];
+  for (const w of waitlists) {
+    for (const h of w.notificationHistory || []) {
+      const offer = offersById[String(h.offerId)];
+      notifications.push({
+        id: `offer:${w._id}:${h.offerId}`,
+        type: "offer",
+        waitlistId: String(w._id),
+        offerId: String(h.offerId),
+        destId: w.destId,
+        sentAt: h.sentAt,
+        response: h.response || null,
+        offer: offer
+          ? {
+              discountPct: offer.discountPct,
+              originalPrice: offer.originalPrice,
+              effectivePrice: offer.effectivePrice,
+              date: offer.date,
+              status: offer.status,
+            }
+          : null,
+      });
+    }
+    if (w.state === "fulfilled" && w.fulfilledAt) {
+      notifications.push({
+        id: `waitlist:${w._id}:fulfilled`,
+        type: "waitlist_fulfilled",
+        waitlistId: String(w._id),
+        destId: w.destId,
+        sentAt: w.fulfilledAt,
+        claimedOfferId: w.claimedOfferId,
+      });
+    }
+  }
+
+  notifications.sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt));
+  return notifications;
+}
+
+/**
+ * Reject a specific offer notification -- the traveller's own explicit
+ * "no" to a flash offer their waitlist was matched to. Two effects, both
+ * on the SAME waitlist entry (never any other user's): the matching
+ * notificationHistory row is stamped "declined" so the Notifications feed
+ * stops showing Accept/Reject on it (it's resolved now), and
+ * recordDestinationDecline runs the existing-but-previously-unwired 7-day
+ * re-notify ban (matchingEngine.js) for this destId, so the traveller
+ * isn't immediately re-matched to the very offer they just turned down.
+ * Accepting has no equivalent function here -- claiming an offer already
+ * goes through POST /v1/offers/:id/claim unchanged, which flips the
+ * waitlist to "fulfilled" and that's what the feed keys off of instead.
+ *
+ * @param {string} waitlistId - The waitlist entry the notification belongs to.
+ * @param {string} userId - Must own that waitlist entry.
+ * @param {string} offerId - The specific offer being declined.
+ * @param {Object} [models] - Database models (WaitlistModel).
+ * @returns {Promise<Object|null>} The updated waitlist doc, or null if not found/not owned.
+ */
+export async function declineOfferNotification(waitlistId, userId, offerId, models = {}) {
+  const { WaitlistModel } = models;
+  if (!waitlistId || !userId || !offerId) {
+    throw new Error("waitlistId, userId, and offerId are required to decline an offer notification");
+  }
+  if (!WaitlistModel || typeof WaitlistModel.findOne !== "function") return null;
+
+  const waitlist = await WaitlistModel.findOne({ _id: waitlistId, userId });
+  if (!waitlist) return null;
+
+  const entry = (waitlist.notificationHistory || []).find((h) => String(h.offerId) === String(offerId));
+  if (entry) entry.response = "declined";
+
+  recordDestinationDecline(waitlist, waitlist.destId);
+  await waitlist.save();
+  return waitlist;
 }
