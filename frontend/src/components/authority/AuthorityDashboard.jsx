@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { Landmark, RotateCw } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Landmark, RotateCw, Flame, Gauge, ArrowLeftRight, CheckCircle2 } from 'lucide-react'
 import { useAuthorityDashboardStore } from '../../store/useAuthorityDashboardStore'
 import PageHeader from '../ui/PageHeader'
 import { inputClass } from '../ui/FormField'
@@ -7,6 +7,17 @@ import PressureSection from './PressureSection'
 import CapacityGapTable from './CapacityGapTable'
 import RedistributionImpact from './RedistributionImpact'
 import AcceptanceRate from './AcceptanceRate'
+
+// Exactly the four analytical sections the dashboard spec calls for, now
+// as tabs instead of one long stacked page -- same components, same data,
+// same store; only the layout changed. All four still fetch together on
+// load/refresh (fetchAll) so switching tabs never shows a stale spinner.
+const TABS = [
+  { key: 'pressure', label: 'Destination Pressure Heatmap', icon: Flame },
+  { key: 'capacity', label: 'Capacity Gap', icon: Gauge },
+  { key: 'redistribution', label: 'Redistribution Impact', icon: ArrowLeftRight },
+  { key: 'acceptance', label: 'Acceptance Rate', icon: CheckCircle2 },
+]
 
 // Authority Dashboard -- exactly four analytical sections (dashboard spec):
 // pressure heatmap, capacity gap, redistribution impact, acceptance rate.
@@ -17,6 +28,7 @@ import AcceptanceRate from './AcceptanceRate'
 // a traveller or operator account gets 403 from the backend regardless of
 // what the frontend would have rendered.
 export default function AuthorityDashboard() {
+  const [activeTab, setActiveTab] = useState('pressure')
   const date = useAuthorityDashboardStore((s) => s.date)
   const setDate = useAuthorityDashboardStore((s) => s.setDate)
   const fetchAll = useAuthorityDashboardStore((s) => s.fetchAll)
@@ -70,10 +82,34 @@ export default function AuthorityDashboard() {
         </button>
       </div>
 
-      <PressureSection data={pressure} isLoading={isLoadingPressure} error={pressureError} date={date} />
-      <CapacityGapTable data={capacity} isLoading={isLoadingCapacity} error={capacityError} />
-      <RedistributionImpact data={redistribution} isLoading={isLoadingRedistribution} error={redistributionError} />
-      <AcceptanceRate data={acceptance} isLoading={isLoadingAcceptance} error={acceptanceError} />
+      <div className="mb-6 flex flex-wrap gap-1.5 rounded-lg border border-paper-dim bg-white p-1">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition ${
+              activeTab === tab.key ? 'bg-ink text-paper' : 'text-ink/70 hover:bg-ink/5'
+            }`}
+          >
+            <tab.icon size={15} aria-hidden="true" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'pressure' && (
+        <PressureSection data={pressure} isLoading={isLoadingPressure} error={pressureError} date={date} />
+      )}
+      {activeTab === 'capacity' && (
+        <CapacityGapTable data={capacity} isLoading={isLoadingCapacity} error={capacityError} />
+      )}
+      {activeTab === 'redistribution' && (
+        <RedistributionImpact data={redistribution} isLoading={isLoadingRedistribution} error={redistributionError} />
+      )}
+      {activeTab === 'acceptance' && (
+        <AcceptanceRate data={acceptance} isLoading={isLoadingAcceptance} error={acceptanceError} />
+      )}
     </div>
   )
 }

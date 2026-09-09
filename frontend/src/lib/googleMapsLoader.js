@@ -41,7 +41,11 @@ export function loadGoogleMaps() {
 
     const script = document.createElement('script');
     script.id = 'google-maps-js-sdk';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization,places,geometry&v=3.57`;
+    // "weekly" is Google's current recommended release channel -- the
+    // previously pinned v=3.57 was a retired version (flagged directly by
+    // Google's own console warning), which is unrelated to but compounded
+    // the separate Places-API-not-enabled issue below.
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization,places,geometry&v=weekly`;
     script.async = true;
     script.defer = true;
 

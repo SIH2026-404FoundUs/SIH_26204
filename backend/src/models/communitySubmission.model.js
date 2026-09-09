@@ -14,7 +14,11 @@ const communitySubmissionSchema = new mongoose.Schema(
     description: { type: String, default: "" },
     photos: { type: [String], default: [] },
     aiEnrichment: { type: mongoose.Schema.Types.Mixed },
-    status: { type: String, enum: ["queued", "approved", "rejected"], default: "queued" },
+    // "flagged" is a distinct terminal state from a routine "rejected" --
+    // harmful/unethical content, not just a submission that didn't meet
+    // criteria (spec: authority must be able to "flag harmful content" as
+    // its own visible outcome, not folded into a generic rejection).
+    status: { type: String, enum: ["queued", "approved", "rejected", "flagged"], default: "queued" },
     approvedByAdminId: String,
     approvedAt: Date,
     rejectedByAdminId: String,

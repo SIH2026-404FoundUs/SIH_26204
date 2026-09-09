@@ -349,11 +349,45 @@ export async function reviewCommunitySubmission(reviewParams, models = {}) {
     };
   }
 
+  // Flag action: harmful/unethical content -- a distinct terminal state from
+  // a routine reject, so it's visibly different in the queue and in audit
+  // logs, but uses the exact same status/audit mechanism rather than a
+  // disconnected moderation system (spec: "prefer the existing status/audit
+  // mechanism... do not create blind permanent database deletion").
+  if (action === "flag") {
+    submission.status = "flagged";
+    submission.rejectedByAdminId = adminUserId; // reuses the reject-side audit fields -- same shape, "flagged" is what makes it distinct
+    submission.rejectedAt = now;
+    submission.rejectionReason = rejectionReason || "Flagged as harmful or unethical content";
+
+    if (typeof submission.save === "function") {
+      await submission.save();
+    }
+
+    if (AuditLogModel && typeof AuditLogModel.create === "function") {
+      await AuditLogModel.create({
+        actor: String(adminUserId),
+        action: "community.review.flagged",
+        target: String(submission._id),
+        reasonCode: "SUBMISSION_FLAGGED_HARMFUL_OR_UNETHICAL",
+        meta: { reason: submission.rejectionReason },
+        at: now,
+      }).catch(() => {});
+    }
+
+    return {
+      success: true,
+      status: 200,
+      action: "flagged",
+      submission,
+    };
+  }
+
   return {
     success: false,
     status: 400,
     error: "INVALID_REVIEW_ACTION",
-    message: "Action must be 'approve' or 'reject'",
+    message: "Action must be 'approve', 'reject', or 'flag'",
   };
 }
 

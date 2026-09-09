@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import {
-  Loader2, LogOut, Menu, X, ChevronDown, Compass, Activity, MapPinned, Tag,
-  ShieldCheck, TriangleAlert, Phone, Store, Route, UserRound, Wrench, Landmark,
-  Map as MapIcon,
+  Loader2, LogOut, Menu, X, ChevronDown, Compass, Activity, MapPinned,
+  ShieldCheck, TriangleAlert, Store, Route, UserRound, Wrench, Landmark,
+  Map as MapIcon, Bell, ClipboardCheck, Tag,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -11,20 +11,33 @@ import { useAuthStore } from '../../store/useAuthStore'
 // mobile sheet, so all three can never drift out of sync with each other.
 // This is the "expose every implemented feature, nothing hidden behind a
 // URL a user has to already know" requirement (§53/§55) made concrete.
+// Traveller nav deliberately trimmed (role-based post-login UX revision):
+// Explore/Businesses/Alerts are real, working pages -- kept as routes
+// (App.jsx), removed only from navigation. Businesses' traveller-facing
+// functionality moved under More -> Available Services, scoped to the
+// driver/guide/guesthouse business types; Community was renamed (and its
+// UX rebuilt) to Suggest a Place; Alerts was replaced by Notifications,
+// which filters the same verified-alert data down to what's relevant to
+// the traveller's own planned trips instead of showing every alert to
+// everyone. Primary bar is exactly Home/Maps/My Trips/More -- Profile
+// stays reachable via the existing account menu (ProfileMenu) instead of
+// duplicating it here. More leads with Available Services/Suggest a
+// Place/Safety, then Notifications, then Offers & Waitlist (unchanged
+// page -- travellers see offers operators have posted and join a
+// waitlist, same as before it was hidden from nav).
 const TRAVELLER_PRIMARY = [
   { to: '/home', label: 'Home', icon: Compass },
-  { to: '/explore', label: 'Explore', icon: Activity },
-  { to: '/map', label: 'Map', icon: MapIcon },
-  { to: '/businesses', label: 'Businesses', icon: Store },
+  { to: '/map', label: 'Maps', icon: MapIcon },
   { to: '/trips', label: 'My Trips', icon: Route },
 ]
 const TRAVELLER_MORE = [
-  { to: '/community', label: 'Community', icon: MapPinned },
-  { to: '/offers', label: 'Offers & waitlist', icon: Tag },
-  { to: '/visits', label: 'Verify a visit', icon: ShieldCheck },
-  { to: '/alerts', label: 'Alerts', icon: TriangleAlert },
-  { to: '/safety', label: 'Safety', icon: Phone },
+  { to: '/services', label: 'Available Services', icon: Wrench },
+  { to: '/community', label: 'Suggest a Place', icon: MapPinned },
+  { to: '/safety', label: 'Safety', icon: ShieldCheck },
+  { to: '/notifications', label: 'Notifications', icon: Bell },
+  { to: '/offers', label: 'Offers & Waitlist', icon: Tag },
 ]
+// Operator nav intentionally untouched by this revision.
 const OPERATOR_PRIMARY = [
   { to: '/home', label: 'Home', icon: Compass },
   { to: '/operator', label: 'Operator console', icon: Wrench },
@@ -36,17 +49,14 @@ const OPERATOR_MORE = [
   { to: '/visits', label: 'Verify a visit', icon: ShieldCheck },
   { to: '/alerts', label: 'Alerts', icon: TriangleAlert },
 ]
+// Authority nav trimmed to exactly two destinations, no More section --
+// Pressure Map and Businesses are removed as separate nav items (pressure
+// data still surfaces inside the Authority Dashboard itself, unchanged).
 const AUTHORITY_PRIMARY = [
-  { to: '/authority', label: 'Authority dashboard', icon: Landmark },
-  { to: '/explore', label: 'Pressure map', icon: Activity },
-  { to: '/businesses', label: 'Businesses', icon: Store },
+  { to: '/authority', label: 'Authority Dashboard', icon: Landmark },
+  { to: '/community', label: 'Community Review', icon: ClipboardCheck },
 ]
-const AUTHORITY_MORE = [
-  { to: '/community', label: 'Community review', icon: MapPinned },
-  { to: '/map', label: 'Map', icon: MapIcon },
-  { to: '/alerts', label: 'Alerts', icon: TriangleAlert },
-  { to: '/safety', label: 'Safety', icon: Phone },
-]
+const AUTHORITY_MORE = []
 
 // Backend authorization remains the final authority (§56) -- this only
 // decides what a role is shown, never what it's allowed to call.

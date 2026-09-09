@@ -198,7 +198,11 @@ export async function getVerifiedAlerts(query = {}, models = {}, now = new Date(
   }
 
   // Format clean output payload with mandatory source attribution
-  return activeAlerts.map((a) => ({
+  return activeAlerts.map(formatAlert);
+}
+
+function formatAlert(a) {
+  return {
     _id: a._id,
     destId: a.destId,
     kind: a.kind,
@@ -209,7 +213,50 @@ export async function getVerifiedAlerts(query = {}, models = {}, now = new Date(
     validFrom: a.validFrom,
     validTo: a.validTo,
     fetchedAt: a.fetchedAt,
-  }));
+    hash: a.hash,
+  };
+}
+
+/**
+ * Fetch verified alerts for a destination whose validity window overlaps a
+ * given date range -- for the traveller-facing Notifications feature (UI
+ * spec §8/9), which needs to know "is there a verified alert relevant to
+ * THIS trip's planned dates", not just "what's active right now" like
+ * getVerifiedAlerts()/GET /api/v1/alerts is for (that one stays untouched --
+ * it's wrapped directly by Nishith's agent tool and the existing Alerts
+ * page, both of which want "current" advisories). Same Alert collection,
+ * same output shape, no separate alert data source -- just a different,
+ * additive query against it.
+ *
+ * @param {Object} query
+ * @param {string} query.destId
+ * @param {string|Date} query.startDate
+ * @param {string|Date} query.endDate
+ * @param {Object} [models] - Database models (AlertModel).
+ * @returns {Promise<Array<Object>>}
+ */
+export async function getAlertsForDateRange(query = {}, models = {}) {
+  const { AlertModel } = models;
+  const { destId, startDate, endDate } = query;
+  if (!destId || !startDate) return [];
+
+  const rangeStart = new Date(startDate);
+  const rangeEnd = endDate ? new Date(endDate) : rangeStart;
+  if (Number.isNaN(rangeStart.getTime()) || Number.isNaN(rangeEnd.getTime())) return [];
+
+  const filter = {
+    destId: String(destId).toLowerCase().trim(),
+    validFrom: { $lte: rangeEnd },
+    validTo: { $gte: rangeStart },
+  };
+
+  let alerts = [];
+  if (AlertModel && typeof AlertModel.find === "function") {
+    const q = AlertModel.find(filter);
+    alerts = q && typeof q.sort === "function" ? await q.sort({ validFrom: 1 }) : await q;
+  }
+
+  return alerts.map(formatAlert);
 }
 
 /**

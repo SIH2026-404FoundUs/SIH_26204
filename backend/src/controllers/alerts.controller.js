@@ -1,4 +1,4 @@
-import { getVerifiedAlerts, ingestAlert } from "../services/alerts/alertService.js";
+import { getVerifiedAlerts, getAlertsForDateRange, ingestAlert } from "../services/alerts/alertService.js";
 import Alert from "../models/alert.model.js";
 import AuditLog from "../models/auditLog.model.js";
 
@@ -13,6 +13,23 @@ export const getAlertsController = async (req, res) => {
     res.status(200).json(await getVerifiedAlerts({ destId, kind }, models));
   } catch (error) {
     console.log("Error in getAlerts controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// GET /api/v1/alerts/for-trip?destId=&startDate=&endDate= — traveller
+// Notifications feature (UI spec §8/9): alerts whose validity window
+// overlaps a specific trip's dates, not just what's active today. Same
+// public read as GET /api/v1/alerts, just a different, additive filter.
+export const getAlertsForTripController = async (req, res) => {
+  try {
+    const { destId, startDate, endDate } = req.query;
+    if (!destId || !startDate) {
+      return res.status(400).json({ message: "destId and startDate query params required" });
+    }
+    res.status(200).json(await getAlertsForDateRange({ destId, startDate, endDate }, models));
+  } catch (error) {
+    console.log("Error in getAlertsForTrip controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

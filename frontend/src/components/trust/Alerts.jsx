@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { TriangleAlert, Search } from 'lucide-react'
 import { useTrustStore } from '../../store/useTrustStore'
 import { alertSeverity, alertKindLabel } from '../../lib/labels'
@@ -15,10 +16,13 @@ import DestinationSelect from '../ui/DestinationSelect'
 /** Sourced, current travel advisories -- always shown with where the information came from. */
 export default function Alerts() {
   const { alerts, isLoadingAlerts, fetchAlerts, safetyError } = useTrustStore()
-  const [destId, setDestId] = useState('manali')
+  const [searchParams] = useSearchParams()
+  const [destId, setDestId] = useState(searchParams.get('destId') || 'manali')
 
   // Consistent with Businesses.jsx: show something real on first paint
-  // rather than an empty state the user has to click "Check" to clear.
+  // rather than an empty state the user has to click "Check" to clear --
+  // and, same as that page, honour a ?destId= deep link (Notifications'
+  // "View details" links here for the destination the alert is actually about).
   useEffect(() => {
     fetchAlerts(destId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
