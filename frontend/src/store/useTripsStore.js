@@ -9,10 +9,6 @@ export const useTripsStore = create((set) => ({
   isLoading: false,
   error: null,
 
-  summary: null,
-  isLoadingSummary: false,
-  summaryError: null,
-
   fetchMyTrips: async (userId) => {
     if (!userId) return
     set({ isLoading: true, error: null })
@@ -23,19 +19,6 @@ export const useTripsStore = create((set) => ({
       set({ error: getErrorMessage(error, 'Could not load your trips') })
     } finally {
       set({ isLoading: false })
-    }
-  },
-
-  // Authority dashboard aggregate (GET /api/v1/trips/summary).
-  fetchSummary: async () => {
-    set({ isLoadingSummary: true, summaryError: null })
-    try {
-      const res = await api.get('/v1/trips/summary')
-      set({ summary: res.data })
-    } catch (error) {
-      set({ summaryError: getErrorMessage(error, 'Could not load the redistribution summary') })
-    } finally {
-      set({ isLoadingSummary: false })
     }
   },
 }))

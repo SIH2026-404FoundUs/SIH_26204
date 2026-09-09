@@ -25,6 +25,7 @@ import businessesRoutes from "./routes/businesses.route.js";
 import usersRoutes from "./routes/users.route.js";
 import safetyRoutes from "./routes/safety.route.js";
 import tripsRoutes from "./routes/trips.route.js";
+import dashboardRoutes from "./routes/dashboard.route.js";
 import { startAlertPolling } from "./jobs/scheduler.js";
 
 // dotenv.config() with no path loads .env from process.cwd(), which silently
@@ -86,6 +87,7 @@ app.use("/api/v1/businesses", businessesRoutes);
 app.use("/api/v1/users", usersRoutes);
 app.use("/api/v1/safety", safetyRoutes);
 app.use("/api/v1/trips", tripsRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
 
 app.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);

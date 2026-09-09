@@ -8,6 +8,7 @@ import { sendMail, verificationEmail, passwordResetEmail } from "../lib/mailer.j
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_FULLNAME_LEN = 200;
 const MAX_EMAIL_LEN = 254; // RFC 5321
+const SIGNUP_ROLES = ["traveller", "operator", "authority"];
 
 // The user-facing app's own URL, for links embedded in emails -- distinct
 // from CLIENT_URL's role as a CORS allowlist (which may be comma-separated
@@ -23,11 +24,13 @@ function validateEmailField(email) {
 // ============================================================
 // SIGN UP
 // ============================================================
-// Public signup creates ONLY role="traveller" -- there is no field a client
-// can send to become anything else (see the mass-assignment note below).
-// Operator/authority accounts are promoted directly in the database.
+// Public signup accepts an explicit role choice (traveller/operator/
+// authority) from the signup form. It is still whitelisted against a fixed
+// enum here -- never spread from req.body -- and anything outside that enum
+// silently falls back to "traveller" rather than erroring, so a malformed or
+// missing role can never accidentally grant something broader.
 export const signup = async (req, res) => {
-  const { fullName, email, password, confirmPassword, phone, preferredLanguage } = req.body;
+  const { fullName, email, password, confirmPassword, phone, preferredLanguage, role } = req.body;
   try {
     if (!fullName || !email || !password || !confirmPassword) {
       return res.status(400).json({ message: "fullName, email, password, and confirmPassword are required" });
@@ -56,13 +59,15 @@ export const signup = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Explicit field list, not a spread of req.body -- a client sending
-    // {"role":"authority"} alongside the real fields must never be able to
-    // set anything beyond what's named here.
+    // Explicit field list, not a spread of req.body -- nothing beyond what's
+    // named here can ever land on the document, and `role` is clamped to the
+    // fixed enum right at the point of use so a client can never send some
+    // fifth string and have it pass straight through to Mongoose.
     const newUser = await User.create({
       fullName: fullName.trim(),
       email,
       passwordHash: hashedPassword,
+      role: SIGNUP_ROLES.includes(role) ? role : "traveller",
       phone: typeof phone === "string" ? phone.trim() : undefined,
       preferredLanguage: typeof preferredLanguage === "string" ? preferredLanguage.trim() : undefined,
     });

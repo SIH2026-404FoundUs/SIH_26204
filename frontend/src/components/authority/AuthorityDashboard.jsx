@@ -1,70 +1,79 @@
 import { useEffect } from 'react'
-import { Landmark, TableProperties } from 'lucide-react'
-import { useTripsStore } from '../../store/useTripsStore'
-import PressureHeatmap from '../pressure/PressureHeatmap'
+import { Landmark, RotateCw } from 'lucide-react'
+import { useAuthorityDashboardStore } from '../../store/useAuthorityDashboardStore'
 import PageHeader from '../ui/PageHeader'
-import Card from '../ui/Card'
-import Alert from '../ui/Alert'
-import LoadingState from '../ui/LoadingState'
-import EmptyState from '../ui/EmptyState'
+import { inputClass } from '../ui/FormField'
+import PressureSection from './PressureSection'
+import CapacityGapTable from './CapacityGapTable'
+import RedistributionImpact from './RedistributionImpact'
+import AcceptanceRate from './AcceptanceRate'
 
-function Stat({ label, value, tone = 'ink' }) {
-  return (
-    <div>
-      <p className="text-xs text-ash">{label}</p>
-      <p className={`font-mono text-2xl font-semibold tabular-nums text-${tone}`}>{value}</p>
-    </div>
-  )
-}
-
-// Frontend sitemap doc, Page 11 -- status PARTIAL. Ships today: the pressure
-// map layer (Page 7's component, reused verbatim per UI/UX doc §7.1) and the
-// redistribution-impact summary, now that GET /api/v1/trips/summary is real.
-// Still genuinely missing: a per-destination capacity-gap table, which needs
-// a destinations collection this project doesn't have -- marked "coming
-// soon" rather than fabricated.
+// Authority Dashboard -- exactly four analytical sections (dashboard spec):
+// pressure heatmap, capacity gap, redistribution impact, acceptance rate.
+// Reached only via /authority, itself wrapped in <RequireRole role="authority">
+// (App.jsx) -- that's a UX convenience, not the real gate. Every API call
+// this page makes goes through GET /api/v1/dashboard/*, which independently
+// checks req.user.role === "authority" server-side (dashboard.route.js) --
+// a traveller or operator account gets 403 from the backend regardless of
+// what the frontend would have rendered.
 export default function AuthorityDashboard() {
-  const { summary, isLoadingSummary, summaryError, fetchSummary } = useTripsStore()
+  const date = useAuthorityDashboardStore((s) => s.date)
+  const setDate = useAuthorityDashboardStore((s) => s.setDate)
+  const fetchAll = useAuthorityDashboardStore((s) => s.fetchAll)
+
+  const pressure = useAuthorityDashboardStore((s) => s.pressure)
+  const isLoadingPressure = useAuthorityDashboardStore((s) => s.isLoadingPressure)
+  const pressureError = useAuthorityDashboardStore((s) => s.pressureError)
+
+  const capacity = useAuthorityDashboardStore((s) => s.capacity)
+  const isLoadingCapacity = useAuthorityDashboardStore((s) => s.isLoadingCapacity)
+  const capacityError = useAuthorityDashboardStore((s) => s.capacityError)
+
+  const redistribution = useAuthorityDashboardStore((s) => s.redistribution)
+  const isLoadingRedistribution = useAuthorityDashboardStore((s) => s.isLoadingRedistribution)
+  const redistributionError = useAuthorityDashboardStore((s) => s.redistributionError)
+
+  const acceptance = useAuthorityDashboardStore((s) => s.acceptance)
+  const isLoadingAcceptance = useAuthorityDashboardStore((s) => s.isLoadingAcceptance)
+  const acceptanceError = useAuthorityDashboardStore((s) => s.acceptanceError)
 
   useEffect(() => {
-    fetchSummary()
-  }, [fetchSummary])
+    fetchAll()
+  }, [fetchAll])
 
   return (
     <div>
-      <PageHeader icon={Landmark} title="Authority dashboard" description="Destination pressure across the network, and how much of it the platform has actually redistributed." />
+      <PageHeader
+        icon={Landmark}
+        title="Authority dashboard"
+        description="Destination pressure across the network, and how much of it the platform has actually redistributed."
+      />
 
-      <Card className="mb-6">
-        <h2 className="mb-3 text-sm font-semibold text-ink">Redistribution impact</h2>
-        {summaryError && <Alert tone="error">{summaryError}</Alert>}
-        {isLoadingSummary && !summaryError && <LoadingState label="Aggregating trip records…" />}
-        {!isLoadingSummary && !summaryError && summary && (
-          summary.totalTrips === 0 ? (
-            <EmptyState title="No trips recorded yet" description="This fills in as travellers plan trips through the platform." />
-          ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <Stat label="Total trips" value={summary.totalTrips} />
-              <Stat label="Redirected" value={summary.redirectedPlace + summary.redirectedDate} tone="relief" />
-              <Stat
-                label="Acceptance rate"
-                value={summary.acceptanceRate == null ? '—' : `${Math.round(summary.acceptanceRate * 100)}%`}
-                tone="relief"
-              />
-              <Stat label="Budget moved" value={`₹${summary.totalBudgetINRMoved.toLocaleString('en-IN')}`} tone="pressure" />
-            </div>
-          )
-        )}
-      </Card>
-
-      <Card padding="p-0" className="mb-6">
-        <EmptyState
-          icon={TableProperties}
-          title="Capacity-gap table -- coming soon"
-          description="Needs a destinations collection (capacity, typical demand per place) that doesn't exist in this project yet -- Ananya's destinations are seed JSON, not a queryable Mongo collection. Not fabricated in the meantime."
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <label htmlFor="dashboard-date" className="text-sm font-medium text-ink/80">Date</label>
+        <input
+          id="dashboard-date"
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className={`${inputClass} w-auto`}
         />
-      </Card>
+        <span className="text-xs text-ash">Applies to the pressure heatmap and capacity gap below -- redistribution and acceptance reflect all trips regardless of date.</span>
+        <button
+          type="button"
+          onClick={fetchAll}
+          className="ml-auto flex items-center gap-1.5 rounded-lg border border-paper-dim bg-white px-3 py-2 text-xs font-medium text-ink/70 transition hover:border-ink/40"
+          title="Refresh all sections"
+        >
+          <RotateCw size={14} aria-hidden="true" />
+          Refresh
+        </button>
+      </div>
 
-      <PressureHeatmap />
+      <PressureSection data={pressure} isLoading={isLoadingPressure} error={pressureError} date={date} />
+      <CapacityGapTable data={capacity} isLoading={isLoadingCapacity} error={capacityError} />
+      <RedistributionImpact data={redistribution} isLoading={isLoadingRedistribution} error={redistributionError} />
+      <AcceptanceRate data={acceptance} isLoading={isLoadingAcceptance} error={acceptanceError} />
     </div>
   )
 }
