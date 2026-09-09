@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, Users, Wallet, Navigation, Compass, Check, X, CalendarClock, Map as MapIcon } from 'lucide-react'
 import { usePlannerStore } from '../../store/usePlannerStore'
+import { useTrustStore } from '../../store/useTrustStore'
 import PressureRing from '../pressure/PressureRing'
 import PressureBadge from '../pressure/PressureBadge'
 import { getDestinationLabel } from '../../lib/destinations'
@@ -18,9 +19,26 @@ function TripForm({ onSubmit, isPlanning }) {
   })
   const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
 
+  // "How many people have suggested places worth visiting nearby" -- a real
+  // geo-count over approved Suggest a Place submissions within ~30km of
+  // this destination (GET /community/nearby-count), not a fabricated number.
+  const nearbySuggestionCount = useTrustStore((s) => s.nearbySuggestionCount)
+  const fetchNearbySuggestionCount = useTrustStore((s) => s.fetchNearbySuggestionCount)
+  useEffect(() => {
+    if (form.destId) fetchNearbySuggestionCount(form.destId)
+  }, [form.destId, fetchNearbySuggestionCount])
+
   return (
     <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); onSubmit(form) }}>
-      <FormField label="Destination"><DestinationSelect required value={form.destId} onChange={(v) => setForm((p) => ({ ...p, destId: v }))} /></FormField>
+      <FormField label="Destination">
+        <DestinationSelect required value={form.destId} onChange={(v) => setForm((p) => ({ ...p, destId: v }))} />
+        {form.destId && nearbySuggestionCount != null && nearbySuggestionCount > 0 && (
+          <p className="mt-1.5 flex items-center gap-1 text-xs text-relief">
+            <Users size={12} aria-hidden="true" />
+            {nearbySuggestionCount} traveller{nearbySuggestionCount === 1 ? '' : 's'} suggested {nearbySuggestionCount === 1 ? 'a place' : 'places'} worth visiting nearby
+          </p>
+        )}
+      </FormField>
       <FormField label="Travelling from">
         <div className="relative">
           <Navigation size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ash" aria-hidden="true" />
