@@ -171,7 +171,11 @@ export default function RoutePolylineLayer({ map, mapsSDK, routeData }) {
     let decodedPath = [];
     if (encodedPolyline) {
       try {
-        decodedPath = decodePolyline(encodedPolyline);
+        if (Array.isArray(encodedPolyline)) {
+          decodedPath = encodedPolyline;
+        } else if (typeof encodedPolyline === 'string') {
+          decodedPath = decodePolyline(encodedPolyline);
+        }
         if (decodedPath.length > 0) {
           const polyline = new mapsSDK.Polyline({
             path: decodedPath,

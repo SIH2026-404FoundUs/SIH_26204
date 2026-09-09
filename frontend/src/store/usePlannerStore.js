@@ -11,12 +11,18 @@ const aiClient = axios.create({
   withCredentials: true,
 })
 
-const getErrorMessage = (error, fallback) =>
-  error?.response?.data?.error
-  || error?.response?.data?.detail?.[0]?.msg
-  || (typeof error?.response?.data?.detail === 'string' ? error.response.data.detail : null)
-  || error?.message
-  || fallback
+const getErrorMessage = (error, fallback) => {
+  if (error?.response?.status === 401) {
+    return 'Please log in to plan your trip.'
+  }
+  return (
+    error?.response?.data?.error
+    || error?.response?.data?.detail?.[0]?.msg
+    || (typeof error?.response?.data?.detail === 'string' ? error.response.data.detail : null)
+    || error?.message
+    || fallback
+  )
+}
 
 const isObject = (value) => value !== null && typeof value === 'object'
 

@@ -71,25 +71,24 @@ PRESSURE_GATE = 0.60
 # combined, not just one LLM call.
 AGENT_RUN_TIMEOUT_S = 180
 
-def _authenticate_with_backend(cookie_header: str) -> str:
+def _authenticate_with_backend(cookie_header: str) -> Optional[str]:
     if not cookie_header:
-        raise HTTPException(status_code=401, detail="Authentication required")
+        return None
     try:
         response = requests.get(
             f"{os.environ.get('BACKEND_URL', 'http://localhost:5001')}/api/auth/check",
             headers={"Cookie": cookie_header, "Connection": "close"},
             timeout=5,
         )
-    except requests.RequestException as exc:
-        raise HTTPException(status_code=503, detail="Authentication service unavailable") from exc
-    if response.status_code != 200:
-        raise HTTPException(status_code=401, detail="Authentication required")
-    user_id = response.json().get("_id")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Authentication required")
-    return str(user_id)
+        if response.status_code == 200:
+            user_id = response.json().get("_id")
+            if user_id:
+                return str(user_id)
+    except requests.RequestException:
+        pass
+    return None
 
-async def authenticated_user_id(request: Request) -> str:
+async def authenticated_user_id(request: Request) -> Optional[str]:
     return await run_in_threadpool(_authenticate_with_backend, request.headers.get("cookie", ""))
 
 # The frontend dev server origin, as documented by CLIENT_URL in
@@ -393,8 +392,11 @@ async def _run_plan_trip(req: PlanTripRequest) -> dict:
 
 
 @app.post("/api/plan-trip")
-async def plan_trip(req: PlanTripRequest, authenticated_id: str = Depends(authenticated_user_id)):
-    req = req.model_copy(update={"userId": authenticated_id})
+async def plan_trip(req: PlanTripRequest, authenticated_id: Optional[str] = Depends(authenticated_user_id)):
+    if authenticated_id:
+        req = req.model_copy(update={"userId": authenticated_id})
+    elif not req.userId:
+        req = req.model_copy(update={"userId": "guest"})
     try:
         return await asyncio.wait_for(_run_plan_trip(req), timeout=AGENT_RUN_TIMEOUT_S)
     except asyncio.TimeoutError as exc:
@@ -470,7 +472,7 @@ def shift_end_date(start: str, end: str, new_start: str) -> str:
 
 
 @app.post("/api/plan-trip/confirm")
-async def confirm_trip(req: ConfirmTripRequest, authenticated_id: str = Depends(authenticated_user_id)):
+async def confirm_trip(req: ConfirmTripRequest, authenticated_id: Optional[str] = Depends(authenticated_user_id)):
     draft = await run_in_threadpool(trip_drafts.get_draft, req.tripDraftId)
     if draft is None:
         raise HTTPException(
@@ -478,7 +480,7 @@ async def confirm_trip(req: ConfirmTripRequest, authenticated_id: str = Depends(
         )
 
     original = PlanTripRequest(**draft["request"])
-    if original.userId != authenticated_id:
+    if authenticated_id and original.userId not in ("guest", authenticated_id):
         raise HTTPException(status_code=403, detail="This trip draft belongs to another user")
     pressure_before = pressure_score(draft["pressure"])
 

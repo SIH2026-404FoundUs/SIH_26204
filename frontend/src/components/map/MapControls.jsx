@@ -1,40 +1,45 @@
-import { useEffect } from 'react';
-import { Flame, Calendar, MapPin, Navigation, Filter, Route, Loader2, Hotel, Utensils, Camera, Bus, Wrench } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Flame, Calendar, MapPin, Navigation, Route, Loader2, Hotel, Utensils, Wallet, Users, Search, Plus } from 'lucide-react';
 import { useDestinationsStore } from '../../store/useDestinationsStore';
-import { CATEGORY_STYLES } from './markerIcons';
 import TravelModeSelector from './TravelModeSelector';
 
 /**
- * MapControls - Floating control panel overlay on the interactive map.
- * Provides Source (Origin) input, Destination dropdown (36 cities), Date picker,
- * Travel Mode selector, Get Route action button, and layer toggles.
+ * MapControls - Ultra-compact 2-row floating control bar overlay on the interactive map.
+ * Row 1: From, To, Start Date, End Date, Budget (INR), Travellers (PPL), Search Place to Add Stop.
+ * Row 2: Travel Mode, Get Route, Heatmap, Hotels, Restaurants, Stops drawer, Plan Trip.
  */
 export default function MapControls({
   source = 'Delhi',
   onChangeSource,
   destId = '',
   onChangeDestId,
-  date = '2026-12-26',
-  onChangeDate,
+  startDate = '2026-12-25',
+  onChangeStartDate,
+  endDate = '2026-12-28',
+  onChangeEndDate,
+  budgetInr = 20000,
+  onChangeBudgetInr,
+  travellers = 2,
+  onChangeTravellers,
   travelMode = 'DRIVE',
   onChangeTravelMode,
   onFetchRoute,
   isFetchingRoute = false,
   heatmapVisible = false,
   onToggleHeatmap,
-  visibleCategories = { stays: false, food: false, attractions: false, transport: false, localServices: false },
-  onToggleCategory
+  showStopsPanel = false,
+  onToggleStopsPanel,
+  stopsCount = 0,
+  visiblePlaces = { hotels: false, restaurants: false },
+  onTogglePlaces,
+  onSearchAddStop,
+  isSearchingStop = false,
+  onDirectPlanTrip,
+  isPlanning = false
 }) {
   const destinations = useDestinationsStore((state) => state.destinations);
   const fetchDestinations = useDestinationsStore((state) => state.fetchDestinations);
-
-  const CATEGORIES = [
-    { key: 'stays', label: 'Stays', icon: Hotel },
-    { key: 'food', label: 'Food', icon: Utensils },
-    { key: 'attractions', label: 'Attractions', icon: Camera },
-    { key: 'transport', label: 'Transport', icon: Bus },
-    { key: 'localServices', label: 'Services', icon: Wrench }
-  ];
+  const [stopSearchQuery, setStopSearchQuery] = useState('');
 
   useEffect(() => {
     fetchDestinations().catch(() => {});
@@ -52,151 +57,213 @@ export default function MapControls({
     { id: 'warangal-fort', label: 'Warangal Fort, Telangana' }
   ];
 
+  const handleAddStopSubmit = (e) => {
+    e.preventDefault();
+    if (!stopSearchQuery.trim()) return;
+    if (onSearchAddStop) {
+      onSearchAddStop(stopSearchQuery.trim());
+      setStopSearchQuery('');
+    }
+  };
+
   return (
-    <div className="absolute top-4 right-4 z-10 flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white/95 p-3.5 shadow-md backdrop-blur-md transition-all max-w-[95vw] sm:max-w-none">
-      {/* 1. Top Controls: 3 Inputs (Source, Destination, Date) */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Source (Travelling From Input) */}
-        <div className="flex items-center gap-1.5">
-          <Navigation size={14} className="text-emerald-600 shrink-0" />
-          <span className="text-xs font-semibold text-slate-500 hidden sm:inline">From:</span>
+    <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex flex-col gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 p-2 shadow-lg backdrop-blur-md transition-all w-[96vw] max-w-6xl">
+      {/* Row 1: Parameters (From, To, Dates, Budget, Travellers, Search Place Stop) */}
+      <div className="flex items-center justify-between gap-1.5 text-xs overflow-x-auto no-scrollbar py-0.5">
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Source */}
+          <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
+            <Navigation size={12} className="text-emerald-600 shrink-0" />
+            <span className="font-bold text-slate-500 hidden sm:inline">From:</span>
+            <input
+              type="text"
+              value={source}
+              onChange={(e) => onChangeSource && onChangeSource(e.target.value)}
+              placeholder="Origin"
+              className="w-16 sm:w-20 bg-transparent font-extrabold text-slate-800 outline-none text-xs"
+            />
+          </div>
+
+          {/* Destination */}
+          <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
+            <MapPin size={12} className="text-indigo-600 shrink-0" />
+            <span className="font-bold text-slate-500 hidden sm:inline">To:</span>
+            <select
+              value={destId}
+              onChange={(e) => onChangeDestId && onChangeDestId(e.target.value)}
+              className="w-24 sm:w-32 bg-transparent font-extrabold text-slate-800 outline-none truncate text-xs"
+            >
+              <option value="">-- Select --</option>
+              {dropdownItems.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Start Date */}
+          <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
+            <Calendar size={12} className="text-indigo-500 shrink-0" />
+            <span className="font-bold text-slate-500 hidden sm:inline">Start:</span>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => onChangeStartDate && onChangeStartDate(e.target.value)}
+              className="w-24 bg-transparent font-semibold text-slate-700 outline-none text-[11px]"
+            />
+          </div>
+
+          {/* End Date */}
+          <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
+            <Calendar size={12} className="text-indigo-500 shrink-0" />
+            <span className="font-bold text-slate-500 hidden sm:inline">End:</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => onChangeEndDate && onChangeEndDate(e.target.value)}
+              className="w-24 bg-transparent font-semibold text-slate-700 outline-none text-[11px]"
+            />
+          </div>
+
+          {/* Budget (INR) */}
+          <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
+            <Wallet size={12} className="text-emerald-500 shrink-0" />
+            <span className="font-bold text-slate-500 hidden sm:inline">Budget:</span>
+            <input
+              type="number"
+              value={budgetInr}
+              onChange={(e) => onChangeBudgetInr && onChangeBudgetInr(e.target.value)}
+              placeholder="INR"
+              step="1000"
+              className="w-16 bg-transparent font-bold text-slate-800 outline-none text-xs"
+            />
+          </div>
+
+          {/* Travellers */}
+          <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200">
+            <Users size={12} className="text-amber-500 shrink-0" />
+            <span className="font-bold text-slate-500 hidden sm:inline">PPL:</span>
+            <input
+              type="number"
+              min="1"
+              max="20"
+              value={travellers}
+              onChange={(e) => onChangeTravellers && onChangeTravellers(e.target.value)}
+              className="w-8 bg-transparent font-bold text-slate-800 outline-none text-xs"
+            />
+          </div>
+        </div>
+
+        {/* Place Search & Add Stop Input */}
+        <form onSubmit={handleAddStopSubmit} className="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-xl border border-slate-200 shrink-0 ml-auto">
+          <Search size={12} className="text-indigo-500 shrink-0" />
           <input
             type="text"
-            value={source}
-            onChange={(e) => onChangeSource && onChangeSource(e.target.value)}
-            placeholder="e.g. Delhi, Hyderabad"
-            className="w-28 sm:w-32 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            value={stopSearchQuery}
+            onChange={(e) => setStopSearchQuery(e.target.value)}
+            placeholder="Search place & add stop..."
+            className="w-28 sm:w-40 bg-transparent font-medium text-slate-700 outline-none text-[11px]"
           />
-        </div>
-
-        <div className="hidden h-5 w-px bg-slate-200 sm:block" />
-
-        {/* Destination Dropdown (All 36 Destinations) */}
-        <div className="flex items-center gap-1.5">
-          <MapPin size={15} className="text-indigo-600 shrink-0" />
-          <span className="text-xs font-semibold text-slate-500 hidden sm:inline">To:</span>
-          <select
-            value={destId}
-            onChange={(e) => onChangeDestId && onChangeDestId(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 max-w-[200px] truncate"
+          <button
+            type="submit"
+            disabled={isSearchingStop || !stopSearchQuery.trim()}
+            className="flex items-center gap-0.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white px-2 py-0.5 text-[11px] font-bold transition shrink-0"
           >
-            <option value="">-- Select Destination --</option>
-            {dropdownItems.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="hidden h-5 w-px bg-slate-200 sm:block" />
-
-        {/* Date Picker */}
-        <div className="flex items-center gap-1.5">
-          <Calendar size={15} className="text-indigo-500 shrink-0" />
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => onChangeDate && onChangeDate(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-          />
-        </div>
+            {isSearchingStop ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
+            <span>Add Stop</span>
+          </button>
+        </form>
       </div>
 
-      {/* 2. Middle Row: Travel Mode Selector & Get Route Button */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-0.5">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden sm:inline">Mode:</span>
+      {/* Row 2: Travel Mode & Feature Action Buttons */}
+      <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-slate-100 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1.5 shrink-0">
           <TravelModeSelector
             value={travelMode}
             onChange={(mode) => onChangeTravelMode && onChangeTravelMode(mode)}
           />
         </div>
 
-        <button
-          type="button"
-          onClick={() => onFetchRoute && onFetchRoute()}
-          disabled={isFetchingRoute || !source || !destId}
-          className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold text-white transition shadow-sm ${
-            isFetchingRoute || !source || !destId
-              ? 'bg-indigo-300 cursor-not-allowed'
-              : 'bg-indigo-600 hover:bg-indigo-700 active:scale-95'
-          }`}
-        >
-          {isFetchingRoute ? (
-            <>
-              <Loader2 size={14} className="animate-spin" />
-              <span>Fetching Route...</span>
-            </>
-          ) : (
-            <>
-              <Route size={14} />
-              <span>Get Route</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      <div className="h-px w-full bg-slate-200/80" />
-
-      {/* 3. Bottom Controls: Layer Toggles (OFF by default) */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Heatmap Toggle (OFF by default) */}
-        <div className="flex items-center gap-2">
-          <Flame
-            size={16}
-            className={heatmapVisible ? 'text-amber-500 animate-pulse' : 'text-slate-400'}
-          />
-          <span className="text-xs font-semibold text-slate-700">Pressure Heatmap</span>
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+          {/* Pressure Heatmap Toggle */}
           <button
             type="button"
             onClick={() => onToggleHeatmap && onToggleHeatmap(!heatmapVisible)}
-            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              heatmapVisible ? 'bg-amber-500' : 'bg-slate-300'
+            className={`flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-semibold transition border ${
+              heatmapVisible
+                ? 'bg-amber-500 text-white border-amber-500 shadow-2xs'
+                : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
             }`}
-            role="switch"
-            aria-checked={heatmapVisible}
           >
-            <span
-              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
-                heatmapVisible ? 'translate-x-4' : 'translate-x-0'
-              }`}
-            />
+            <Flame size={12} className={heatmapVisible ? 'animate-pulse' : ''} />
+            <span>Heatmap</span>
           </button>
-        </div>
 
-        {/* Category Marker Buttons (OFF by default) */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">
-            <Filter size={12} />
-            <span>Categories:</span>
-          </div>
+          {/* Hotels Nearby Button */}
+          <button
+            type="button"
+            onClick={() => onTogglePlaces && onTogglePlaces('hotels', !visiblePlaces?.hotels)}
+            className={`flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-semibold transition border ${
+              visiblePlaces?.hotels
+                ? 'bg-indigo-900 text-white border-indigo-900'
+                : 'bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100'
+            }`}
+          >
+            <Hotel size={12} />
+            <span>Hotels</span>
+          </button>
 
-          {CATEGORIES.map((cat) => {
-            const isChecked = visibleCategories[cat.key] === true;
-            const style = CATEGORY_STYLES[cat.key];
-            const Icon = cat.icon;
+          {/* Restaurants Nearby Button */}
+          <button
+            type="button"
+            onClick={() => onTogglePlaces && onTogglePlaces('restaurants', !visiblePlaces?.restaurants)}
+            className={`flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-semibold transition border ${
+              visiblePlaces?.restaurants
+                ? 'bg-amber-900 text-white border-amber-900'
+                : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+            }`}
+          >
+            <Utensils size={12} />
+            <span>Restaurants</span>
+          </button>
 
-            return (
-              <button
-                key={cat.key}
-                type="button"
-                onClick={() => onToggleCategory && onToggleCategory(cat.key, !isChecked)}
-                className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold transition-all border ${
-                  isChecked
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
-                    : 'bg-slate-100 text-slate-500 border-slate-200 opacity-60 hover:opacity-100'
-                }`}
-              >
-                <Icon size={13} className={isChecked ? 'text-white' : 'text-slate-500'} />
-                <span>{cat.label}</span>
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: isChecked ? style.bg : '#CBD5E1' }}
-                />
-              </button>
-            );
-          })}
+          {/* Custom Stops Button */}
+          <button
+            type="button"
+            onClick={() => onToggleStopsPanel && onToggleStopsPanel(!showStopsPanel)}
+            className={`flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-semibold transition border ${
+              showStopsPanel
+                ? 'bg-emerald-900 text-white border-emerald-900'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+            }`}
+          >
+            <MapPin size={12} />
+            <span>Stops ({stopsCount})</span>
+          </button>
+
+          {/* Plan Trip Direct Action Button */}
+          <button
+            type="button"
+            onClick={() => onDirectPlanTrip && onDirectPlanTrip()}
+            disabled={isPlanning || !destId}
+            className={`flex items-center gap-1 rounded-xl px-3 py-1 text-xs font-extrabold text-white transition shadow-sm ${
+              isPlanning || !destId
+                ? 'bg-indigo-300 cursor-not-allowed'
+                : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 active:scale-95'
+            }`}
+          >
+            {isPlanning ? (
+              <>
+                <Loader2 size={13} className="animate-spin" />
+                <span>Checking Crowding...</span>
+              </>
+            ) : (
+              <>
+                <span>🗺️ Plan Trip</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
