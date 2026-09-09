@@ -2,8 +2,8 @@ import { generateToken, AUTH_COOKIE_OPTIONS } from "../lib/jwt.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { validatePasswordPolicy } from "../lib/passwordPolicy.js";
-import { issueAuthToken, findValidAuthToken, consumeAuthToken, findAuthTokenAnyState } from "../lib/authTokens.js";
-import { sendMail, verificationEmail, passwordResetEmail } from "../lib/mailer.js";
+import { issueAuthToken, findValidAuthToken, consumeAuthToken } from "../lib/authTokens.js";
+import { sendMail, passwordResetEmail } from "../lib/mailer.js";
 import mongoose from "mongoose";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -76,23 +76,16 @@ export const signup = async (req, res) => {
       preferredLanguage: typeof preferredLanguage === "string" ? preferredLanguage.trim() : undefined,
     });
 
-    const rawToken = await issueAuthToken(newUser._id, "email_verify");
-    const link = `${APP_URL}/verify-email?token=${rawToken}`;
-    try {
-      await sendMail({ to: newUser.email, ...verificationEmail(link) });
-    } catch (mailError) {
-      // The account is real either way -- a mail-provider hiccup shouldn't
-      // undo account creation. Logged for operators to notice and the user
-      // can always ask for a fresh link via resend-verification.
-      console.log("Error sending verification email:", mailError.message);
-    }
+    // No email verification step -- the account is usable immediately, so
+    // signup logs the traveller straight in rather than making them turn
+    // around and sign in again with the password they just typed.
+    generateToken(newUser._id, newUser.tokenVersion, res);
 
-    // Deliberately NOT logging the user in here -- email verification would
-    // be cosmetic otherwise (auth spec: "Do NOT make email verification
-    // cosmetic"). No cookie is set; login is blocked until verified.
     res.status(201).json({
-      message: "Account created. Check your email for a verification link.",
+      _id: newUser._id,
+      fullName: newUser.fullName,
       email: newUser.email,
+      role: newUser.role,
     });
   } catch (error) {
     console.log("Error in signup controller", error.message);
@@ -123,15 +116,6 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    if (!user.emailVerified) {
-      // A real, distinct reason -- never "Invalid credentials" when the
-      // actual issue is verification (auth spec §8: "Do NOT silently fail").
-      return res.status(403).json({
-        code: "EMAIL_NOT_VERIFIED",
-        message: "Please verify your email before signing in.",
-      });
-    }
-
     generateToken(user._id, user.tokenVersion, res);
 
     res.status(200).json({
@@ -139,7 +123,6 @@ export const login = async (req, res) => {
       fullName: user.fullName,
       email: user.email,
       role: user.role,
-      emailVerified: user.emailVerified,
     });
   } catch (error) {
     console.log("Error in login controller", error.message);
@@ -166,75 +149,6 @@ export const checkAuth = (req, res) => {
   } catch (error) {
     console.log("Error in checkAuth controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-// ============================================================
-// EMAIL VERIFICATION
-// ============================================================
-export const verifyEmail = async (req, res) => {
-  try {
-    const { token } = req.body;
-    const result = await findValidAuthToken(token, "email_verify");
-
-    if (result.ok) {
-      await User.findByIdAndUpdate(result.doc.userId, { emailVerified: true });
-      await consumeAuthToken(result.doc);
-      return res.status(200).json({ status: "verified", message: "Email verified." });
-    }
-
-    // A token that was already used successfully is a distinct, friendlier
-    // UI state ("already verified") from one that's genuinely bad -- but
-    // only when it actually belongs to a now-verified account, not just any
-    // used-up row (spec §5, state 4 vs state 3).
-    if (result.reason === "used") {
-      const tokenDoc = await findAuthTokenAnyState(token, "email_verify");
-      if (tokenDoc) {
-        const user = await User.findById(tokenDoc.userId).select("emailVerified");
-        if (user?.emailVerified) {
-          return res.status(200).json({ status: "already_verified", message: "Your email is already verified." });
-        }
-      }
-    }
-
-    return res.status(400).json({
-      status: "invalid",
-      message: "This verification link is invalid or has expired.",
-    });
-  } catch (error) {
-    console.log("Error in verifyEmail controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-// POST /api/auth/resend-verification -- always the same response regardless
-// of whether the email exists or is already verified (spec §6: "Prevent
-// email enumeration where appropriate").
-export const resendVerification = async (req, res) => {
-  const GENERIC = { message: "If an account with this email needs verification, we've sent a new link." };
-  try {
-    const { email } = req.body;
-    if (typeof email !== "string" || !email.trim()) {
-      return res.status(200).json(GENERIC);
-    }
-
-    const user = await User.findOne({ email });
-    if (user && !user.emailVerified) {
-      const rawToken = await issueAuthToken(user._id, "email_verify");
-      const link = `${APP_URL}/verify-email?token=${rawToken}`;
-      try {
-        await sendMail({ to: user.email, ...verificationEmail(link) });
-      } catch (mailError) {
-        console.log("Error sending verification email:", mailError.message);
-      }
-    }
-
-    res.status(200).json(GENERIC);
-  } catch (error) {
-    console.log("Error in resendVerification controller", error.message);
-    // Even on an internal error, don't leak account existence through a
-    // different response shape than the happy path.
-    res.status(200).json(GENERIC);
   }
 };
 

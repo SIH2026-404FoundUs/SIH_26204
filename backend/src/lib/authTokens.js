@@ -1,11 +1,9 @@
 import crypto from "crypto";
 import AuthToken from "../models/authToken.model.js";
 
-const EMAIL_VERIFY_TTL_MS = 24 * 60 * 60 * 1000; // 24h
-const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000; // 1h -- shorter, since a leaked reset link is more dangerous than a leaked verify link
+const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000; // 1h -- shorter, since a leaked reset link is more dangerous than a session cookie
 
 const TTL_BY_PURPOSE = {
-  email_verify: EMAIL_VERIFY_TTL_MS,
   password_reset: PASSWORD_RESET_TTL_MS,
 };
 
@@ -13,9 +11,8 @@ const hash = (raw) => crypto.createHash("sha256").update(raw).digest("hex");
 
 /**
  * Create a new single-use token for a purpose, invalidating any previous
- * still-usable token of the same purpose for that user first (auth spec
- * §6/§10: "invalidate previous token where appropriate") -- otherwise an old
- * link stays valid alongside a freshly requested one.
+ * still-usable token of the same purpose for that user first -- otherwise an
+ * old link stays valid alongside a freshly requested one.
  *
  * @returns {Promise<string>} the RAW token -- put this in the email link.
  *   Only its hash is ever persisted.
@@ -23,7 +20,7 @@ const hash = (raw) => crypto.createHash("sha256").update(raw).digest("hex");
 export async function issueAuthToken(userId, purpose) {
   await AuthToken.updateMany(
     { userId: String(userId), purpose, usedAt: null },
-    { $set: { usedAt: new Date() } } // "used" is a slight abuse of the field here, but it's the same effect: this row can never succeed a verify again
+    { $set: { usedAt: new Date() } } // "used" is a slight abuse of the field here, but it's the same effect: this row can never succeed again
   );
 
   const raw = crypto.randomBytes(32).toString("hex");
@@ -56,17 +53,4 @@ export async function findValidAuthToken(rawToken, purpose) {
 /** Marks a token consumed. Call this the moment its one legitimate use completes. */
 export async function consumeAuthToken(tokenDoc) {
   await AuthToken.updateOne({ _id: tokenDoc._id }, { $set: { usedAt: new Date() } });
-}
-
-/**
- * Look up a token regardless of its used/expired state -- only for
- * distinguishing "this link was already used to verify this exact account"
- * (a real, distinct UI state per auth spec §5: "Already verified") from a
- * genuinely invalid/expired token. Never use this for the actual
- * verify/reset action -- findValidAuthToken() is the one that enforces the
- * single-use/expiry rules.
- */
-export async function findAuthTokenAnyState(rawToken, purpose) {
-  if (!rawToken || typeof rawToken !== "string") return null;
-  return AuthToken.findOne({ tokenHash: hash(rawToken), purpose });
 }

@@ -8,13 +8,8 @@ export const useAuthStore = create((set) => ({
   isLoggingIn: false,
   isUpdatingProfile: false,
   error: null,
-  // Set specifically on a 403 EMAIL_NOT_VERIFIED login response, so the UI
-  // can show a "resend verification" action instead of a generic error
-  // (auth spec §8: never say "Invalid credentials" when the real issue is
-  // verification).
-  unverifiedEmail: null,
 
-  clearError: () => set({ error: null, unverifiedEmail: null }),
+  clearError: () => set({ error: null }),
 
   // Runs once on mount: the JWT lives in an httpOnly cookie, so the only way
   // to know whether we are logged in is to ask the server.
@@ -29,14 +24,13 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  // Does NOT set authUser -- signup no longer logs the user in (email
-  // verification is a real gate, not cosmetic). Returns the response body
-  // (or null on failure) so the caller can route to /verify-email with the
-  // email address to display.
+  // No email verification step -- signup logs the traveller straight in,
+  // same shape as login's own success response.
   signup: async (data) => {
     set({ isSigningUp: true, error: null })
     try {
       const res = await api.post('/auth/signup', data)
+      set({ authUser: res.data })
       return res.data
     } catch (error) {
       set({ error: getErrorMessage(error, 'Could not create your account') })
@@ -47,17 +41,13 @@ export const useAuthStore = create((set) => ({
   },
 
   login: async (data) => {
-    set({ isLoggingIn: true, error: null, unverifiedEmail: null })
+    set({ isLoggingIn: true, error: null })
     try {
       const res = await api.post('/auth/login', data)
       set({ authUser: res.data })
       return true
     } catch (error) {
-      if (error?.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
-        set({ error: error.response.data.message, unverifiedEmail: data.email })
-      } else {
-        set({ error: getErrorMessage(error, 'Could not log you in') })
-      }
+      set({ error: getErrorMessage(error, 'Could not log you in') })
       return false
     } finally {
       set({ isLoggingIn: false })
@@ -86,25 +76,6 @@ export const useAuthStore = create((set) => ({
       return false
     } finally {
       set({ isUpdatingProfile: false })
-    }
-  },
-
-  // ---- email verification ----
-  verifyEmail: async (token) => {
-    try {
-      const res = await api.post('/auth/verify-email', { token })
-      return { ok: true, ...res.data }
-    } catch (error) {
-      return { ok: false, message: getErrorMessage(error, 'This verification link is invalid or has expired.') }
-    }
-  },
-
-  resendVerification: async (email) => {
-    try {
-      const res = await api.post('/auth/resend-verification', { email })
-      return { ok: true, message: res.data.message }
-    } catch (error) {
-      return { ok: false, message: getErrorMessage(error, 'Could not resend the verification email') }
     }
   },
 

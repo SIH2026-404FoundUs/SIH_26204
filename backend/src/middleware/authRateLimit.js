@@ -18,5 +18,3 @@ export const signupLimiter = make(60, 10, "Too many accounts created from this n
 export const loginLimiter = make(15, 15, "Too many sign-in attempts. Please wait a few minutes and try again.");
 export const forgotPasswordLimiter = make(60, 5, "Too many password reset requests. Please try again later.");
 export const resetPasswordLimiter = make(60, 10, "Too many password reset attempts. Please try again later.");
-export const verifyEmailLimiter = make(60, 10, "Too many verification attempts. Please try again later.");
-export const resendVerificationLimiter = make(60, 5, "Too many verification emails requested. Please try again later.");

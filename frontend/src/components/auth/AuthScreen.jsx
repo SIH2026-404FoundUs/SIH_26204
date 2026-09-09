@@ -38,16 +38,13 @@ export default function AuthScreen({ mode }) {
 
   const signup = useAuthStore((state) => state.signup)
   const login = useAuthStore((state) => state.login)
-  const resendVerification = useAuthStore((state) => state.resendVerification)
   const clearError = useAuthStore((state) => state.clearError)
   const error = useAuthStore((state) => state.error)
-  const unverifiedEmail = useAuthStore((state) => state.unverifiedEmail)
   const isPending = useAuthStore((state) => (isLogin ? state.isLoggingIn : state.isSigningUp))
 
   const [form, setForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '', role: 'traveller' })
   const [passwordTouched, setPasswordTouched] = useState(false)
   const [localError, setLocalError] = useState(null)
-  const [resendState, setResendState] = useState({ sending: false, message: null })
 
   useEffect(() => clearError, [mode, clearError])
 
@@ -70,7 +67,7 @@ export default function AuthScreen({ mode }) {
         return
       }
       const result = await signup(form)
-      if (result) navigate('/verify-email', { state: { email: result.email, pending: true } })
+      if (result) navigate(ROLE_HOME[result.role] || '/home')
       return
     }
 
@@ -79,12 +76,6 @@ export default function AuthScreen({ mode }) {
       const role = useAuthStore.getState().authUser?.role
       navigate(ROLE_HOME[role] || '/home')
     }
-  }
-
-  async function handleResend() {
-    setResendState({ sending: true, message: null })
-    const result = await resendVerification(unverifiedEmail)
-    setResendState({ sending: false, message: result.message })
   }
 
   return (
@@ -166,17 +157,6 @@ export default function AuthScreen({ mode }) {
             {(localError || error) && (
               <Alert tone="error">
                 <div>{localError || error}</div>
-                {unverifiedEmail && (
-                  <button
-                    type="button"
-                    onClick={handleResend}
-                    disabled={resendState.sending}
-                    className="mt-1 text-xs font-semibold underline disabled:opacity-60"
-                  >
-                    {resendState.sending ? 'Sending…' : 'Resend verification email'}
-                  </button>
-                )}
-                {resendState.message && <div className="mt-1 text-xs">{resendState.message}</div>}
               </Alert>
             )}
 
