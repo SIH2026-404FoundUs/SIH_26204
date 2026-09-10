@@ -1,16 +1,10 @@
-// STANDS IN for Nishith's provider layer (providers/*.provider.js) only.
-// Destination data now comes from the real seed (../../seeds) — this file just
-// fakes the live RailRadar / road / Amadeus / Open-Meteo readings until the
-// adapters exist. Same { ok, data, meta } envelope they will return.
-//
-// Delete this file when providers/ is real. Everything else takes `providers`
-// by injection, so nothing else changes.
+// STANDS IN for Nishith's provider layer, for the back-test only (the endpoint
+// and job use realProviders.js). Deterministic so the back-test is reproducible.
+// Destination + calendar data is Ananya's real seed via seed.js.
 
-import { getDestination } from "../../seeds/index.js";
-import { calendarRow } from "../../seeds/calendar.js";
+import { getDestination, calendarRow } from "./seed.js";
 
-// deterministic hash -> [0,1): a (keys...) tuple always yields the same reading,
-// so the back-test is reproducible.
+// deterministic hash -> [0,1): a (keys...) tuple always yields the same reading.
 function rand01(...keys) {
   const s = keys.join("|");
   let h = 2166136261;
@@ -21,94 +15,89 @@ function rand01(...keys) {
   return ((h >>> 0) % 100000) / 100000;
 }
 
+// calendar impact (0..1) -> a demand bump
 const festivalBump = (date, state) => {
-  const c = calendarRow({ date, state });
-  return c.kind === "national" ? 0.35 : c.kind === "state" ? 0.2 : c.kind === "weekend" ? 0.08 : 0;
+  const { value } = calendarRow({ date, state });
+  return value >= 0.85 ? 0.35 : value >= 0.6 ? 0.2 : value >= 0.35 ? 0.08 : 0;
 };
 
-// Synthetic "how sought-after right now" in [0,1]: the seed's hand-authored
-// demandPrior + festival bump + date noise. NOT a real signal — a plausible
-// stand-in for RailRadar/Amadeus readings. The back-test then checks that the
-// full formula can recover the demandPrior ranking through this noise.
+// Synthetic "how sought-after right now" in [0,1]: capacityPrior + festival bump
+// + date noise. NOT a real signal — a plausible stand-in. The back-test checks
+// the formula can recover the capacityPrior/footfall ranking through this noise.
 function demandFor(dest, date) {
-  const base = 0.1 + (dest.demandPrior ?? dest.capacityPrior ?? 0.5) * 0.8;
+  const base = 0.1 + (dest.capacityPrior ?? 0.5) * 0.8;
   const noise = (rand01(dest._id, date) - 0.5) * 0.18;
   return Math.max(0, Math.min(1, base + festivalBump(date, dest.state) + noise));
 }
 
-// Corridors where the road adapter can only return departure frequency, not
-// seats -> triggers the degraded-road rule (spec §5). A provider-layer fact,
-// not a seed fact, so it lives here.
-const DEGRADED_CORRIDORS = new Set([
-  "chandigarh-manali",
-  "bhuntar-kasol",
-  "pathankot-dharamshala",
-]);
-
+// Each mock reading is shaped so its component normalises back to ~demandFor,
+// keeping the back-test a clean test of "does the weighted blend + renormalise
+// preserve the demand ranking". Real providers bring the real signal + noise.
 export const mockProviders = {
   railradar: {
     arrivals: async ({ destId, from }) => {
-      const d = await getDestination(destId);
+      const d = getDestination(destId);
       if (!d) return { ok: false, meta: { reason: "unknown dest" } };
-      const peak = demandFor(d, from) * 2 * d.baseline.railWL;
+      // 3 equal waitlists whose mean normalises to demandFor in railDemand()
+      const wl = Math.round(demandFor(d, from) * 2 * d.baseline.railWL);
       return {
         ok: true,
-        data: [1, 0.78, 0.55, 0.3].map((k) => ({ waitlist: Math.round(peak * k) })),
+        data: [wl, wl, wl].map((w) => ({ waitlist: w })),
         meta: { source: "mock:railradar" },
       };
     },
   },
   road: {
-    services: async ({ destId, date }) => {
-      const d = await getDestination(destId);
+    // frequency-only for every dest — matches Nishith's real adapter, so the
+    // degraded-road rule (§5) fires everywhere and access uses capacityPrior.
+    services: async ({ destId }) => {
+      const d = getDestination(destId);
       if (!d) return { ok: false, meta: { reason: "unknown dest" } };
-      if (DEGRADED_CORRIDORS.has(d.roadAccess?.corridor)) {
-        return { ok: true, data: { seatDataAvailable: false, departuresPerDay: 12 }, meta: { source: "mock:road" } };
-      }
-      const occ = demandFor(d, date);
-      const total = 40;
-      const services = Array.from({ length: 5 }, () => ({
-        totalSeats: total,
-        freeSeats: Math.max(0, Math.round(total * (1 - occ))),
-      }));
-      return { ok: true, data: { seatDataAvailable: true, services }, meta: { source: "mock:road" } };
+      return { ok: true, data: { seatDataAvailable: false, frequencyPerDay: 12 }, meta: { source: "mock:road" } };
     },
   },
   amadeus: {
     // reduced signal { unavailFrac, medianPriceINR } — same shape as Nishith's
     // stayEstimate.provider.js
     hotels: async ({ destId, date }) => {
-      const d = await getDestination(destId);
+      const d = getDestination(destId);
       if (!d) return { ok: false, meta: { reason: "unknown dest" } };
       const demand = demandFor(d, date);
       return {
         ok: true,
         data: {
-          unavailFrac: Math.min(0.95, demand * 0.9),
-          medianPriceINR: Math.round(d.baseline.hotelMedianINR * (0.8 + demand * 1.2)),
+          unavailFrac: demand,
+          medianPriceINR: Math.round(d.baseline.hotelMedianINR * 1.5 * demand),
         },
         meta: { source: "mock:amadeus" },
       };
     },
   },
   openmeteo: {
-    forecast: async ({ destId, date, lat }) => {
-      const d = await getDestination(destId);
-      const y = lat ?? d?.location?.lat ?? 25;
-      const maxTempC = (y > 25 ? 12 : 26) + (rand01("wx", destId, date) - 0.5) * 16;
-      const precipProb = Math.round(rand01("rain", destId, date) * 60);
-      return { ok: true, data: { maxTempC, precipProb }, meta: { source: "mock:open-meteo" } };
-    },
+    // benign weather for every dest — near-constant so it doesn't scramble the
+    // mock ranking. Real weather variation is tested with the real provider.
+    forecast: async () => ({
+      ok: true,
+      data: { maxTempC: 22, precipProb: 10 },
+      meta: { source: "mock:open-meteo" },
+    }),
   },
 };
 
-// Independent footfall ordering for the back-test to correlate against
-// (spec §9 step 3). Proxy for a Ministry of Tourism state/monument series.
-// Ordering matches the seed's demandPrior (same underlying "how busy" truth a
-// real footfall table would reflect) with hand nudges so it is not a clone.
-// Replace with a real MoT table before the pitch.
+// Independent footfall ordering for the back-test to correlate against (§9 step 3).
+// Hand-ranked proxy for a Ministry of Tourism state/monument series — 8-10 dests
+// across both states, >=2 saturated and >=2 quiet. Replace with a real table.
 export const FOOTFALL_PROXY = {
-  shimla: 96, manali: 90, "ramoji-film-city": 88, kasol: 55, mcleodganj: 63,
-  warangal: 48, "nagarjuna-sagar": 38, narkanda: 34, bhongir: 27,
-  "tirthan-valley": 24, jibhi: 15, pochampally: 16,
+  "charminar-hyderabad": 95,
+  manali: 90,
+  shimla: 85,
+  "hussain-sagar-hyderabad": 80,
+  "golconda-hyderabad": 76,
+  mcleodganj: 68,
+  kasol: 58,
+  dharamshala: 50,
+  "nagarjuna-sagar": 40,
+  "warangal-fort": 36,
+  "tirthan-valley": 24,
+  jibhi: 18,
 };

@@ -4,10 +4,14 @@ import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
-dotenv.config();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// dotenv.config() with no path loads .env from process.cwd(), which silently
+// finds nothing (and falls back to localhost) if this script is run from the
+// repo root instead of backend/. Load backend/.env explicitly so the command
+// works the same regardless of the caller's working directory.
+dotenv.config({ path: path.join(__dirname, "../../.env") });
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/tourism_platform";
 

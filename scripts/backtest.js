@@ -7,7 +7,7 @@
 // ground-truth crowding series for Indian destinations). Working target: the
 // median across dates >= 0.6 means the formula orders sensibly.
 //
-// Runs on fixtures today (pure, no DB, no npm install needed). Swap in
+// Runs on mock providers + Ananya's real destination seed (pure, no DB). Swap in
 // historical provider values + a real Ministry footfall table before the pitch.
 
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -16,20 +16,19 @@ import { dirname, join } from "node:path";
 import { collect } from "../backend/src/services/pressure/collectors.js";
 import { assembleRow } from "../backend/src/services/pressure/engine.js";
 import { spearman } from "../backend/src/services/pressure/stats.js";
-import { loadDestinations } from "../backend/src/seeds/index.js";
-import { calendarRow } from "../backend/src/seeds/calendar.js";
+import { loadDestinations, calendarRow } from "../backend/src/services/pressure/seed.js";
 import { mockProviders, FOOTFALL_PROXY } from "../backend/src/services/pressure/mockProviders.js";
 
 const seed = { calendarRow };
 
-// >=1 peak festival window, >=1 adjacent lean week, across two seasons (spec §9).
-// Dates must have rows in seeds/calendar.js.
+// >=1 peak festival window, >=1 adjacent lean week (spec §9). Festival dates must
+// have rows in seeds/calendar.json; the rest fall back to weekday/weekend.
 const DATES = [
-  { date: "2026-11-08", note: "peak — diwali" },
-  { date: "2026-11-18", note: "lean — mid-november, post-peak" },
-  { date: "2026-10-20", note: "peak — dussehra (autumn)" },
-  { date: "2026-06-17", note: "lean — summer weekday" },
-  { date: "2026-08-15", note: "peak — independence day (monsoon)" },
+  { date: "2026-12-10", note: "lean — mid-december weekday" },
+  { date: "2026-11-18", note: "lean — mid-november weekday" },
+  { date: "2026-09-15", note: "lean — mid-september weekday" },
+  { date: "2026-10-20", note: "peak — dussehra (national, 1.0)" },
+  { date: "2027-01-14", note: "peak — sankranti (TG-only, 1.0)" },
 ];
 
 const median = (xs) => {
@@ -49,7 +48,8 @@ async function scoreAll(dests, date) {
 }
 
 async function main() {
-  const dests = await loadDestinations();
+  // §9: score 8-10 seeded destinations that have an independent footfall figure
+  const dests = loadDestinations().filter((d) => FOOTFALL_PROXY[d._id] != null);
   const perDate = [];
   for (const { date, note } of DATES) {
     const scored = await scoreAll(dests, date);
@@ -67,7 +67,7 @@ async function main() {
   const medianRho = Number(median(perDate.map((d) => d.spearman)).toFixed(3));
   const report = {
     generatedAt: new Date().toISOString(),
-    source: "FIXTURES — replace with historical provider values + real footfall table",
+    source: "mock providers + real destination seed — replace with historical provider values + real footfall table",
     metric: "spearman rank correlation, computed pressure vs independent footfall ordering",
     workingTarget: 0.6,
     medianSpearman: medianRho,

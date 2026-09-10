@@ -48,9 +48,9 @@ const stay = stayScarcity({ unavailFrac: 0.8, medianPriceINR: 4800 }, { hotelMed
 assert.ok(Math.abs(stay.value - (0.5 * 0.8 + 0.5 * 1)) < 1e-9, "stay = 0.5*unavail + 0.5*min(price/1.5base,1)");
 assert.equal(stayScarcity({ unavailFrac: 0.5 }, { hotelMedianINR: 3200 }), null, "missing price -> null");
 
-// degraded-road proxy: frequency-only -> destination's static demand prior, flagged
+// degraded-road proxy: frequency-only -> destination's capacityPrior, flagged
 assert.deepEqual(roadFrequencyProxy({ capacityPrior: 0.8 }), { value: 0.8, frequencyOnly: true });
-assert.deepEqual(roadFrequencyProxy({ baseline: { roadSeatsAvail: 0.5 } }), { value: 0.5, frequencyOnly: true });
+assert.equal(roadFrequencyProxy({ baseline: { roadSeatsAvail: 30 } }), null, "no capacityPrior -> null");
 assert.equal(roadFrequencyProxy({}), null);
 // access survives on the road proxy alone, and the row is marked static
 const roadOnly = assembleRow(

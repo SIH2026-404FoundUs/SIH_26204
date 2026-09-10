@@ -1,0 +1,75 @@
+services:
+  # Express API — auth, pressure engine, substitution, budget, the trust
+  # vertical (visits/community/offers/waitlist/alerts/businesses/safety),
+  # trips.
+  - type: web
+    name: sahyatri-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Set for real in the Render dashboard, not here -- these are secrets
+      # or deployment-specific URLs, not values with a safe repo default.
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLIENT_URL
+        sync: false # the deployed Vercel URL (add localhost too, comma-separated, if testing this backend from a local frontend)
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: RAILRADAR_API_KEY
+        sync: false
+      - key: AMADEUS_API_KEY
+        sync: false
+      - key: AMADEUS_API_SECRET
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+  # FastAPI agent orchestrator (Google ADK) -- POST /api/plan-trip and
+  # /api/plan-trip/confirm. Separate service from the Express API by design
+  # (see ai-service/app/main.py); needs its own deploy and its own URL.
+  - type: web
+    name: sahyatri-ai-service
+    runtime: python
+    rootDir: ai-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: CLIENT_URL
+        sync: false # same value as the backend's CLIENT_URL
+      - key: BACKEND_URL
+        sync: false # the deployed sahyatri-backend URL, e.g. https://sahyatri-backend.onrender.com
+      # Trip planning falls through Groq -> Mistral -> Gemini in that order
+      # (app/agents/travel_agent.py's PROVIDER_CHAIN), skipping whichever of
+      # these are left blank. Groq is primary -- Gemini is a last-resort
+      # fallback, off by default (blank GOOGLE_API_KEY), after repeatedly
+      # hitting its free tier's 20-calls/day quota during this feature's own
+      # testing. Groq is groq.com (fast inference hosting), not xAI's "Grok"
+      # model -- a different product/account despite the near-identical name.
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: groq/qwen/qwen3.8-27b
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: MISTRAL_MODEL
+        value: mistral/mistral-small-latest
+      - key: GOOGLE_API_KEY
+        value: ""
+      - key: MODEL
+        value: gemini-2.5-flash

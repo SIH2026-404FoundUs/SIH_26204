@@ -1,132 +1,51 @@
-import { useEffect, useState } from 'react'
-import { Loader2, LockKeyhole, LogOut, Mail, MapPin, UserRound } from 'lucide-react'
-import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuthStore } from './store/useAuthStore'
+import Header, { FullPageLoader } from './components/shell/Header'
+import { Page, RequireAuth, RequireAuthBare, RequireRole } from './components/shell/Guards'
+import AuthScreen from './components/auth/AuthScreen'
+import ForgotPassword from './components/auth/ForgotPassword'
+import ResetPassword from './components/auth/ResetPassword'
 import PressureHeatmap from './components/pressure/PressureHeatmap'
+import { SwapPage, TripConfirmation } from './components/swap'
+import TripPlanner from './components/planner/TripPlanner'
+import DestinationDetail from './components/destinations/DestinationDetail'
+import MyTrips from './components/trips/MyTrips'
+import Profile from './components/profile/Profile'
+import OperatorConsole from './components/operator/OperatorConsole'
+import RegisterBusiness from './components/operator/RegisterBusiness'
+import HirePeople from './components/operator/HirePeople'
+import OperatorWaitlistOffers from './components/operator/OperatorWaitlistOffers'
+import OperatorAnalytics from './components/operator/OperatorAnalytics'
+import OperatorVerifyVisit from './components/operator/OperatorVerifyVisit'
+import AuthorityDashboard from './components/authority/AuthorityDashboard'
+import VisitVerify from './components/trust/VisitVerify'
+import CommunitySubmit from './components/trust/CommunitySubmit'
+import CommunityReview from './components/trust/CommunityReview'
+import CommunityForum from './components/trust/CommunityForum'
+import OffersWaitlist from './components/trust/OffersWaitlist'
+import Alerts from './components/trust/Alerts'
+import Safety from './components/trust/Safety'
+import Businesses from './components/trust/Businesses'
+import AvailableServices from './components/trust/AvailableServices'
+import Notifications from './components/trust/Notifications'
+import MapPreview from './pages/MapPreview'
+import LandingPage from './pages/LandingPage'
+import MultimodalTravelAgent from './components/ai/MultimodalTravelAgent'
 
-function Header() {
-  const location = useLocation()
-  const authUser = useAuthStore((state) => state.authUser)
-  const logout = useAuthStore((state) => state.logout)
+// Where each role lands after authenticating (auth spec §7/§20) -- mirrors
+// AuthScreen's own ROLE_HOME, used here for the post-refresh/direct-URL
+// case (AuthScreen only handles the moment of submitting the login form).
+const ROLE_HOME = { traveller: '/home', operator: '/operator', authority: '/authority' }
+const roleHome = (authUser) => ROLE_HOME[authUser?.role] || '/home'
 
-  return (
-    <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Link to="/" className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white">
-            <MapPin size={20} aria-hidden="true" />
-          </span>
-          Tourist
-        </Link>
-        <nav className="flex items-center gap-2 text-sm font-medium">
-          <Link to="/pressure" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/pressure' ? 'text-indigo-600' : 'text-slate-600'}`}>
-            Pressure
-          </Link>
-          {authUser ? (
-            <>
-              <span className="px-2 text-slate-600">{authUser.fullName}</span>
-              <button type="button" onClick={logout} className="flex items-center gap-2 rounded-lg px-4 py-2 text-slate-600 transition hover:bg-slate-100">
-                <LogOut size={16} aria-hidden="true" />
-                Log out
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className={`rounded-lg px-4 py-2 transition hover:bg-slate-100 ${location.pathname === '/login' ? 'text-indigo-600' : 'text-slate-600'}`}>
-                Log in
-              </Link>
-              <Link to="/signup" className="rounded-lg bg-indigo-600 px-4 py-2 text-white transition hover:bg-indigo-700">
-                Sign up
-              </Link>
-            </>
-          )}
-        </nav>
-      </div>
-    </header>
-  )
-}
-
-function Field({ icon: Icon, label, type = 'text', placeholder, value, onChange }) {
-  return (
-    <label className="block text-left">
-      <span className="mb-2 block text-sm font-medium text-slate-700">{label}</span>
-      <span className="relative block">
-        <Icon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-        <input type={type} placeholder={placeholder} required value={value} onChange={onChange} className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" />
-      </span>
-    </label>
-  )
-}
-
-function AuthCard({ mode }) {
-  const isLogin = mode === 'login'
-  const navigate = useNavigate()
-
-  const signup = useAuthStore((state) => state.signup)
-  const login = useAuthStore((state) => state.login)
-  const clearError = useAuthStore((state) => state.clearError)
-  const error = useAuthStore((state) => state.error)
-  const isPending = useAuthStore((state) => (isLogin ? state.isLoggingIn : state.isSigningUp))
-
-  const [form, setForm] = useState({ fullName: '', email: '', password: '' })
-
-  // Drop a stale message when switching between the login and signup routes.
-  useEffect(() => clearError, [mode, clearError])
-
-  function update(field) {
-    return (event) => setForm((prev) => ({ ...prev, [field]: event.target.value }))
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault()
-    const ok = isLogin
-      ? await login({ email: form.email, password: form.password })
-      : await signup(form)
-    if (ok) navigate('/')
-  }
-
-  return (
-    <main className="flex flex-1 items-center justify-center bg-slate-50 px-6 py-12">
-      <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{isLogin ? 'Welcome back' : 'Create your account'}</h1>
-          <p className="mt-2 text-sm text-slate-500">{isLogin ? 'Log in to continue planning your next trip.' : 'Start discovering places made for you.'}</p>
-        </div>
-        <form className="space-y-5" onSubmit={handleSubmit}>
-          {!isLogin && <Field icon={UserRound} label="Full name" placeholder="Your name" value={form.fullName} onChange={update('fullName')} />}
-          <Field icon={Mail} label="Email address" type="email" placeholder="you@example.com" value={form.email} onChange={update('email')} />
-          <Field icon={LockKeyhole} label="Password" type="password" placeholder="••••••••" value={form.password} onChange={update('password')} />
-          {error && (
-            <p role="alert" className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>
-          )}
-          <button type="submit" disabled={isPending} className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60">
-            {isPending && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
-            {isLogin ? 'Log in' : 'Create account'}
-          </button>
-        </form>
-        <p className="mt-6 text-center text-sm text-slate-500">
-          {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
-          <Link to={isLogin ? '/signup' : '/login'} className="font-semibold text-indigo-600 hover:text-indigo-700">{isLogin ? 'Sign up' : 'Log in'}</Link>
-        </p>
-      </section>
-    </main>
-  )
-}
-
-function Home() {
-  const authUser = useAuthStore((state) => state.authUser)
-
-  return (
-    <main className="flex-1 bg-slate-50 px-6 py-12">
-      <div className="mx-auto max-w-6xl">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-          {authUser ? `Welcome back, ${authUser.fullName}` : 'Welcome'}
-        </h1>
-      </div>
-    </main>
-  )
-}
-
+// Sahyatri's application shell (§53-58 of the frontend spec): a public
+// experience (landing/signin, signup, explore, destination detail,
+// businesses, and the auth-recovery pages) and an authenticated experience
+// behind a persistent header/nav that exposes every implemented feature --
+// nothing reachable only via a hidden URL. Role-specific routes
+// (operator/authority) are gated in the UI only; the backend remains the
+// real authority on every call these pages make (§56).
 function App() {
   const authUser = useAuthStore((state) => state.authUser)
   const isCheckingAuth = useAuthStore((state) => state.isCheckingAuth)
@@ -136,35 +55,80 @@ function App() {
     checkAuth()
   }, [checkAuth])
 
-  if (isCheckingAuth) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <Loader2 size={28} className="animate-spin text-indigo-600" aria-label="Loading" />
-      </div>
-    )
-  }
+  if (isCheckingAuth) return <FullPageLoader />
 
   return (
     <BrowserRouter>
-      <div className="flex min-h-screen flex-col bg-white">
+      <div className="flex min-h-screen flex-col bg-paper">
         <Header />
         <Routes>
-          <Route path="/" element={authUser ? <Home /> : <Navigate to="/login" replace />} />
-          {/* Open — no auth, it only reads the public pressure endpoints */}
-          <Route
-            path="/pressure"
-            element={
-              <main className="flex-1 bg-slate-50 px-6 py-12">
-                <div className="mx-auto max-w-6xl">
-                  <h1 className="mb-6 text-2xl font-semibold tracking-tight text-slate-900">Destination Pressure</h1>
-                  <PressureHeatmap />
-                </div>
-              </main>
-            }
-          />
-          <Route path="/login" element={authUser ? <Navigate to="/" replace /> : <AuthCard mode="login" />} />
-          <Route path="/signup" element={authUser ? <Navigate to="/" replace /> : <AuthCard mode="signup" />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Public experience (§53). "/" is now a proper landing page
+              describing the product -- sign-in stays its own screen at
+              /signin, unchanged, so existing links to it keep working. */}
+          <Route path="/" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <LandingPage />} />
+          <Route path="/signin" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <AuthScreen mode="login" />} />
+          <Route path="/signup" element={authUser ? <Navigate to={roleHome(authUser)} replace /> : <AuthScreen mode="signup" />} />
+          {/* Auth-recovery routes are never gated on auth state (§19: "Do
+              not protect public authentication routes unnecessarily") -- a
+              logged-in user following a stale reset link from an old email
+              should still be able to use it. */}
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/explore" element={<Page wide><PressureHeatmap /></Page>} />
+          <Route path="/explore/:destId" element={<Page><DestinationDetail /></Page>} />
+          <Route path="/businesses" element={<Page><Businesses /></Page>} />
+          {/* Public safety advisory read (spec §3.3) -- also reachable from
+              the authenticated nav, same page either way. */}
+          <Route path="/alerts" element={<Page><Alerts /></Page>} />
+
+          {/* Authenticated experience (§57/§58) */}
+          <Route path="/home" element={<RequireAuth wide><TripPlanner /></RequireAuth>} />
+          <Route path="/multimodal-agent" element={<RequireAuth wide><MultimodalTravelAgent /></RequireAuth>} />
+          {/* RequireAuthBare, not RequireAuth: the map is a full-bleed canvas
+              (near-full-viewport, its own <main>), not the standard
+              max-w-6xl centred page shell RequireAuth would force it into. */}
+          <Route path="/map" element={<RequireAuthBare><MapPreview /></RequireAuthBare>} />
+          <Route path="/trips" element={<RequireAuth><MyTrips /></RequireAuth>} />
+          <Route path="/swap" element={<RequireAuthBare><SwapPage /></RequireAuthBare>} />
+          <Route path="/trip-confirmation" element={<RequireAuthBare><TripConfirmation /></RequireAuthBare>} />
+          {/* Same URL, role-branched: an operator's "Verify a Visit" means
+              displaying the live rotating code (OperatorVerifyVisit), not
+              submitting one -- travellers/authorities get the original
+              code-entry form (VisitVerify) unchanged. */}
+          <Route path="/visits" element={<RequireAuth>{authUser?.role === 'operator' ? <OperatorVerifyVisit /> : <VisitVerify />}</RequireAuth>} />
+          <Route path="/register-business" element={<RequireRole role="operator"><RegisterBusiness /></RequireRole>} />
+          <Route path="/hire-people" element={<RequireRole role="operator"><HirePeople /></RequireRole>} />
+          <Route path="/operator/waitlist" element={<RequireRole role="operator"><OperatorWaitlistOffers /></RequireRole>} />
+          <Route path="/operator/analytics" element={<RequireRole role="operator"><OperatorAnalytics /></RequireRole>} />
+          {/* Same URL, role-branched (§14-19): travellers get "Suggest a
+              Place" (CommunitySubmit), authorities get the "Community
+              Review" moderation UI (CommunityReview) -- both nav entries
+              point here. The backend endpoints each one calls remain the
+              real authorization boundary (review/queue endpoints already
+              403 anyone whose server-side role isn't "authority"), so this
+              branch is a UI convenience, not a security control. */}
+          <Route path="/community" element={<RequireAuth>{authUser?.role === 'authority' ? <CommunityReview /> : <CommunitySubmit />}</RequireAuth>} />
+          <Route path="/forum" element={<RequireAuth><CommunityForum /></RequireAuth>} />
+          <Route path="/services" element={<RequireAuth><AvailableServices /></RequireAuth>} />
+          <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
+          <Route path="/offers" element={<RequireAuth><OffersWaitlist /></RequireAuth>} />
+          <Route path="/safety" element={<RequireAuth><Safety /></RequireAuth>} />
+          <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+
+          {/* Role-specific (§56) */}
+          <Route path="/operator" element={<RequireRole role="operator"><OperatorConsole /></RequireRole>} />
+          <Route path="/authority" element={<RequireRole role="authority" wide><AuthorityDashboard /></RequireRole>} />
+
+          {/* Back-compat redirects for pre-rebuild URLs */}
+          <Route path="/login" element={<Navigate to="/signin" replace />} />
+          <Route path="/pressure" element={<Navigate to="/explore" replace />} />
+          <Route path="/planner" element={<Navigate to="/home" replace />} />
+          <Route path="/map-preview" element={<Navigate to="/map" replace />} />
+          {/* Email verification was removed -- redirect any stale link
+              (an old email, a bookmark) somewhere real instead of 404ing. */}
+          <Route path="/verify-email" element={<Navigate to="/signin" replace />} />
+
+          <Route path="*" element={<Navigate to={authUser ? roleHome(authUser) : '/'} replace />} />
         </Routes>
       </div>
     </BrowserRouter>

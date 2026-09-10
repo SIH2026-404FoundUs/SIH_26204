@@ -1,0 +1,19 @@
+# ai-service/requirements.txt
+
+google-adk==2.8.0
+# The ADK's adapter for non-Gemini providers (google.adk.models.lite_llm), and
+# the transport for the /onboarding/extract call in main.py. Not pulled in by
+# google-adk itself -- that extra is optional.
+litellm==1.95.0
+# Still required even though no Gemini model is used: the ADK's own request and
+# response types (types.Content/types.Part) come from this package regardless
+# of which provider is behind the agent.
+google-genai==2.22.0
+python-dotenv==1.2.2
+requests==2.33.0
+pydantic==2.13.5
+fastapi==0.141.1
+uvicorn==0.52.4
+faster-whisper==1.2.1
+numpy==2.5.3
+reportlab==4.4.4

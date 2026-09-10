@@ -11,14 +11,42 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    password: {
+    passwordHash: {
       type: String,
       required: true,
-      minlength: 6,
     },
-    profilePic: {
+    role: {
       type: String,
-      default: "",
+      enum: ["traveller", "operator", "authority"],
+      default: "traveller",
+    },
+    phone: {
+      type: String,
+    },
+    preferredLanguage: {
+      type: String,
+    },
+    // Bumped on password reset and password change so any JWT issued before
+    // that moment stops working -- a plain JWT has no server-side revocation
+    // otherwise. protectRoute checks this against the token's own embedded
+    // value (auth spec §12/§16: "invalidate existing sessions... where the
+    // architecture supports it").
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
+    preferences: {
+      interests: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {},
+      },
+      budgetBand: {
+        type: String,
+      },
+      languages: {
+        type: [String],
+        default: [],
+      },
     },
   },
   { timestamps: true }

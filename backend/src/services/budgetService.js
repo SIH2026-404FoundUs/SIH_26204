@@ -1,0 +1,206 @@
+import { roundToTwo } from "../utils/money.js";
+
+const ALLOWED_SOURCES = new Set([
+  "business_declared",
+  "provider:amadeus",
+  "provider:railradar",
+  "provider:google_places",
+  "provider:open_meteo",
+  "seeded",
+  "estimated",
+  "manual",
+]);
+
+/**
+ * Checks if a given source string is valid according to allowed sources or provider pattern.
+ *
+ * @param {any} source
+ * @returns {boolean}
+ */
+function isValidSource(source) {
+  if (typeof source !== "string") {
+    return false;
+  }
+  if (ALLOWED_SOURCES.has(source)) {
+    return true;
+  }
+  return /^provider:.+/.test(source);
+}
+
+/**
+ * Resolves a category's source string. Missing or unrecognized sources default to "estimated"
+ * and are flagged as unlabelled.
+ *
+ * @param {any} rawSource
+ * @returns {{ source: string, wasDefaulted: boolean }}
+ */
+function resolveCategorySource(rawSource) {
+  if (isValidSource(rawSource)) {
+    return { source: rawSource, wasDefaulted: false };
+  }
+  return { source: "estimated", wasDefaulted: true };
+}
+
+/**
+ * Pure calculation service for budget and expense breakdown.
+ * Does not depend on Express req or res objects for full testability.
+ *
+ * @param {Object} tripData - The trip payload containing budgetINR, travellers, days, and cost categories.
+ * @returns {Object} Structured cost breakdown, total, contingency, grandTotal, remaining, utilization %,
+ *   largest category, tripId, destId, hasUnlabelledEstimates, reductionOptions (when over budget).
+ */
+export function calculateBudget(tripData = {}) {
+  const travellers = Number(tripData.travellers) || 0;
+  const days = Number(tripData.days) || 0;
+  const budgetINR = roundToTwo(Number(tripData.budgetINR) || 0);
+
+  // Top-level tripId and destId (default to null if not provided)
+  const tripId = tripData.tripId !== undefined ? tripData.tripId : null;
+  const destId = tripData.destId !== undefined ? tripData.destId : null;
+
+  // 1. Transport cost & source
+  const transportCost = Number(tripData.transport?.totalCost) || 0;
+  const transportSourceInfo = resolveCategorySource(tripData.transport?.source);
+
+  // 2. Hotel cost & source
+  const pricePerNight = Number(tripData.hotel?.pricePerNight) || 0;
+  const nights = Number(tripData.hotel?.nights) || 0;
+  const rooms = tripData.hotel?.rooms !== undefined ? Number(tripData.hotel.rooms) || 0 : 1;
+  const hotelCost = pricePerNight * nights * rooms;
+  const hotelSourceInfo = resolveCategorySource(tripData.hotel?.source);
+
+  // 3. Food cost & source. Locked formula (spec): days*mealsPerDay*cityMealIndex*travellers.
+  // mealsPerDay/cityMealIndex are optional and additive: when a caller only sends
+  // pricePerPersonPerDay (the pre-existing, documented, tested shape), they default
+  // to 1 and pricePerPersonPerDay respectively, so the old behavior is unchanged;
+  // supplying both richer fields activates the exact spec formula.
+  const pricePerPersonPerDay = Number(tripData.food?.pricePerPersonPerDay) || 0;
+  const mealsPerDay = tripData.food?.mealsPerDay !== undefined ? Number(tripData.food.mealsPerDay) || 0 : 1;
+  const cityMealIndex = tripData.food?.cityMealIndex !== undefined ? Number(tripData.food.cityMealIndex) || 0 : pricePerPersonPerDay;
+  const foodCost = days * mealsPerDay * cityMealIndex * travellers;
+  const foodSourceInfo = resolveCategorySource(tripData.food?.source);
+
+  // 4. Activities cost & source
+  let activitiesCost = 0;
+  let activitiesSource = "estimated";
+  let activitiesHaveUnlabelled = false;
+
+  if (Array.isArray(tripData.activities) && tripData.activities.length > 0) {
+    const activitySources = [];
+    for (const activity of tripData.activities) {
+      const activityPrice = Number(activity?.pricePerPerson) || 0;
+      activitiesCost += activityPrice * travellers;
+
+      const sourceInfo = resolveCategorySource(activity?.source);
+      if (sourceInfo.wasDefaulted) {
+        activitiesHaveUnlabelled = true;
+      }
+      activitySources.push(sourceInfo.source);
+    }
+
+    const firstSource = activitySources[0];
+    const allSame = activitySources.every((src) => src === firstSource);
+    activitiesSource = allSame ? firstSource : "mixed";
+  } else {
+    activitiesCost = 0;
+    activitiesSource = "estimated";
+    activitiesHaveUnlabelled = true;
+  }
+
+  // 5. Local Transport cost & source. Locked formula (spec): sum(localLegEstimates).
+  // Additive: a `legs` array (one estimate per local leg) sums per the spec formula;
+  // the pre-existing single `estimatedCost` number (the documented, tested shape)
+  // still works unchanged when `legs` isn't supplied.
+  const localTransportCost = Array.isArray(tripData.localTransport?.legs)
+    ? tripData.localTransport.legs.reduce((sum, leg) => sum + (Number(leg?.estimatedCost) || 0), 0)
+    : Number(tripData.localTransport?.estimatedCost) || 0;
+  const localTransportSourceInfo = resolveCategorySource(tripData.localTransport?.source);
+
+  // Compile costBreakdown with 2-decimal rounding and source labels
+  const costBreakdown = {
+    transport: {
+      amount: roundToTwo(transportCost),
+      source: transportSourceInfo.source,
+    },
+    hotel: {
+      amount: roundToTwo(hotelCost),
+      source: hotelSourceInfo.source,
+    },
+    food: {
+      amount: roundToTwo(foodCost),
+      source: foodSourceInfo.source,
+    },
+    activities: {
+      amount: roundToTwo(activitiesCost),
+      source: activitiesSource,
+    },
+    localTransport: {
+      amount: roundToTwo(localTransportCost),
+      source: localTransportSourceInfo.source,
+    },
+  };
+
+  // Flag true if ANY category or activity had its source defaulted
+  const hasUnlabelledEstimates =
+    transportSourceInfo.wasDefaulted ||
+    hotelSourceInfo.wasDefaulted ||
+    foodSourceInfo.wasDefaulted ||
+    localTransportSourceInfo.wasDefaulted ||
+    activitiesHaveUnlabelled;
+
+  // Total cost across all categories
+  const totalCost = roundToTwo(
+    costBreakdown.transport.amount +
+    costBreakdown.hotel.amount +
+    costBreakdown.food.amount +
+    costBreakdown.activities.amount +
+    costBreakdown.localTransport.amount
+  );
+
+  // Contingency buffer, shown as its own line, not folded into totalCost
+  const contingency = roundToTwo(totalCost * 0.1);
+  const grandTotal = roundToTwo(totalCost + contingency);
+
+  // Remaining budget and utilization
+  const remaining = roundToTwo(budgetINR - totalCost);
+  const utilizationPercent = budgetINR > 0 ? roundToTwo((totalCost / budgetINR) * 100) : 0;
+  const isOverBudget = totalCost > budgetINR;
+
+  // Identify largest category by amount
+  // If all categories have 0 cost, largestCategory is null
+  let largestCategory = null;
+  let maxCost = 0;
+  for (const [category, item] of Object.entries(costBreakdown)) {
+    if (item.amount > maxCost) {
+      maxCost = item.amount;
+      largestCategory = category;
+    }
+  }
+
+  // Over-budget handling: offer the four concrete reduction options from bharani-tasks.md Section 3
+  const reductionOptions = isOverBudget
+    ? [
+        { type: "reduce_hotel_cost", description: "Reduce hotel cost by choosing a cheaper room or fewer nights" },
+        { type: "switch_to_train", description: "Switch transport to train instead of flight" },
+        { type: "remove_activity", description: "Remove one activity from the itinerary" },
+        { type: "lower_pressure_alternative", description: "Switch to a lower-pressure destination alternative" },
+      ]
+    : [];
+
+  return {
+    costBreakdown,
+    totalCost,
+    contingency,
+    grandTotal,
+    budgetINR,
+    remaining,
+    utilizationPercent,
+    isOverBudget,
+    reductionOptions,
+    largestCategory,
+    tripId,
+    destId,
+    hasUnlabelledEstimates,
+  };
+}
+

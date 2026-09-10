@@ -12,7 +12,7 @@ const pressureSchema = new mongoose.Schema(
   {
     destId: { type: String, required: true }, // Ananya's canonical slug, never a Place ID
     date: { type: String, required: true },   // "YYYY-MM-DD"
-    score: { type: Number, required: true },
+    score: { type: Number, default: null },   // null when every component dropped (§4)
     components: {
       access: componentSchema,
       stay: componentSchema,
@@ -26,6 +26,7 @@ const pressureSchema = new mongoose.Schema(
     degraded: { type: [String], default: [] },
     lowConfidence: { type: Boolean, default: false },
     stale: { type: Boolean, default: false }, // set when served past the 24h freshness window
+    formulaVersion: { type: Number }, // rows without this predate weight-locking; always treated as stale
     computedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
@@ -33,6 +34,13 @@ const pressureSchema = new mongoose.Schema(
 
 pressureSchema.index({ destId: 1, date: 1 }, { unique: true });
 
-const DestinationPressure = mongoose.model("DestinationPressure", pressureSchema);
+// Pin the collection name to what Ananya's seedDatabase.js writes
+// ("destination_pressures") — mongoose would otherwise default to
+// "destinationpressures" and the seeded history would be invisible here.
+const DestinationPressure = mongoose.model(
+  "DestinationPressure",
+  pressureSchema,
+  "destination_pressures"
+);
 
 export default DestinationPressure;

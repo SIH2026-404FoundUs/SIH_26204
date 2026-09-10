@@ -56,6 +56,52 @@ async function recordAuditLog(AuditLogModel, { actor, action, target, reasonCode
  *
  * @returns {Promise<Object>} Verification result object.
  */
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+const MAX_ATTEMPTS_PER_USER_PER_HOUR = 5;
+const MAX_ATTEMPTS_PER_BUSINESS_PER_HOUR = 20;
+
+// Applies to every verification ATTEMPT (accept or reject alike), not just
+// successful visits — spec §1.3. Counts existing audit_logs rows rather than
+// a second counter collection: every verifyVisit branch (including accept)
+// already writes actor:userId and meta.businessId, so this is a read over
+// data that already exists, not a duplicate tracking mechanism.
+async function checkRateLimits(userId, businessId, AuditLogModel) {
+  if (!AuditLogModel) return null;
+  const since = new Date(Date.now() - RATE_LIMIT_WINDOW_MS);
+
+  const userAttempts = await AuditLogModel.countDocuments({
+    actor: String(userId),
+    action: { $regex: "^pov\\.verify\\." },
+    at: { $gte: since },
+  });
+  if (userAttempts >= MAX_ATTEMPTS_PER_USER_PER_HOUR) {
+    return {
+      status: "rejected",
+      reasonCode: "POV_RATE_LIMIT_USER_EXCEEDED",
+      message: `Maximum ${MAX_ATTEMPTS_PER_USER_PER_HOUR} verification attempts per hour exceeded`,
+      code: 429,
+    };
+  }
+
+  // Reject branches log target:businessId; the accept branch logs
+  // target:visitId with businessId only in meta -- match either shape so
+  // every attempt (accepted or rejected) is actually counted.
+  const businessAttempts = await AuditLogModel.countDocuments({
+    $or: [{ target: String(businessId) }, { "meta.businessId": String(businessId) }],
+    action: { $regex: "^pov\\.verify\\." },
+    at: { $gte: since },
+  });
+  if (businessAttempts >= MAX_ATTEMPTS_PER_BUSINESS_PER_HOUR) {
+    return {
+      status: "rejected",
+      reasonCode: "POV_RATE_LIMIT_BUSINESS_EXCEEDED",
+      message: `Maximum ${MAX_ATTEMPTS_PER_BUSINESS_PER_HOUR} verification attempts per hour exceeded for this business`,
+      code: 429,
+    };
+  }
+  return null;
+}
+
 export async function verifyVisit(params, models = {}) {
   const { userId, businessId, code, currentLocation, referrerId, originalDestId } = params;
   const { BusinessModel, VisitModel, AuditLogModel } = models;
@@ -70,10 +116,27 @@ export async function verifyVisit(params, models = {}) {
     };
   }
 
-  // Step 1: Resolve business and verify povSecret exists
+  // Step 0: rate limits (spec §1.3) -- checked before any crypto/DB work,
+  // and before this attempt is itself logged, so it counts prior attempts
+  // only ("the 6th within the hour is rejected", not "the 5th").
+  const rateLimited = await checkRateLimits(userId, businessId, AuditLogModel);
+  if (rateLimited) {
+    await recordAuditLog(AuditLogModel, {
+      actor: userId,
+      action: "pov.verify.reject",
+      target: businessId,
+      reasonCode: rateLimited.reasonCode,
+      meta: { businessId },
+    });
+    return rateLimited;
+  }
+
+  // Step 1: Resolve business and verify povSecret exists.
+  // povSecret has `select: false` on the schema, so it must be re-selected
+  // explicitly here or every verification fails with POV_SECRET_MISSING.
   let business = null;
   if (BusinessModel) {
-    business = await BusinessModel.findById(businessId);
+    business = await BusinessModel.findById(businessId).select("+povSecret");
   }
 
   if (!business) {
