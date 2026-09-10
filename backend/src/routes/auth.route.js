@@ -2,6 +2,7 @@ import express from "express";
 import {
   checkAuth, login, logout, signup,
   forgotPassword, resetPassword, changePassword, updateProfile,
+  uploadProfilePhotoMiddleware, uploadProfilePhoto, removeProfilePhoto,
 } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import {
@@ -21,5 +22,7 @@ router.post("/reset-password", resetPasswordLimiter, resetPassword);
 
 router.patch("/change-password", protectRoute, changePassword);
 router.put("/update-profile", protectRoute, updateProfile);
+router.post("/profile-photo", protectRoute, uploadProfilePhotoMiddleware, uploadProfilePhoto);
+router.delete("/profile-photo", protectRoute, removeProfilePhoto);
 
 export default router;

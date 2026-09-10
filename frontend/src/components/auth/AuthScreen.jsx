@@ -45,6 +45,9 @@ export default function AuthScreen({ mode }) {
   const [form, setForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '', role: 'traveller' })
   const [passwordTouched, setPasswordTouched] = useState(false)
   const [localError, setLocalError] = useState(null)
+  // One toggle for both password fields (bug fix: each used to manage its
+  // own show/hide independently, so seeing both took two clicks).
+  const [passwordVisible, setPasswordVisible] = useState(false)
 
   useEffect(() => clearError, [mode, clearError])
 
@@ -137,6 +140,9 @@ export default function AuthScreen({ mode }) {
                 value={form.password}
                 onChange={update('password')}
                 onFocus={() => setPasswordTouched(true)}
+                placeholder="Enter your password"
+                visible={passwordVisible}
+                onToggleVisible={() => setPasswordVisible((v) => !v)}
                 required
               />
             </FormField>
@@ -144,7 +150,14 @@ export default function AuthScreen({ mode }) {
 
             {!isLogin && (
               <FormField label="Confirm password" error={form.confirmPassword && form.password !== form.confirmPassword ? 'Passwords do not match' : undefined}>
-                <PasswordField value={form.confirmPassword} onChange={update('confirmPassword')} required />
+                <PasswordField
+                  value={form.confirmPassword}
+                  onChange={update('confirmPassword')}
+                  placeholder="Re-enter your password"
+                  visible={passwordVisible}
+                  onToggleVisible={() => setPasswordVisible((v) => !v)}
+                  required
+                />
               </FormField>
             )}
 

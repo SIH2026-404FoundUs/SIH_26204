@@ -23,6 +23,14 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
     },
+    // Cloudinary secure URL -- same upload mechanism as community-submission
+    // photos (backend/src/lib/cloudinary.js), different folder. null means
+    // "no photo set", not "loading" -- the frontend falls back to a generic
+    // avatar icon in that case.
+    profilePhoto: {
+      type: String,
+      default: null,
+    },
     preferredLanguage: {
       type: String,
     },

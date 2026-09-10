@@ -79,6 +79,38 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+  isUploadingPhoto: false,
+
+  uploadProfilePhoto: async (file) => {
+    set({ isUploadingPhoto: true, error: null })
+    try {
+      const formData = new FormData()
+      formData.append('photo', file)
+      const res = await api.post('/auth/profile-photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      set({ authUser: res.data })
+      return true
+    } catch (error) {
+      set({ error: getErrorMessage(error, 'Could not upload your photo') })
+      return false
+    } finally {
+      set({ isUploadingPhoto: false })
+    }
+  },
+
+  removeProfilePhoto: async () => {
+    set({ error: null })
+    try {
+      const res = await api.delete('/auth/profile-photo')
+      set({ authUser: res.data })
+      return true
+    } catch (error) {
+      set({ error: getErrorMessage(error, 'Could not remove your photo') })
+      return false
+    }
+  },
+
   // ---- forgot / reset password ----
   forgotPassword: async (email) => {
     try {

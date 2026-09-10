@@ -23,6 +23,9 @@ export default function ResetPassword() {
   const [touched, setTouched] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  // One toggle for both fields (bug fix: each used to manage its own
+  // show/hide independently, so seeing both took two clicks).
+  const [passwordVisible, setPasswordVisible] = useState(false)
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -60,12 +63,27 @@ export default function ResetPassword() {
 
         <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
           <FormField label="New password">
-            <PasswordField value={password} onChange={(e) => setPassword(e.target.value)} onFocus={() => setTouched(true)} required />
+            <PasswordField
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onFocus={() => setTouched(true)}
+              placeholder="Enter new password"
+              visible={passwordVisible}
+              onToggleVisible={() => setPasswordVisible((v) => !v)}
+              required
+            />
           </FormField>
           <PasswordStrengthChecklist password={password} touched={touched} />
 
           <FormField label="Confirm new password" error={confirmPassword && password !== confirmPassword ? 'Passwords do not match' : undefined}>
-            <PasswordField value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+            <PasswordField
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Re-enter new password"
+              visible={passwordVisible}
+              onToggleVisible={() => setPasswordVisible((v) => !v)}
+              required
+            />
           </FormField>
 
           {error && <Alert tone="error">{error}</Alert>}
