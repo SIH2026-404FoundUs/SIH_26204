@@ -43,7 +43,7 @@ export default function RouteDetailsPanel({ routeInfo, onClose }) {
   const formattedDistance = typeof distanceKm === 'number' ? `${distanceKm.toFixed(1)} km` : 'N/A';
 
   return (
-    <div className="absolute bottom-6 left-6 z-10 w-80 sm:w-96 rounded-2xl border border-slate-200/90 bg-white/95 p-3.5 shadow-xl backdrop-blur-md transition-all animate-in fade-in slide-in-from-left-4 duration-300">
+    <div className="absolute bottom-5 left-1/2 z-20 w-[min(380px,calc(100%-2rem))] -translate-x-1/2 rounded-2xl border border-white/70 bg-white/90 p-3.5 shadow-[0_20px_60px_rgba(15,23,42,.12)] backdrop-blur-2xl transition-all animate-in fade-in slide-in-from-bottom-3 duration-300">
       {/* Header with Title, Mode Badge, and Close Button */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2 truncate pr-2">

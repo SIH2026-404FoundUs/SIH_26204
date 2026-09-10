@@ -342,9 +342,9 @@ Operators can:
 
 The operator page displays a live rotating verification code for a selected business. The purpose is to allow a traveller to prove that they visited the business without requiring the operator to manually enter traveller information.
 
-### 4.6 Operator console limitation
+### 4.6 Operator availability console
 
-The `/operator` console shell exists, but the actual availability/discount/growth-management console is intentionally marked **Coming soon**. The component documents that it requires a declared-availability endpoint and a reliable account-to-business link.
+The `/operator` console is available to authenticated operators with registered businesses. It uses the owner-to-business link created during registration and supports date-level inventory, price, discount, open/closed state, and bookable-unit declarations through the owner-scoped availability API.
 
 ## 5. Authority implementation
 
@@ -847,8 +847,7 @@ The repository also contains Postman and HTTP scenarios for manually exercising 
 
 The following items are present in the repository but should not be described as fully complete:
 
-1. **Operator console availability management** is currently a Coming Soon screen because the required declared-availability API and account-to-business linkage are not complete.
-2. **Amadeus integration** is intentionally unavailable when credentials are absent; the adapter returns an explicit unavailable response rather than fake flight/hotel data.
+1. **Amadeus integration** is intentionally unavailable when credentials are absent; the adapter returns an explicit unavailable response rather than fake flight/hotel data.
 3. **Some external data** can fall back to seeds, estimates, mocks, or provider-degraded responses depending on environment configuration.
 4. **Destination picker data** is partly mirrored in the frontend because the backend destination catalogue is not yet a complete queryable UI source.
 5. **Email verification** is not part of the current signup flow; signup logs the user in directly.

@@ -22,6 +22,10 @@ export const useOperatorStore = create((set) => ({
   businessesError: null,
   isRegistering: false,
   registerError: null,
+  availability: [],
+  isLoadingAvailability: false,
+  availabilityError: null,
+  isSavingAvailability: false,
 
   fetchMyBusinesses: async () => {
     set({ isLoadingBusinesses: true, businessesError: null })
@@ -47,6 +51,28 @@ export const useOperatorStore = create((set) => ({
     } finally {
       set({ isRegistering: false })
     }
+  },
+
+  fetchAvailability: async (businessId) => {
+    set({ isLoadingAvailability: true, availabilityError: null })
+    try {
+      const res = await api.get(`/v1/businesses/${businessId}/availability`)
+      set({ availability: res.data })
+    } catch (error) {
+      set({ availabilityError: getErrorMessage(error, 'Could not load availability') })
+    } finally { set({ isLoadingAvailability: false }) }
+  },
+
+  saveAvailability: async (businessId, data) => {
+    set({ isSavingAvailability: true, availabilityError: null })
+    try {
+      const res = await api.post(`/v1/businesses/${businessId}/availability`, data)
+      set((state) => ({ availability: [...state.availability.filter((row) => row._id !== res.data._id), res.data].sort((a, b) => new Date(a.date) - new Date(b.date)) }))
+      return true
+    } catch (error) {
+      set({ availabilityError: getErrorMessage(error, 'Could not save availability') })
+      return false
+    } finally { set({ isSavingAvailability: false }) }
   },
 
   // -- SmartWaitlist + offers --

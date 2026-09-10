@@ -55,7 +55,7 @@ const isPressureDecision = (data) => (
 // first call stops at "awaiting_decision" and nothing plans further until the
 // traveller explicitly accepts or declines.
 export const usePlannerStore = create((set, get) => ({
-  request: null, // camelCase, exactly as sent -- {userId,origin,destId,startDate,endDate,travellers,budgetINR,interests}
+  request: null, // camelCase, exactly as sent -- includes optional selectedHotel and stops
   tripDraftId: null,
   awaitingDecision: false,
   pressure: null,
@@ -82,6 +82,8 @@ export const usePlannerStore = create((set, get) => ({
       travellers: Number(form.travellers) || 1,
       budgetINR: Number(form.budgetInr) || 0,
       interests: form.interests || {},
+      selectedHotel: form.selectedHotel || null,
+      stops: Array.isArray(form.stops) ? form.stops : [],
     }
     try {
       const res = await aiClient.post('/api/plan-trip', request)
@@ -177,6 +179,8 @@ export const usePlannerStore = create((set, get) => ({
       travellers: request.travellers,
       budgetInr: request.budgetINR,
       interests: request.interests,
+      selectedHotel: request.selectedHotel,
+      stops: request.stops,
     })
   },
 }))
