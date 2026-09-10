@@ -21,3 +21,8 @@ export const scoreLabel = (score) => {
   if (score >= 0.35) return 'moderate'
   return 'calm'
 }
+
+// Keep every compact pressure readout on the same 0..100 scale.
+export const scorePercent = (score) => (
+  score == null ? null : Math.round(Math.max(0, Math.min(1, Number(score))) * 100)
+)
