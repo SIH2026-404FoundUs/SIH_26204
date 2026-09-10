@@ -1,198 +1,166 @@
+# Sahyatri
 
-```
-tourism-platform/
-├── package.json                  ← root: npm install/build/start --prefix both
-├── API_CONTRACTS.md
-│
-├── backend/
-│   ├── package.json
-│   └── src/
-│       ├── controllers/
-│       │   ├── pressure.controller.js
-│       │   ├── alternatives.controller.js
-│       │   ├── business.controller.js
-│       │   ├── availability.controller.js
-│       │   ├── trip.controller.js
-│       │   ├── visit.controller.js
-│       │   ├── offer.controller.js
-│       │   ├── waitlist.controller.js
-│       │   ├── community.controller.js
-│       │   ├── feedback.controller.js
-│       │   ├── alert.controller.js
-│       │   └── auth.controller.js
-│       │
-│       ├── routes/
-│       │   ├── pressure.route.js
-│       │   ├── alternatives.route.js
-│       │   ├── business.route.js
-│       │   ├── availability.route.js
-│       │   ├── trip.route.js
-│       │   ├── visit.route.js
-│       │   ├── offer.route.js
-│       │   ├── waitlist.route.js
-│       │   ├── community.route.js
-│       │   ├── feedback.route.js
-│       │   ├── alert.route.js
-│       │   └── auth.route.js
-│       │
-│       ├── models/                        ← matches every collection, 1:1
-│       │   ├── destination.model.js
-│       │   ├── destinationPressure.model.js
-│       │   ├── destinationDemand.model.js
-│       │   ├── business.model.js
-│       │   ├── businessAvailability.model.js
-│       │   ├── trip.model.js
-│       │   ├── visit.model.js
-│       │   ├── offer.model.js
-│       │   ├── waitlist.model.js
-│       │   ├── communitySubmission.model.js
-│       │   ├── feedback.model.js
-│       │   ├── alert.model.js
-│       │   ├── complaint.model.js
-│       │   ├── emergencyContact.model.js
-│       │   ├── user.model.js
-│       │   └── auditLog.model.js
-│       │
-│       ├── middleware/
-│       │   ├── auth.middleware.js
-│       │   ├── validate.middleware.js
-│       │   └── rateLimit.middleware.js
-│       │
-│       ├── lib/                            ← third-party client setup only
-│       │   ├── db.js                       ← MongoDB connection
-│       │   ├── cloudinary.js
-│       │   ├── whatsapp.js                 ← Meta client init
-│       │   └── crypto.js                   ← Ed25519/HMAC helpers, if kept
-│       │
-│       ├── services/                       ← the real logic, one folder per OWNER
-│       │   ├── pressure/                   ← Sathvik
-│       │   ├── substitution/               ← Madhuri
-│       │   ├── incentive/                  ← Bharani
-│       │   ├── onboarding/                 ← Bharani
-│       │   ├── pov/                        ← Pranay
-│       │   ├── waitlist/                   ← Pranay
-│       │   ├── community/                  ← Pranay
-│       │   ├── feedback/                   ← Pranay
-│       │   └── alerts/                     ← Pranay
-│       │
-│       ├── providers/                      ← Nishith — external API adapters
-│       │   ├── googlemaps.provider.js
-│       │   ├── railradar.provider.js
-│       │   ├── roadtransport.provider.js
-│       │   ├── amadeus.provider.js
-│       │   └── openmeteo.provider.js
-│       │
-│       ├── jobs/
-│       │   ├── precomputePressure.job.js
-│       │   ├── aggregateDemand.job.js
-│       │   ├── pollAlerts.job.js
-│       │   └── expireOffers.job.js
-│       │
-│       ├── seeds/                          ← Ananya — plain data, run once
-│       │   ├── destinations/
-│       │   │   ├── shimla.json
-│       │   │   ├── manali.json
-│       │   │   └── ... (35-40 files)
-│       │   ├── businesses.js
-│       │   ├── calendar.js
-│       │   └── fares.js
-│       │
-│       └── server.js
-│
-├── frontend/
-│   ├── package.json
-│   └── src/
-│       ├── components/
-│       │   ├── swap/
-│       │   ├── pressure/
-│       │   ├── map/
-│       │   ├── onboarding/
-│       │   ├── business/
-│       │   └── common/
-│       │
-│       ├── pages/                          ← one subfolder per page
-│       │   ├── planner/TripPlannerPage.jsx
-│       │   ├── discover/DiscoverPage.jsx
-│       │   ├── dashboard/DashboardPage.jsx
-│       │   └── business/BusinessConsolePage.jsx
-│       │
-│       ├── store/                          ← singular, matches convention
-│       │   ├── useAuthStore.js
-│       │   ├── useTripStore.js
-│       │   ├── usePressureStore.js
-│       │   └── usePreferenceStore.js
-│       │
-│       ├── lib/
-│       │   ├── axios.js
-│       │   └── googleMaps.js
-│       │
-│       ├── App.jsx
-│       └── main.jsx
-│
-├── ai-service/                              ← FastAPI, no equivalent in the reference
-│   └── app/
-│       ├── main.py
-│       ├── agents/
-│       ├── tools/
-│       └── onboarding/
-│
-├── scripts/
-│   ├── backtest.js
-│   └── calibrateDistance.js
-│
-└── docs/
+Sahyatri is a tourism redistribution platform for **SIH 26204**. It helps travellers discover less-crowded destinations and alternative travel dates while giving tourism businesses, operators, and authorities tools to manage demand.
 
+The platform measures destination pressure using travel access, accommodation availability, calendar events, weather, and capacity signals. When a destination is crowded, the planner can recommend a quieter alternative or a different date.
+
+## Highlights
+
+- Role-based experiences for travellers, operators, and authorities
+- AI-assisted trip planning, chat, voice transcription, and travel briefs
+- Destination pressure scores and alternative destination/date suggestions
+- Business listings, availability, waitlists, offers, and proof-of-visit workflows
+- Community submissions, alerts, safety features, and authority dashboards
+- WhatsApp voice onboarding for tourism operators
+
+## Architecture
+
+Sahyatri is split into three services backed by MongoDB Atlas:
+
+| Service | Technology | Local URL | Responsibility |
+| --- | --- | --- | --- |
+| Frontend | React, Vite, Tailwind, Zustand | `http://localhost:5173` | Browser application and role-based UI |
+| Backend | Node.js, Express, Mongoose | `http://localhost:5001` | Authentication, data, business logic, providers, and jobs |
+| AI service | Python, FastAPI, Google ADK, LiteLLM | `http://localhost:8000` | Trip planning, AI chat, transcription, and PDF travel briefs |
+| Database | MongoDB Atlas | — | Persistent application data |
+
+The Express backend owns provider credentials and database access. The AI service communicates with the backend through authenticated internal requests.
+
+## Repository structure
+
+```text
+Sahyatri/
+├── backend/          Express API, models, routes, services, providers, and seeds
+├── ai-service/       FastAPI planner, agents, tools, transcription, and PDF builder
+├── frontend/         React/Vite single-page application
+├── scripts/           Project utility scripts
+├── render.yaml       Render deployment blueprint
+├── ARCHITECTURE.md   Detailed system architecture
+├── DOCUMENTATION.md  Complete feature and API documentation
+├── API_CONTRACTS.md  API request and response contracts
+└── DEPLOYMENT.md     Deployment instructions and configuration
 ```
 
+## Prerequisites
+
+- Node.js 20 or later
+- npm
+- Python 3.12 recommended
+- A MongoDB Atlas database, or another MongoDB instance
+- API credentials for the providers used by the features you want to run
+
+## Local setup
+
+Clone the repository, then install each service independently.
+
+### 1. Backend
+
+```powershell
+cd backend
+npm install
+Copy-Item .env.example .env
 ```
-ai-service/
-├── .env                          ← QWEN_BASE_URL, QWEN_MODEL, GOOGLE_ADK_CONFIG, BACKEND_URL
-├── .gitignore                    ← must include venv/, __pycache__/, .env
-├── requirements.txt              ← pinned versions once things are working
-├── venv/                         ← never commit this (in .gitignore)
-│
-└── app/
-    ├── main.py                   ← FastAPI app entrypoint, mounts the agent
-    │
-    ├── agents/
-    │   └── travel_agent.py       ← ADK agent definition, registers all tools,
-    │                                 holds the planner sequence logic
-    │
-    ├── tools/                    ← one file per capability, mirrors your
-    │   │                            six Express routes almost 1:1
-    │   ├── __init__.py
-    │   ├── weather.py            ← get_weather()      → calls /api/weather
-    │   ├── trains.py             ← search_trains(),
-    │   │                            get_train_availability(),
-    │   │                            get_train_fare()   → calls /api/trains
-    │   ├── places.py             ← search_places(),
-    │   │                            get_place_details() → calls /api/places
-    │   ├── routes.py             ← calculate_route()   → calls /api/routes
-    │   ├── fare.py               ← estimate_local_transport() → calls /api/fare
-    │   ├── road.py               ← search_road_services() → calls /api/road
-    │   │
-    │   ├── pressure.py           ← get_pressure()      → Sathvik's endpoint
-    │   ├── alternatives.py       ← find_alternatives(),
-    │   │                            find_alternative_dates() → Madhuri's endpoint
-    │   ├── alerts.py             ← get_verified_alerts() → Pranay's endpoint
-    │   ├── businesses.py         ← search_hotels(),
-    │   │                            search_businesses() → Bharani's endpoint
-    │   │
-    │   ├── cost.py               ← calculate_trip_cost()   — deterministic,
-    │   │                            no external call, pure Python math
-    │   └── itinerary.py          ← optimize_itinerary()    — deterministic
-    │
-    ├── onboarding/                ← separate concern, Bharani's territory,
-    │   │                             not yours — listed here only because
-    │   │                             it lives in the same FastAPI service
-    │   ├── transcribe.py
-    │   ├── extract.py
-    │   └── followup.py
-    │
-    └── services/
-        └── backend_client.py     ← shared helper: one function that wraps
-                                      `requests.get(...)`/`.post(...)` with
-                                      BACKEND_URL, timeout, and error handling,
-                                      so every tool file isn't repeating that
-                                      boilerplate
+
+Set at least `MONGODB_URI`, `JWT_SECRET`, and `CLIENT_URL` in `backend/.env`. Add provider credentials when using maps, transport, accommodation, email, Cloudinary, or WhatsApp features.
+
+Seed the development database and start the API:
+
+```powershell
+npm run seed
+npm run dev
 ```
+
+The backend health endpoint is available at `http://localhost:5001/health`.
+
+### 2. AI service
+
+```powershell
+cd ai-service
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Copy-Item .env.example .env
+```
+
+Configure `BACKEND_URL`, `INTERNAL_SERVICE_TOKEN`, `CLIENT_URL`, and at least one supported model provider in `ai-service/.env`. Then start FastAPI:
+
+```powershell
+uvicorn app.main:app --reload --port 8000
+```
+
+The AI service health endpoint is available at `http://localhost:8000/health`.
+
+### 3. Frontend
+
+```powershell
+cd frontend
+npm install
+Copy-Item .env.example .env
+npm run dev
+```
+
+Configure the frontend environment values:
+
+```env
+VITE_API_URL=http://localhost:5001/api
+VITE_AI_SERVICE_URL=http://localhost:8000
+VITE_GOOGLE_MAPS_API_KEY=your-restricted-browser-key
+```
+
+Open `http://localhost:5173` in a browser.
+
+## Environment files
+
+Environment variables are intentionally separated by service:
+
+- `backend/.env` — database, JWT, provider, mail, media, and WhatsApp credentials
+- `ai-service/.env` — model provider, backend URL, service token, and CORS settings
+- `frontend/.env` — public API URLs and the referrer-restricted Maps browser key
+
+Never commit real `.env` files or service-account credentials. Use the supplied `.env.example` files as templates.
+
+## Useful commands
+
+### Backend
+
+```powershell
+npm run dev          # development server with nodemon
+npm start            # production-style server
+npm run seed         # seed development data
+npm test             # Jest test suite
+npm run prepare-hooks
+```
+
+### Frontend
+
+```powershell
+npm run dev
+npm run build
+npm run preview
+npm run lint
+```
+
+## Deployment
+
+`render.yaml` defines the backend and AI service deployments for Render. The frontend can be deployed as a static Vite application on Vercel or another static hosting provider.
+
+Before deploying, make sure that:
+
+1. `NODE_ENV=production` is set for the backend.
+2. `CLIENT_URL` contains the deployed frontend origin in both backend services.
+3. `INTERNAL_SERVICE_TOKEN` matches between the backend and AI service.
+4. All provider credentials are configured in the deployment platform, not in the repository.
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the complete deployment checklist.
+
+## Documentation
+
+- [Complete documentation](DOCUMENTATION.md)
+- [System architecture](ARCHITECTURE.md)
+- [API contracts](API_CONTRACTS.md)
+- [Implemented features](IMPLEMENTED_FEATURES.md)
+- [Project overview](PROJECT_OVERVIEW.md)
+
+## License
+
+This project is developed for Smart India Hackathon problem statement **SIH 26204**.
