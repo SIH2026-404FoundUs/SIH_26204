@@ -36,7 +36,6 @@ const TRAVELLER_PRIMARY = [
   { to: '/forum', label: 'Community Forum', icon: Users },
 ]
 const TRAVELLER_MORE = [
-  { to: '/explore', label: 'Explore pressure', icon: Compass },
   { to: '/multimodal-agent', label: 'Multimodal agent', icon: Bot },
   { to: '/services', label: 'Available Services', icon: Wrench },
   { to: '/community', label: 'Suggest a Place', icon: MapPinned },
