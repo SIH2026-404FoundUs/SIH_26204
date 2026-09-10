@@ -141,11 +141,12 @@ export const usePlannerStore = create((set, get) => ({
         tripDraftId: null,
         pressure: null,
         alternatives: null,
-        plan: {
-          trip: res.data.trip,
-          redistribution: res.data.redistribution,
-          destId: res.data.destId,
-          startDate: res.data.startDate,
+          plan: {
+            trip: res.data.trip,
+            alternatives: res.data.alternatives,
+            redistribution: res.data.redistribution,
+            destId: res.data.destId,
+            startDate: res.data.startDate,
           endDate: res.data.endDate,
         },
       })

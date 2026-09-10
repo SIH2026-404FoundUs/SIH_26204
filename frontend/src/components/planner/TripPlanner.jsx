@@ -90,6 +90,26 @@ function AlternativeRow({ label, icon: Icon, pressure, requestedPressure, saving
 // The traveller sees the reading and the alternatives and must explicitly
 // accept or decline -- both buttons carry equal size, weight, and an icon,
 // per the doc's central integrity rule.
+function itineraryStopName(stop) {
+  if (!stop || typeof stop !== 'object') return 'Planned stop'
+  if (stop.location && typeof stop.location === 'object') return stop.location.name || 'Stay'
+  return stop.name || 'Planned stop'
+}
+
+function itineraryStopLabel(stop) {
+  if (stop?.slot === 'start') return 'Start from'
+  if (stop?.slot === 'end') return 'Return to'
+  return stop?.time || stop?.slot || 'Visit'
+}
+
+function shiftedEndDate(startDate, endDate, nextStartDate) {
+  if (!startDate || !endDate || !nextStartDate) return endDate
+  const duration = Math.round((new Date(`${endDate}T00:00:00`) - new Date(`${startDate}T00:00:00`)) / 86400000)
+  const nextEnd = new Date(`${nextStartDate}T00:00:00`)
+  nextEnd.setDate(nextEnd.getDate() + duration)
+  return nextEnd.toISOString().slice(0, 10)
+}
+
 function DecisionPanel() {
   const { pressure, alternatives, submitDecision, isPlanning } = usePlannerStore()
   const [selectedAlternative, setSelectedAlternative] = useState(null)
@@ -168,10 +188,35 @@ function DecisionPanel() {
 }
 
 function PlanResult() {
-  const { plan, request, pressure } = usePlannerStore()
+  const { plan, request, pressure, submitTrip, isPlanning } = usePlannerStore()
+  const [selectedAlternative, setSelectedAlternative] = useState(null)
   if (!plan) return null
   const { trip, redistribution, destId, startDate } = plan
   const switched = redistribution?.kind && redistribution.kind !== 'none'
+  const swapOffers = trip?.alternatives?.swapOffers
+  const destinationSwap = swapOffers?.destination_swap
+  const dateSwap = swapOffers?.date_swap
+  const hasSwapOffers = Boolean(destinationSwap || dateSwap)
+  const decisionAlternatives = plan?.alternatives
+  const alternativePlaces = decisionAlternatives?.places || []
+  const alternativeDates = decisionAlternatives?.dates || []
+  const hasDecisionAlternatives = alternativePlaces.length > 0 || alternativeDates.length > 0
+  const formatDate = (value) => value
+    ? new Date(`${value}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    : 'Unavailable'
+
+  const applySelectedAlternative = async () => {
+    if (!selectedAlternative || !request) return
+    await submitTrip({
+      origin: request.origin,
+      destId: selectedAlternative.destId || request.destId,
+      startDate: selectedAlternative.startDate || request.startDate,
+      endDate: selectedAlternative.endDate || request.endDate,
+      travellers: request.travellers,
+      budgetInr: request.budgetINR,
+      interests: request.interests,
+    })
+  }
 
   return (
     <Card>
@@ -236,13 +281,91 @@ function PlanResult() {
           {trip.itinerary.days.map((day) => (
             <div key={day.day} className="rounded-lg border border-paper-dim p-3 text-sm">
               <div className="font-medium text-ink/80">Day {day.day}</div>
-              <div className="text-ink/50">{day.stops?.length ?? 0} stop(s)</div>
+              <div className="mt-2 space-y-2">
+                {(day.stops || []).map((stop, index) => (
+                  <div key={`${itineraryStopName(stop)}-${index}`} className="flex items-start gap-3 rounded-md bg-paper-dim/40 px-2.5 py-2">
+                    <span className="w-20 shrink-0 text-xs font-medium text-ash">{itineraryStopLabel(stop)}</span>
+                    <div className="min-w-0">
+                      <div className="font-medium text-ink/80">{itineraryStopName(stop)}</div>
+                      {stop?.activity && <div className="mt-0.5 text-xs text-ink/50">{stop.activity}</div>}
+                      {typeof stop?.estimatedDuration === 'number' && <div className="mt-0.5 text-xs text-ink/40">About {stop.estimatedDuration} minutes</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
       )}
       {!trip?.itinerary?.days?.length && (
         <p className="mt-4 text-sm text-ink/60">Detailed day-by-day itinerary was not returned for this plan.</p>
+      )}
+
+      {hasSwapOffers && (
+        <div className="mt-5 rounded-lg border border-relief/25 bg-relief/5 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-xs font-medium uppercase tracking-wide text-relief">Quieter alternatives</div>
+              <p className="mt-1 text-xs text-ink/60">Optional verified suggestions for this destination and trip window.</p>
+            </div>
+            <span className="text-xs font-medium text-relief">No automatic changes</span>
+          </div>
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {destinationSwap && (
+              <button type="button" aria-pressed={selectedAlternative?.kind === 'destination'} onClick={() => setSelectedAlternative({ kind: 'destination', destId: destinationSwap.alternative_destination })} className={`w-full rounded-lg border bg-white p-3 text-left transition ${selectedAlternative?.kind === 'destination' ? 'border-relief ring-2 ring-relief/25' : 'border-paper-dim hover:border-relief/60'}`}>
+                <div className="text-xs font-medium uppercase tracking-wide text-ash">Destination</div>
+                <div className="mt-1 font-medium text-ink">{destinationSwap.alternative_name || destinationSwap.alternative_destination}</div>
+                {destinationSwap.pressure_after != null && <div className="mt-1 text-xs text-relief">{Math.round(destinationSwap.pressure_after * 100)}% pressure</div>}
+                {destinationSwap.reason?.length > 0 && <div className="mt-1 text-xs text-ink/60">{destinationSwap.reason.join(' · ')}</div>}
+              </button>
+            )}
+            {dateSwap && (
+              <button type="button" aria-pressed={selectedAlternative?.kind === 'date'} onClick={() => setSelectedAlternative({ kind: 'date', startDate: dateSwap.alternative_dates?.[0], endDate: dateSwap.alternative_dates?.[1] })} className={`w-full rounded-lg border bg-white p-3 text-left transition ${selectedAlternative?.kind === 'date' ? 'border-relief ring-2 ring-relief/25' : 'border-paper-dim hover:border-relief/60'}`}>
+                <div className="text-xs font-medium uppercase tracking-wide text-ash">Alternative dates</div>
+                <div className="mt-1 font-medium text-ink">
+                  {formatDate(dateSwap.alternative_dates?.[0])}
+                  {dateSwap.alternative_dates?.[1] && ` – ${formatDate(dateSwap.alternative_dates[1])}`}
+                </div>
+                {dateSwap.pressure_after != null && <div className="mt-1 text-xs text-relief">{Math.round(dateSwap.pressure_after * 100)}% pressure</div>}
+                {dateSwap.reason?.length > 0 && <div className="mt-1 text-xs text-ink/60">{dateSwap.reason.join(' · ')}</div>}
+              </button>
+            )}
+          </div>
+          {selectedAlternative && <button type="button" onClick={applySelectedAlternative} disabled={isPlanning} className="mt-3 w-full rounded-lg bg-relief px-3 py-2 text-xs font-semibold text-white transition hover:bg-relief/90 disabled:opacity-60">{isPlanning ? 'Applying alternative…' : 'Apply selected alternative'}</button>}
+        </div>
+      )}
+
+      {hasDecisionAlternatives && (
+        <div className="mt-5 rounded-lg border border-pressure/25 bg-pressure/5 p-4">
+          <div className="text-xs font-medium uppercase tracking-wide text-pressure">Alternatives offered</div>
+          <p className="mt-1 text-xs text-ink/60">These were available before continuing with the requested plan.</p>
+          {alternativePlaces.length > 0 && (
+            <div className="mt-3">
+              <div className="text-xs font-medium text-ink/70">Other destinations</div>
+              <div className="mt-2 space-y-2">
+                {alternativePlaces.map((place) => (
+                  <div key={place.destId} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm">
+                    <span className="font-medium text-ink/80">{place.displayName || place.destId}</span>
+                    {place.pressure != null && <span className="text-xs text-relief">{Math.round(place.pressure * 100)}% pressure</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {alternativeDates.length > 0 && (
+            <div className="mt-3">
+              <div className="text-xs font-medium text-ink/70">Quieter dates</div>
+              <div className="mt-2 space-y-2">
+                {alternativeDates.map((dateOption) => (
+                  <div key={dateOption.startDate} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm">
+                    <span className="font-medium text-ink/80">{formatDate(dateOption.startDate)}</span>
+                    {dateOption.pressure != null && <span className="text-xs text-relief">{Math.round(dateOption.pressure * 100)}% pressure</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </Card>
   )

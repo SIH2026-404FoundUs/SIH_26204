@@ -1074,16 +1074,12 @@ async def _build_swap_offers(req: PlanTripRequest) -> Optional[dict]:
         destination_score = pressure_score(destination_pressure)
         date_score = pressure_score(date_pressure)
 
-        destination_task = (
-            run_in_threadpool(find_alternative, req.model_dump())
-            if destination_score is not None and destination_score >= PRESSURE_GATE
-            else None
-        )
-        date_task = (
-            run_in_threadpool(find_alternative_dates, req.model_dump())
-            if date_score is not None and date_score >= PRESSURE_GATE
-            else None
-        )
+        # The pressure gate controls whether planning pauses for an explicit
+        # traveller decision. It must not suppress the lighter-weight
+        # alternatives shown after a plan has already been generated: a trip
+        # below the gate can still have a quieter destination or date.
+        destination_task = run_in_threadpool(find_alternative, req.model_dump())
+        date_task = run_in_threadpool(find_alternative_dates, req.model_dump())
         destination_swap, date_swap = await asyncio.gather(
             destination_task or asyncio.sleep(0, result=None),
             date_task or asyncio.sleep(0, result=None),
@@ -1278,6 +1274,10 @@ async def confirm_trip(req: ConfirmTripRequest, authenticated_id: Optional[str] 
         **plan_request.model_dump(),
         "tripDraftId": req.tripDraftId,
         "trip": trip,
+        # Keep the original pressure alternatives on the completed result as
+        # well. A traveller who chooses "continue anyway" should still be
+        # able to review what was offered after the plan is generated.
+        "alternatives": draft.get("alternatives") or {},
         "redistribution": redistribution,
         "alternativesOffered": True,
     }
