@@ -37,7 +37,7 @@ export default function StopPickerPanel({
   };
 
   return (
-    <div className="absolute top-20 right-6 z-20 w-80 rounded-2xl border border-slate-200/90 bg-white/95 p-4 shadow-xl backdrop-blur-md transition-all animate-in fade-in slide-in-from-right-4 duration-300">
+    <div className="absolute left-4 top-24 z-30 w-[min(320px,calc(100%-2rem))] rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_20px_60px_rgba(15,23,42,.12)] backdrop-blur-2xl transition-all animate-in fade-in slide-in-from-left-4 duration-300">
       {/* Header */}
       <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
         <div className="flex items-center gap-2">

@@ -16,6 +16,7 @@ import SwapCard from '../swap/SwapCard';
 import LayerControls from './LayerControls';
 import AIAssistantCard from './AIAssistantPremium';
 import CurrentLocationLayer from './CurrentLocationLayer';
+import StopMarkersLayer from './StopMarkersLayer';
 import { useDestinationsStore } from '../../store/useDestinationsStore';
 import { usePlannerStore } from '../../store/usePlannerStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -56,7 +57,7 @@ export default function EverythingMap({
   const [error, setError] = useState(null);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [useCurrentLocation, setUseCurrentLocation] = useState(true);
-  const [locationTracking, setLocationTracking] = useState(true);
+  const [locationTracking, setLocationTracking] = useState(false);
   const [locationError, setLocationError] = useState(null);
 
   // Search & Selector States
@@ -134,7 +135,11 @@ export default function EverythingMap({
   };
 
   const handleAddStop = (stopObj) => {
-    setStops((prev) => [...prev, { id: `stop_${Date.now()}_${prev.length}`, ...stopObj }]);
+    if (!stopObj?.name || !Number.isFinite(Number(stopObj.lat)) || !Number.isFinite(Number(stopObj.lng))) return;
+    setStops((prev) => {
+      const duplicate = prev.some((stop) => Math.abs(Number(stop.lat) - Number(stopObj.lat)) < 0.0001 && Math.abs(Number(stop.lng) - Number(stopObj.lng)) < 0.0001);
+      return duplicate ? prev : [...prev, { id: `stop_${Date.now()}_${prev.length}`, ...stopObj }];
+    });
   };
 
   // Search Place and Add Stop
@@ -143,18 +148,18 @@ export default function EverythingMap({
     setIsSearchingStop(true);
     setRouteError(null);
     try {
-      let lat, lng, formattedAddress;
+      let lat, lng, formattedAddress, placeId, photoName;
       try {
-        const res = await api.get('/geocode', { params: { address: queryStr } });
-        const geocoded = res.data?.data ?? res.data;
-        if (Number.isFinite(Number(geocoded?.lat)) && Number.isFinite(Number(geocoded?.lng))) {
-          lat = Number(geocoded.lat);
-          lng = Number(geocoded.lng);
-          formattedAddress = geocoded.formattedAddress || queryStr;
+        const placesResponse = await api.get('/places', { params: { query: queryStr, lat: activeCenter.lat, lng: activeCenter.lng, radiusMeters: 20000 } });
+        const places = placesResponse.data?.data || placesResponse.data || [];
+        const place = Array.isArray(places) ? places.find((item) => Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lng))) : null;
+        if (place) {
+          lat = Number(place.lat); lng = Number(place.lng); formattedAddress = place.name || queryStr; placeId = place.placeId; photoName = place.photoName;
         } else {
-          // The backend geocoder can report a lookup failure with HTTP 200;
-          // throw here so the Google Maps geocoder fallback also runs.
-          throw new Error(geocoded?.error || `Could not find location for '${queryStr}'`);
+          const res = await api.get('/geocode', { params: { address: queryStr } });
+          const geocoded = res.data?.data ?? res.data;
+          if (!Number.isFinite(Number(geocoded?.lat)) || !Number.isFinite(Number(geocoded?.lng))) throw new Error(geocoded?.error || `Could not find location for '${queryStr}'`);
+          lat = Number(geocoded.lat); lng = Number(geocoded.lng); formattedAddress = geocoded.formattedAddress || queryStr;
         }
       } catch {
         if (mapsSDK?.Geocoder) {
@@ -183,7 +188,7 @@ export default function EverythingMap({
       if (Number.isFinite(lat) && Number.isFinite(lng)) {
         setStops((prev) => [
           ...prev,
-          { id: `stop_${Date.now()}`, name: formattedAddress || queryStr, lat, lng, type: 'search' }
+          { id: `stop_${Date.now()}`, name: formattedAddress || queryStr, lat, lng, placeId, photoName, type: 'search' }
         ]);
         if (mapInstance) {
           mapInstance.panTo({ lat, lng });
@@ -288,10 +293,7 @@ export default function EverythingMap({
             if (e.latLng) {
               const lat = e.latLng.lat();
               const lng = e.latLng.lng();
-              setStops((prev) => [
-                ...prev,
-                { id: `stop_${Date.now()}`, name: `Pin Stop (${lat.toFixed(3)}, ${lng.toFixed(3)})`, lat, lng, type: 'map_click' }
-              ]);
+              handleAddStop({ name: `Pin Stop (${lat.toFixed(3)}, ${lng.toFixed(3)})`, lat, lng, type: 'map_click' });
             }
           });
 
@@ -320,7 +322,7 @@ export default function EverythingMap({
   }, []);
 
   useEffect(() => {
-    if (!mapInstance || !navigator.geolocation) {
+    if (!mapInstance || !navigator.geolocation || (!useCurrentLocation && !locationTracking)) {
       if (!navigator.geolocation) setLocationError('Location is not supported by this browser.');
       return undefined;
     }
@@ -366,6 +368,7 @@ export default function EverythingMap({
     if (useCurrentLocation) {
       setUseCurrentLocation(false);
       setLocationTracking(false);
+      setCurrentLocation(null);
       return;
     }
     setUseCurrentLocation(true);
@@ -660,7 +663,7 @@ export default function EverythingMap({
       setRouteData(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDestId, travelMode, debouncedSource, destinations, stops, useCurrentLocation, currentLocation]);
+  }, [selectedDestId, travelMode, debouncedSource, destinations, stops, useCurrentLocation]);
 
   // Sync center prop updates
   useEffect(() => {
@@ -685,7 +688,7 @@ export default function EverythingMap({
       {/* 2-Row Ultra-Compact Floating Control Overlay */}
       {!loading && !error && (
         <MapControls
-          source={useCurrentLocation ? 'Current location' : source}
+           source={source}
           useCurrentLocation={useCurrentLocation}
           onChangeSource={setSource}
           destId={selectedDestId}
@@ -797,6 +800,8 @@ export default function EverythingMap({
       {mapInstance && mapsSDK && currentLocation && (
         <CurrentLocationLayer map={mapInstance} mapsSDK={mapsSDK} location={currentLocation} />
       )}
+
+      {mapInstance && mapsSDK && <StopMarkersLayer map={mapInstance} mapsSDK={mapsSDK} stops={stops} />}
 
       {mapInstance && mapsSDK && previewRouteData && (
         <RoutePolylineLayer

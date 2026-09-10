@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { usePlannerStore } from '../../store/usePlannerStore'
 import { useDestinationsStore } from '../../store/useDestinationsStore'
 import { downloadTravelBrief } from '../../lib/travelBrief'
+import { scorePercent } from '../pressure/scoreColor'
 import TripExperiencePanel from './TripExperiencePanel'
 
 // A stop is either a visit (its own name) or a hotel day-anchor (name nested
@@ -147,7 +148,7 @@ export default function TripSummaryPremium({ plan, onClose }) {
           <div className="mt-2 grid grid-cols-3 gap-2">
             {metric(ThermometerSun, weatherValue, weatherLabel, 'text-amber-500')}
             {metric(WalletCards, budgetValue, 'estimated', 'text-emerald-600')}
-            {metric(Gauge, trip.pressure?.score != null ? `${Math.round((1 - trip.pressure.score) * 100)}%` : 'Unavailable', 'trip score', 'text-emerald-600')}
+            {metric(Gauge, scorePercent(trip.pressure?.score) != null ? `${scorePercent(trip.pressure?.score)}%` : 'Unavailable', 'pressure', 'text-emerald-600')}
           </div>
 
           {trip.travel_tips && (

@@ -37,6 +37,7 @@ export default function RecommendationOverlay({ onHighlight, onPreviewRoute, swa
   const [preview, setPreview] = useState(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [aiInsight, setAiInsight] = useState(null)
+  const [activeAlternativeKind, setActiveAlternativeKind] = useState('place')
 
   const currentDestId = alternatives?.requested?.destId || request?.destId
   const currentDestination = destinations.find((item) => (item._id || item.id) === currentDestId)
@@ -46,32 +47,35 @@ export default function RecommendationOverlay({ onHighlight, onPreviewRoute, swa
   const suggestedDate = previewMode
     ? swapOffers?.date_swap?.candidate
     : alternatives?.dates?.[0]
-  const suggestion = suggestedPlace || suggestedDate
-  const suggestionDestId = suggestedPlace?.destId || currentDestId
+  const hasPlaceAlternative = Boolean(suggestedPlace)
+  const hasDateAlternative = Boolean(suggestedDate)
+  const activeKind = activeAlternativeKind === 'place' && !hasPlaceAlternative ? 'date' : activeAlternativeKind
+  const suggestion = activeKind === 'date' ? suggestedDate : suggestedPlace || suggestedDate
+  const suggestionDestId = activeKind === 'date' ? currentDestId : suggestedPlace?.destId || currentDestId
   const suggestedDestination = destinations.find((item) => (item._id || item.id) === suggestionDestId)
   const selectedAlternative = previewMode
     ? {
         destId: swapOffers?.destination_swap?.alternative_destination,
         startDate: swapOffers?.date_swap?.alternative_dates?.[0],
       }
-    : suggestedPlace
+    : activeKind === 'place' && suggestedPlace
       ? { destId: suggestedPlace.destId }
-      : suggestedDate
+      : activeKind === 'date' && suggestedDate
         ? { date: suggestedDate.startDate }
         : null
 
   const currentName = destinationName(currentDestination, currentDestId)
-  const suggestedName = suggestedPlace
+  const suggestedName = activeKind === 'place' && suggestedPlace
     ? (suggestedPlace.displayName || suggestedPlace.destId)
-    : suggestedDate
+    : activeKind === 'date' && suggestedDate
       ? `${currentName} - ${formatDate(suggestedDate.startDate)}`
       : 'No alternative found'
 
   const reason = useMemo(() => {
     if (!suggestion) return 'The current trip has a pressure signal, but no verified lower-pressure alternative was found.'
-    if (suggestedPlace) return `${suggestedName} matches your trip profile while reducing destination pressure.`
+    if (activeKind === 'place' && suggestedPlace) return `${suggestedName} matches your trip profile while reducing destination pressure.`
     return `The same destination is quieter on ${formatDate(suggestedDate.startDate)} and keeps your route familiar.`
-  }, [suggestion, suggestedPlace, suggestedDate, suggestedName])
+  }, [suggestion, suggestedPlace, suggestedDate, suggestedName, activeKind])
 
   useEffect(() => {
     if (!awaitingDecision || !request) return undefined
@@ -85,6 +89,10 @@ export default function RecommendationOverlay({ onHighlight, onPreviewRoute, swa
       .catch(() => {})
     return () => { active = false }
   }, [awaitingDecision, request, pressure, alternatives])
+
+  useEffect(() => {
+    setActiveAlternativeKind(suggestedPlace ? 'place' : 'date')
+  }, [suggestedPlace, suggestedDate])
 
   useEffect(() => () => { onPreviewRoute?.(null) }, [onPreviewRoute])
 
@@ -106,7 +114,7 @@ export default function RecommendationOverlay({ onHighlight, onPreviewRoute, swa
             api.get('/weather', { params: { lat: currentLocation.lat, lng: currentLocation.lng, date: request?.startDate } }),
             api.get('/places', { params: { query: `hotels in ${currentName}`, lat: currentLocation.lat, lng: currentLocation.lng, radiusMeters: 20000 } }),
           ]
-        : [Promise.resolve({ data: currentPressure }), Promise.resolve({ data: null }), Promise.resolve({ data: [] })]
+        : [Promise.resolve({ data: pressure }), Promise.resolve({ data: null }), Promise.resolve({ data: [] })]
       const alternativeRequests = [
         api.get(`/v1/pressure/${suggestionDestId}`, { params: { date: previewDate } }),
         api.get('/weather', { params: { lat: alternativeLocation.lat, lng: alternativeLocation.lng, date: previewDate } }),
@@ -190,6 +198,8 @@ export default function RecommendationOverlay({ onHighlight, onPreviewRoute, swa
           <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-bold uppercase text-slate-400">Current</p><p className="mt-1 truncate text-sm font-bold text-slate-800">{currentName}</p><p className="mt-1 flex items-center gap-1 text-xs text-rose-600"><ShieldCheck size={13} /> {Math.round((pressure?.score || 0) * 100)}% pressure</p></div>
           <div className="rounded-xl bg-emerald-50 p-3"><p className="text-[10px] font-bold uppercase text-emerald-600">Recommended</p><p className="mt-1 truncate text-sm font-bold text-slate-800">{suggestedName}</p>{suggestion && <p className="mt-1 flex items-center gap-1 text-xs text-emerald-700"><ArrowRight size={13} /> {suggestion.savingINR ? `Save Rs ${suggestion.savingINR.toLocaleString('en-IN')}` : 'Lower pressure'}</p>}</div>
         </div>
+
+        {!previewMode && hasPlaceAlternative && hasDateAlternative && <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-1"><button type="button" onClick={() => setActiveAlternativeKind('place')} className={`rounded-lg px-2 py-2 text-[11px] font-bold transition ${activeKind === 'place' ? 'bg-white text-[#6C63FF] shadow-sm' : 'text-slate-500'}`}>Quieter destination</button><button type="button" onClick={() => setActiveAlternativeKind('date')} className={`rounded-lg px-2 py-2 text-[11px] font-bold transition ${activeKind === 'date' ? 'bg-white text-[#6C63FF] shadow-sm' : 'text-slate-500'}`}>Quieter dates</button></div>}
 
         {(aiInsight?.reasons?.length > 0 || (previewMode && (swapOffers?.destination_swap?.reason?.length || swapOffers?.date_swap?.reason?.length))) && <ul className="space-y-1 rounded-xl bg-emerald-50/70 p-3">{(previewMode ? [...(swapOffers?.destination_swap?.reason || []), ...(swapOffers?.date_swap?.reason || [])] : aiInsight.reasons).filter((item, index, items) => items.indexOf(item) === index).map((item) => <li key={item} className="flex items-start gap-1.5 text-xs leading-5 text-emerald-900"><Check size={13} className="mt-0.5 shrink-0 text-emerald-600" aria-hidden="true" />{item}</li>)}</ul>}
         <p className="text-xs leading-5 text-slate-600">{aiInsight?.reason || reason}</p>

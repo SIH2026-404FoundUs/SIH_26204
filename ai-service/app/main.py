@@ -270,6 +270,8 @@ class PlanTripRequest(BaseModel):
     travellers: int = Field(ge=1, le=20)
     budgetINR: float = Field(gt=0)
     interests: Dict[str, float] = Field(default_factory=dict)
+    selectedHotel: Optional[dict] = None
+    stops: List[dict] = Field(default_factory=list)
 
     @field_validator("startDate", "endDate")
     @classmethod
@@ -919,6 +921,13 @@ async def _deterministic_summary(req: PlanTripRequest) -> dict:
         if isinstance(item, dict)
         if item.get("name")
     ]
+    if isinstance(req.selectedHotel, dict) and req.selectedHotel.get("name"):
+        selected = {
+            "name": req.selectedHotel.get("name"),
+            "rating": req.selectedHotel.get("rating"),
+            **_photo_fields(req.selectedHotel),
+        }
+        hotels = [selected] + [hotel for hotel in hotels if hotel.get("name") != selected["name"]]
     # A provider failure and a genuine empty result both arrive as an empty
     # list further down, so capture the distinction here while the envelope
     # is still intact.
@@ -940,7 +949,7 @@ async def _deterministic_summary(req: PlanTripRequest) -> dict:
     _note_lookup_failure(results[2], "Attractions")
 
     stop_items = _place_items(stops_raw)
-    stops = [
+    provider_stops = [
         {
             "name": item.get("name"),
             "lat": item.get("lat"),
@@ -956,6 +965,8 @@ async def _deterministic_summary(req: PlanTripRequest) -> dict:
     # Keep enough attractions for morning/afternoon/evening blocks. The old
     # one-stop-per-day cap was the reason a three-day trip could only ever show
     # start/end plus one visit per day.
+    requested_stops = _place_items(req.stops)
+    stops = requested_stops or provider_stops
     stops = stops[:trip_days * 3]
     if not stops:
         stops = _curated_fallback_stops(req.destId, destination, lat, lng)

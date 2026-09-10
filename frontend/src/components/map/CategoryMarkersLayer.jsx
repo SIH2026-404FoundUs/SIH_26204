@@ -92,17 +92,26 @@ export default function CategoryMarkersLayer({
           { _id: 'serv_1', name: 'Certified Local Guides & Craft Center', type: 'localServices', capacity: 15, price: '₹500 / day', lat: baseLat + 0.007, lng: baseLng - 0.004 }
         ]
       };
+      // Render only businesses returned by the API. The old synthetic pins
+      // made empty server results look like verified hotels, restaurants and
+      // attractions on the map.
+      const verifiedCategoryMap = Object.fromEntries(
+        Object.entries(categoryMap).map(([key, items]) => [
+          key,
+          items.filter((item) => !String(item._id || '').match(/^(stay|food|attr|trans|serv)_/)),
+        ])
+      );
 
       const bounds = new mapsSDK.LatLngBounds();
       let totalMarkers = 0;
       const hasAdvancedMarkers = mapsSDK.marker && typeof mapsSDK.marker.AdvancedMarkerElement === 'function';
 
       // Step 2: Render markers for visible categories
-      Object.keys(categoryMap).forEach((categoryKey) => {
+      Object.keys(verifiedCategoryMap).forEach((categoryKey) => {
         if (!visibleCategories[categoryKey]) return;
 
         const style = CATEGORY_STYLES[categoryKey];
-        const items = categoryMap[categoryKey];
+        const items = verifiedCategoryMap[categoryKey];
 
         items.forEach((item, index) => {
           const lat = item.lat || (item.location?.lat ?? baseLat + (index * 0.004 - 0.008));

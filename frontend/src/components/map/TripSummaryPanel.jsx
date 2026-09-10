@@ -2,6 +2,7 @@ import { CalendarDays, CheckCircle2, Download, Hotel, Loader2, Route, Sparkles, 
 import { useState } from 'react'
 import { usePlannerStore } from '../../store/usePlannerStore'
 import { downloadTravelBrief } from '../../lib/travelBrief'
+import { scorePercent } from '../pressure/scoreColor'
 
 export default function TripSummaryPanel({ plan, onClose }) {
   const request = usePlannerStore((state) => state.request)
@@ -46,7 +47,7 @@ export default function TripSummaryPanel({ plan, onClose }) {
       <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
         <div className="rounded-lg bg-slate-50 p-2"><ThermometerSun size={14} className="text-amber-500" /><span className="mt-1 block font-semibold text-slate-700">{trip.weather?.maxTemp != null ? `${trip.weather.maxTemp}°` : 'Weather ready'}</span></div>
         <div className="rounded-lg bg-slate-50 p-2"><WalletCards size={14} className="text-emerald-600" /><span className="mt-1 block font-semibold text-slate-700">{trip.costBreakdown?.grandTotal ? `₹${Number(trip.costBreakdown.grandTotal).toLocaleString('en-IN')}` : 'Budget checked'}</span></div>
-        <div className="rounded-lg bg-slate-50 p-2"><CheckCircle2 size={14} className="text-emerald-600" /><span className="mt-1 block font-semibold text-slate-700">{trip.pressure?.score != null ? `${Math.round((1 - trip.pressure.score) * 100)}% score` : 'Verified data'}</span></div>
+        <div className="rounded-lg bg-slate-50 p-2"><CheckCircle2 size={14} className="text-emerald-600" /><span className="mt-1 block font-semibold text-slate-700">{scorePercent(trip.pressure?.score) != null ? `${scorePercent(trip.pressure?.score)}% pressure` : 'Verified data'}</span></div>
       </div>
       {plan.redistribution?.kind && plan.redistribution.kind !== 'none' && <p className="mt-3 rounded-lg bg-emerald-50 p-2 text-xs font-semibold text-emerald-700">Plan switched to a lower-pressure {plan.redistribution.kind === 'place' ? 'destination' : 'date'}.</p>}
       {briefError && <p className="mt-2 text-xs font-semibold text-rose-600">{briefError}</p>}

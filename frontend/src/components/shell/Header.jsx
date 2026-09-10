@@ -59,6 +59,7 @@ const TRAVELLER_MORE = [
 // own businesses (GET /v1/analytics/operator) -- never per-traveller
 // identity, only counts.
 const OPERATOR_PRIMARY_BASE = [
+  { to: '/operator', label: 'Operator Console', icon: Wrench },
   { to: '/register-business', label: 'Register Business', icon: Store },
   { to: '/hire-people', label: 'Hire People', icon: Users },
   { to: '/operator/waitlist', label: 'Waitlist & Offers', icon: Tag },
