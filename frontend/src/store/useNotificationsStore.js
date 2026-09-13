@@ -1,5 +1,35 @@
 import { create } from 'zustand'
 import api, { getErrorMessage } from '../lib/api'
+import { useAuthStore } from './useAuthStore'
+
+// "Read" tracking for the header bell's badge -- these notifications are
+// composed live from three other collections (alerts/offers/waitlist, see
+// below), there's no persisted Notification row of our own to stamp a
+// readAt onto. Read state is therefore an id set kept in this browser's
+// localStorage, scoped per user (so a shared machine doesn't leak one
+// account's read state into another's), which is all "the badge clears once
+// you've actually looked at them" needs -- it doesn't need to survive a
+// user switching devices.
+function readIdsKey() {
+  const userId = useAuthStore.getState().authUser?._id
+  return `sahyatri:notifications:read:${userId || 'anon'}`
+}
+
+function loadReadIds() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(readIdsKey()) || '[]'))
+  } catch {
+    return new Set()
+  }
+}
+
+function saveReadIds(ids) {
+  try {
+    localStorage.setItem(readIdsKey(), JSON.stringify([...ids]))
+  } catch {
+    // Private browsing / storage disabled -- badge just won't persist across reloads, not fatal.
+  }
+}
 
 // Notifications replace the old explicit "Travel Alerts" nav item, and now
 // also surface offers and waitlist activity (spec: "notifications must come
@@ -24,8 +54,9 @@ import api, { getErrorMessage } from '../lib/api'
 // 3. Waitlist status -- the same endpoint also includes a "fulfilled" entry
 //    once a waitlist has been claimed through, so a status change is
 //    visible here too, not just the original match moment.
-export const useNotificationsStore = create((set) => ({
+export const useNotificationsStore = create((set, get) => ({
   notifications: [],
+  unreadCount: 0,
   isLoading: false,
   error: null,
 
@@ -81,11 +112,26 @@ export const useNotificationsStore = create((set) => ({
       // Most recent first, across all three sources.
       notifications.sort((a, b) => new Date(b.sentAt || 0) - new Date(a.sentAt || 0))
 
-      set({ notifications })
+      const readIds = loadReadIds()
+      const unreadCount = notifications.filter((n) => !readIds.has(n.id)).length
+
+      set({ notifications, unreadCount })
     } catch (error) {
       set({ error: getErrorMessage(error, 'Could not load notifications') })
     } finally {
       set({ isLoading: false })
     }
+  },
+
+  // Called when the bell dropdown opens or the full /notifications page
+  // loads -- "you've looked at these now" clears the badge without waiting
+  // for the next poll. New notifications that arrive afterwards (a fresh
+  // poll bringing an id not yet in the read set) bring the badge straight
+  // back, since only ids seen so far get marked.
+  markAllRead: () => {
+    const readIds = loadReadIds()
+    for (const n of get().notifications) readIds.add(n.id)
+    saveReadIds(readIds)
+    set({ unreadCount: 0 })
   },
 }))

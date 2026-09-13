@@ -125,12 +125,12 @@ function WaitlistFulfilledCard({ n }) {
 }
 
 export default function Notifications() {
-  const { notifications, isLoading, error, fetchNotifications } = useNotificationsStore()
+  const { notifications, isLoading, error, fetchNotifications, markAllRead } = useNotificationsStore()
   const { claimOffer, declineOfferNotification, marketError } = useTrustStore()
 
   useEffect(() => {
-    fetchNotifications()
-  }, [fetchNotifications])
+    fetchNotifications().then(markAllRead) // landing here directly (not via the bell) should still clear the badge
+  }, [fetchNotifications, markAllRead])
 
   async function handleRespond(action, n) {
     if (action === 'accept') {

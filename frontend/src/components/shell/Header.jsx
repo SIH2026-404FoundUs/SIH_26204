@@ -11,6 +11,7 @@ import { useOperatorStore } from '../../store/useOperatorStore'
 import { useNotificationsStore } from '../../store/useNotificationsStore'
 import { getDestinationLabel } from '../../lib/destinations'
 import { alertSeverity, alertKindLabel } from '../../lib/labels'
+import { timeAgo } from '../../lib/time'
 
 // One nav model per role drives the desktop bar, the "More" menu, and the
 // mobile sheet, so all three can never drift out of sync with each other.
@@ -171,17 +172,6 @@ function ProfileMenu() {
 
 const NOTIFICATION_POLL_MS = 15_000 // matches the operator/authority pages' own polling cadence
 
-function notificationTimeAgo(dateString) {
-  if (!dateString) return ''
-  const seconds = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000)
-  const units = [['y', 31536000], ['mo', 2592000], ['d', 86400], ['h', 3600], ['m', 60]]
-  for (const [label, secs] of units) {
-    const value = Math.floor(seconds / secs)
-    if (value >= 1) return `${value}${label} ago`
-  }
-  return 'just now'
-}
-
 // One-line summary per notification type -- the full page (Notifications.jsx)
 // still owns the complete card, source link, and accept/reject actions; this
 // is deliberately a compact preview so the dropdown stays scannable, not a
@@ -220,7 +210,9 @@ function notificationSummary(n) {
 // {silent} so the badge updates without flashing a loading state.
 function NotificationBell() {
   const notifications = useNotificationsStore((state) => state.notifications)
+  const unreadCount = useNotificationsStore((state) => state.unreadCount)
   const fetchNotifications = useNotificationsStore((state) => state.fetchNotifications)
+  const markAllRead = useNotificationsStore((state) => state.markAllRead)
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -236,22 +228,26 @@ function NotificationBell() {
     return () => document.removeEventListener('click', close)
   }, [open])
 
-  const count = notifications.length
-
   return (
     <div className="relative" onClick={(e) => e.stopPropagation()}>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setOpen((v) => {
+            const next = !v
+            if (next) markAllRead() // opening the dropdown counts as "seen" -- badge clears immediately
+            return next
+          })
+        }}
         className="relative flex h-9 w-9 items-center justify-center rounded-lg text-ink/70 transition hover:bg-ink/5"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={count > 0 ? `Notifications, ${count} new` : 'Notifications'}
+        aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} new` : 'Notifications'}
       >
         <Bell size={19} aria-hidden="true" />
-        {count > 0 && (
+        {unreadCount > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-pressure px-1 text-[10px] font-bold leading-none text-paper">
-            {count > 9 ? '9+' : count}
+            {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
@@ -278,7 +274,7 @@ function NotificationBell() {
                       <span className="block truncate text-xs font-semibold text-ink">{title}</span>
                       <span className="block truncate text-xs text-ash">{detail}</span>
                     </span>
-                    <span className="shrink-0 text-[10px] text-ash">{notificationTimeAgo(n.sentAt)}</span>
+                    <span className="shrink-0 text-[10px] text-ash">{timeAgo(n.sentAt)}</span>
                   </Link>
                 )
               })
