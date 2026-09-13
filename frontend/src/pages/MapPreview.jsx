@@ -12,10 +12,20 @@ import EverythingMap from '../components/map/EverythingMap';
  * purpose: PageHeader's own bottom margin would eat into the map's already
  * viewport-constrained height, and this page has no description line to
  * carry -- the map is the entire point of the page.
+ *
+ * md:pl-72 matches the exact offset Guards.jsx's <Page> applies for every
+ * other authenticated route -- this route uses RequireAuthBare instead of
+ * RequireAuth specifically so it can render its own full-bleed <main>
+ * without Page's centred max-w-3xl/6xl wrapper, but it still sits behind
+ * the same fixed, always-on-top workspace sidebar (Header.jsx's <aside>,
+ * w-64/z-40) as every other page, and skipping RequireAuthBare's own
+ * wrapper doesn't skip that sidebar. Without this, the header title, the
+ * floating trip-planner command bar, and the map canvas all rendered
+ * partly underneath the sidebar instead of only starting to its right.
  */
 export default function MapPreview() {
   return (
-    <main className="flex-1 bg-paper px-3 py-3 sm:px-4 flex flex-col h-[calc(100vh-65px)] overflow-hidden">
+    <main className="flex-1 bg-paper px-3 py-3 sm:px-4 md:pl-72 flex flex-col h-[calc(100vh-65px)] overflow-hidden">
       <div className="mx-auto w-full max-w-[98vw] flex flex-col flex-1">
         <div className="flex flex-wrap items-center justify-between gap-2 px-2 py-2">
           <div className="flex items-center gap-2.5">
