@@ -25,26 +25,30 @@ import { alertSeverity, alertKindLabel } from '../../lib/labels'
 // Primary bar is Home/Maps/Community Forum -- Profile stays reachable via
 // the existing account menu (ProfileMenu) instead of duplicating it here.
 // Community Forum was promoted out of More into the primary bar itself (a
-// traveller shouldn't need an extra click for it). More leads with
-// Available Services/Suggest a Place/Verify a Visit/Safety, then Offers &
-// Waitlist. Notifications moved out of here entirely into a bell button in
-// the header itself (badge shows the live count, NotificationBell below);
-// My Trips moved out of the primary bar into the ProfileMenu dropdown,
-// directly under the Profile link -- both were relocated, not removed, so
-// they're still one click away, just under the account cluster they
-// logically belong to instead of taking a full nav slot.
+// traveller shouldn't need an extra click for it). More is ordered by when a
+// traveller actually needs each one, not alphabetically: Available Services
+// and Offers & Waitlist are both discovery/what-to-book actions so they lead;
+// the Multimodal agent is an anytime helper that fits right after; Suggest a
+// Place is a contribution action (usually after exploring/visiting somewhere);
+// Verify a Visit and Safety are in-trip support, so they close out the list.
+// Notifications moved out of here entirely into a bell button in the header
+// itself (badge shows the live count, NotificationBell below); My Trips moved
+// out of the primary bar into the ProfileMenu dropdown, directly under the
+// Profile link -- both were relocated, not removed, so they're still one
+// click away, just under the account cluster they logically belong to
+// instead of taking a full nav slot.
 const TRAVELLER_PRIMARY = [
   { to: '/home', label: 'Plan a trip', icon: Compass },
   { to: '/map', label: 'One Map', icon: MapIcon },
   { to: '/forum', label: 'Community Forum', icon: Users },
 ]
 const TRAVELLER_MORE = [
-  { to: '/multimodal-agent', label: 'Multimodal agent', icon: Bot },
   { to: '/services', label: 'Available Services', icon: Wrench },
+  { to: '/offers', label: 'Offers & Waitlist', icon: Tag },
+  { to: '/multimodal-agent', label: 'Multimodal agent', icon: Bot },
   { to: '/community', label: 'Suggest a Place', icon: MapPinned },
   { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
   { to: '/safety', label: 'Safety', icon: ShieldCheck },
-  { to: '/offers', label: 'Offers & Waitlist', icon: Tag },
 ]
 // Operator primary bar trimmed to exactly the five post-login features, no
 // More section (same pattern as Authority below), no Profile (reachable via
