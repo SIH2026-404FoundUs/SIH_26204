@@ -29,8 +29,9 @@ export const useNotificationsStore = create((set) => ({
   isLoading: false,
   error: null,
 
-  fetchNotifications: async () => {
-    set({ isLoading: true, error: null })
+  fetchNotifications: async ({ silent = false } = {}) => {
+    if (!silent) set({ isLoading: true })
+    set({ error: null })
     try {
       const tripsRes = await api.get('/v1/trips')
       const trips = tripsRes.data || []

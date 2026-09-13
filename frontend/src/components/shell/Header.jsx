@@ -3,11 +3,14 @@ import {
   Loader2, LogOut, Menu, X, ChevronDown, Compass, MapPinned,
   ShieldCheck, Store, Route, UserRound, Wrench, Landmark,
   Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users, Bot,
-  PanelLeftClose, PanelLeftOpen,
+  PanelLeftClose, PanelLeftOpen, CheckCircle2,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useOperatorStore } from '../../store/useOperatorStore'
+import { useNotificationsStore } from '../../store/useNotificationsStore'
+import { getDestinationLabel } from '../../lib/destinations'
+import { alertSeverity, alertKindLabel } from '../../lib/labels'
 
 // One nav model per role drives the desktop bar, the "More" menu, and the
 // mobile sheet, so all three can never drift out of sync with each other.
@@ -18,21 +21,21 @@ import { useOperatorStore } from '../../store/useOperatorStore'
 // (App.jsx), removed only from navigation. Businesses' traveller-facing
 // functionality moved under More -> Available Services, scoped to the
 // driver/guide/guesthouse business types; Community was renamed (and its
-// UX rebuilt) to Suggest a Place; Alerts was replaced by Notifications,
-// which filters the same verified-alert data down to what's relevant to
-// the traveller's own planned trips instead of showing every alert to
-// everyone. Primary bar is Home/Maps/My Trips/Community Forum -- Profile
-// stays reachable via the existing account menu (ProfileMenu) instead of
-// duplicating it here. Community Forum was promoted out of More into the
-// primary bar itself (a traveller shouldn't need an extra click for it).
-// More leads with Available Services/Suggest a Place/Verify a
-// Visit/Safety, then Notifications, then Offers & Waitlist (unchanged
-// page -- travellers see offers operators have posted and join a
-// waitlist, same as before it was hidden from nav).
+// UX rebuilt) to Suggest a Place; Alerts was replaced by Notifications.
+// Primary bar is Home/Maps/Community Forum -- Profile stays reachable via
+// the existing account menu (ProfileMenu) instead of duplicating it here.
+// Community Forum was promoted out of More into the primary bar itself (a
+// traveller shouldn't need an extra click for it). More leads with
+// Available Services/Suggest a Place/Verify a Visit/Safety, then Offers &
+// Waitlist. Notifications moved out of here entirely into a bell button in
+// the header itself (badge shows the live count, NotificationBell below);
+// My Trips moved out of the primary bar into the ProfileMenu dropdown,
+// directly under the Profile link -- both were relocated, not removed, so
+// they're still one click away, just under the account cluster they
+// logically belong to instead of taking a full nav slot.
 const TRAVELLER_PRIMARY = [
   { to: '/home', label: 'Plan a trip', icon: Compass },
   { to: '/map', label: 'One Map', icon: MapIcon },
-  { to: '/trips', label: 'My Trips', icon: Route },
   { to: '/forum', label: 'Community Forum', icon: Users },
 ]
 const TRAVELLER_MORE = [
@@ -41,7 +44,6 @@ const TRAVELLER_MORE = [
   { to: '/community', label: 'Suggest a Place', icon: MapPinned },
   { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
   { to: '/safety', label: 'Safety', icon: ShieldCheck },
-  { to: '/notifications', label: 'Notifications', icon: Bell },
   { to: '/offers', label: 'Offers & Waitlist', icon: Tag },
 ]
 // Operator primary bar trimmed to exactly the five post-login features, no
@@ -148,6 +150,7 @@ function ProfileMenu() {
             Signed in as <span className="text-ink/80">{ROLE_LABEL[authUser.role] || authUser.role}</span>
           </div>
           <NavLink to="/profile" label="Profile" icon={UserRound} onClick={() => setOpen(false)} />
+          {authUser.role === 'traveller' && <NavLink to="/trips" label="My Trips" icon={Route} onClick={() => setOpen(false)} />}
           <button
             type="button"
             onClick={() => { setOpen(false); logout() }}
@@ -156,6 +159,134 @@ function ProfileMenu() {
             <LogOut size={16} aria-hidden="true" />
             Log out
           </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const NOTIFICATION_POLL_MS = 15_000 // matches the operator/authority pages' own polling cadence
+
+function notificationTimeAgo(dateString) {
+  if (!dateString) return ''
+  const seconds = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000)
+  const units = [['y', 31536000], ['mo', 2592000], ['d', 86400], ['h', 3600], ['m', 60]]
+  for (const [label, secs] of units) {
+    const value = Math.floor(seconds / secs)
+    if (value >= 1) return `${value}${label} ago`
+  }
+  return 'just now'
+}
+
+// One-line summary per notification type -- the full page (Notifications.jsx)
+// still owns the complete card, source link, and accept/reject actions; this
+// is deliberately a compact preview so the dropdown stays scannable, not a
+// second copy of that page's logic.
+function notificationSummary(n) {
+  if (n.type === 'offer') {
+    const offer = n.offer
+    return {
+      icon: Tag,
+      tone: 'text-pressure bg-pressure/10',
+      title: `Flash offer near ${getDestinationLabel(n.destId)}`,
+      detail: offer ? `${offer.discountPct ? `${offer.discountPct}% off` : 'Discounted'} · ₹${offer.effectivePrice ?? offer.originalPrice}` : 'You were on the waitlist when this opened.',
+    }
+  }
+  if (n.type === 'waitlist_fulfilled') {
+    return {
+      icon: CheckCircle2,
+      tone: 'text-relief bg-relief/10',
+      title: `Waitlist fulfilled near ${getDestinationLabel(n.destId)}`,
+      detail: 'You claimed an offer here.',
+    }
+  }
+  const severity = alertSeverity(n.severity)
+  return {
+    icon: Bell,
+    tone: `${severity.tone === 'danger' ? 'text-pressure' : 'text-ink/70'} bg-ink/5`,
+    title: `Update for your ${getDestinationLabel(n.destId)} trip`,
+    detail: `${alertKindLabel(n.kind)} · ${n.body || ''}`,
+  }
+}
+
+// The bell lives in the header itself now (not a nav-menu entry) so the
+// unread-style count is visible on every page, not just after navigating to
+// /notifications -- polls the same three-source feed
+// (alerts/offers/waitlist) Notifications.jsx's own full page reads,
+// {silent} so the badge updates without flashing a loading state.
+function NotificationBell() {
+  const notifications = useNotificationsStore((state) => state.notifications)
+  const fetchNotifications = useNotificationsStore((state) => state.fetchNotifications)
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    fetchNotifications()
+    const interval = setInterval(() => fetchNotifications({ silent: true }), NOTIFICATION_POLL_MS)
+    return () => clearInterval(interval)
+  }, [fetchNotifications])
+
+  useEffect(() => {
+    if (!open) return
+    const close = () => setOpen(false)
+    document.addEventListener('click', close)
+    return () => document.removeEventListener('click', close)
+  }, [open])
+
+  const count = notifications.length
+
+  return (
+    <div className="relative" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="relative flex h-9 w-9 items-center justify-center rounded-lg text-ink/70 transition hover:bg-ink/5"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={count > 0 ? `Notifications, ${count} new` : 'Notifications'}
+      >
+        <Bell size={19} aria-hidden="true" />
+        {count > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-pressure px-1 text-[10px] font-bold leading-none text-paper">
+            {count > 9 ? '9+' : count}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div role="menu" className="glass-surface absolute right-0 z-20 mt-1 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl shadow-lg">
+          <div className="border-b border-paper-dim px-3 py-2.5 text-sm font-semibold text-ink">Notifications</div>
+          <div className="max-h-80 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <p className="px-3 py-6 text-center text-xs text-ash">No updates right now.</p>
+            ) : (
+              notifications.slice(0, 8).map((n) => {
+                const { icon: Icon, tone, title, detail } = notificationSummary(n)
+                return (
+                  <Link
+                    key={n.id}
+                    to="/notifications"
+                    onClick={() => setOpen(false)}
+                    className="flex items-start gap-2.5 px-3 py-2.5 transition hover:bg-ink/5"
+                  >
+                    <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${tone}`}>
+                      <Icon size={14} aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-semibold text-ink">{title}</span>
+                      <span className="block truncate text-xs text-ash">{detail}</span>
+                    </span>
+                    <span className="shrink-0 text-[10px] text-ash">{notificationTimeAgo(n.sentAt)}</span>
+                  </Link>
+                )
+              })
+            )}
+          </div>
+          <Link
+            to="/notifications"
+            onClick={() => setOpen(false)}
+            className="block border-t border-paper-dim px-3 py-2.5 text-center text-xs font-semibold text-pressure hover:bg-pressure/5"
+          >
+            View all notifications
+          </Link>
         </div>
       )}
     </div>
@@ -231,6 +362,7 @@ export default function Header() {
 
         <div className="hidden items-center gap-3 md:flex">
           {authUser && <span className="text-sm text-ink/50">{location.pathname === '/map' ? 'Your live travel map' : location.pathname === '/home' ? 'Plan your next escape' : 'Your travel workspace'}</span>}
+          {authUser && <NotificationBell />}
           <span className="mx-1 h-7 w-px bg-paper-dim" aria-hidden="true" />
           {authUser ? (
             <ProfileMenu />
@@ -244,16 +376,21 @@ export default function Header() {
           )}
         </div>
 
-        {/* Mobile toggle */}
-        <button
-          type="button"
-          onClick={() => setMobileOpen((v) => !v)}
-          className="rounded-xl border border-paper-dim bg-white p-2.5 text-ink/70 shadow-sm hover:bg-paper-dim md:hidden"
-          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={mobileOpen}
-        >
-          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        {/* Mobile: bell stays reachable even though the rest of the account
+            cluster collapses into the sheet below, matching how it's always
+            visible (not tucked into a menu) on desktop. */}
+        <div className="flex items-center gap-2 md:hidden">
+          {authUser && <NotificationBell />}
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            className="rounded-xl border border-paper-dim bg-white p-2.5 text-ink/70 shadow-sm hover:bg-paper-dim"
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile sheet */}
@@ -266,18 +403,25 @@ export default function Header() {
           </div>
           <div className="mt-3 border-t border-paper-dim pt-3">
             {authUser ? (
-              <div className="flex items-center justify-between">
-                <button type="button" onClick={() => navigate('/profile')} className="text-sm font-medium text-ink/80">
-                  {authUser.fullName} &middot; {ROLE_LABEL[authUser.role] || authUser.role}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => useAuthStore.getState().logout()}
-                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-pressure"
-                >
-                  <LogOut size={16} aria-hidden="true" /> Log out
-                </button>
-              </div>
+              <>
+                {authUser.role === 'traveller' && (
+                  <button type="button" onClick={() => navigate('/trips')} className="mb-2 flex w-full items-center gap-2 rounded-lg px-1 py-1.5 text-sm font-medium text-ink/70">
+                    <Route size={16} aria-hidden="true" /> My Trips
+                  </button>
+                )}
+                <div className="flex items-center justify-between">
+                  <button type="button" onClick={() => navigate('/profile')} className="text-sm font-medium text-ink/80">
+                    {authUser.fullName} &middot; {ROLE_LABEL[authUser.role] || authUser.role}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => useAuthStore.getState().logout()}
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-pressure"
+                  >
+                    <LogOut size={16} aria-hidden="true" /> Log out
+                  </button>
+                </div>
+              </>
             ) : (
               <div className="flex gap-2">
                 <Link to="/signin" className="flex-1">
