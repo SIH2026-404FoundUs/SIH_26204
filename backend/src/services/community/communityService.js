@@ -458,23 +458,92 @@ export async function getApprovedSubmissions({ state, limit, viewerUserId } = {}
   if (limit) query.limit(Number(limit));
   const docs = await query;
 
-  // Reshape likedBy/dislikedBy into counts + this viewer's own reaction --
-  // the raw userId arrays never leave this function, keeping the forum
-  // anonymous the same way userId itself is already excluded above.
+  // Recording a view is a side effect of a GET, which is unusual, but there
+  // is no separate "open this post" moment in a card-grid feed the way
+  // there is for e.g. a blog post page -- appearing in a logged-in
+  // traveller's feed fetch IS the view. Only counted once per viewer per
+  // post ($addToSet is a no-op on repeat fetches), and skipped entirely for
+  // anonymous/logged-out reads (nothing to attribute the view to) -- doesn't
+  // block the response, a slow write here shouldn't slow down the feed.
   const uid = viewerUserId ? String(viewerUserId) : null;
+  if (uid && docs.length > 0) {
+    CommunitySubmissionModel.updateMany(
+      { _id: { $in: docs.map((d) => d._id) } },
+      { $addToSet: { viewedBy: uid } }
+    ).catch(() => {}); // best-effort -- a failed view-count write must never break the feed itself
+  }
+
+  // Reshape likedBy/dislikedBy/viewedBy/comments into anonymized
+  // counts/lists + this viewer's own reaction -- the raw userId arrays
+  // never leave this function (except each comment's own author check),
+  // keeping the forum anonymous the same way userId itself is already
+  // excluded above.
   return docs.map((doc) => {
     const obj = doc.toObject();
     const likedBy = obj.likedBy || [];
     const dislikedBy = obj.dislikedBy || [];
+    const viewedBy = obj.viewedBy || [];
+    const comments = obj.comments || [];
     delete obj.likedBy;
     delete obj.dislikedBy;
+    delete obj.viewedBy;
     return {
       ...obj,
       likeCount: likedBy.length,
       dislikeCount: dislikedBy.length,
       myReaction: uid ? (likedBy.includes(uid) ? "like" : dislikedBy.includes(uid) ? "dislike" : null) : null,
+      viewCount: uid && !viewedBy.includes(uid) ? viewedBy.length + 1 : viewedBy.length,
+      commentCount: comments.length,
+      comments: comments
+        .map((c) => ({ _id: c._id, text: c.text, createdAt: c.createdAt, isMine: uid ? c.userId === uid : false }))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
     };
   });
+}
+
+/**
+ * Add a comment to an approved Community Forum submission. Same
+ * "approved only" guard as reactToSubmission -- nothing still in the
+ * review queue is reachable from the forum, so there's nothing to comment
+ * on there.
+ *
+ * @param {string} submissionId - Target submission ID.
+ * @param {string} userId - Commenting user's ID.
+ * @param {string} text - Comment body (1-500 chars).
+ * @param {Object} [models] - Database models (CommunitySubmissionModel).
+ * @returns {Promise<Object>} Result with the new comment + updated comment count.
+ */
+export async function addCommentToSubmission(submissionId, userId, text, models = {}) {
+  const { CommunitySubmissionModel } = models;
+  const trimmed = (text || "").trim();
+
+  if (!submissionId || !userId || !trimmed) {
+    return { success: false, status: 400, error: "INVALID_COMMENT", message: "Comment text is required" };
+  }
+  if (trimmed.length > 500) {
+    return { success: false, status: 400, error: "COMMENT_TOO_LONG", message: "Comments are limited to 500 characters" };
+  }
+  if (!CommunitySubmissionModel || typeof CommunitySubmissionModel.findById !== "function") {
+    return { success: false, status: 500, error: "MODEL_UNAVAILABLE", message: "Could not post comment" };
+  }
+
+  const submission = await CommunitySubmissionModel.findById(submissionId);
+  if (!submission || submission.status !== "approved") {
+    return { success: false, status: 404, error: "SUBMISSION_NOT_FOUND", message: "Approved submission not found" };
+  }
+
+  const uid = String(userId);
+  const comment = { userId: uid, text: trimmed, createdAt: new Date() };
+  submission.comments.push(comment);
+  await submission.save();
+
+  const saved = submission.comments[submission.comments.length - 1];
+  return {
+    success: true,
+    status: 201,
+    comment: { _id: saved._id, text: saved.text, createdAt: saved.createdAt, isMine: true },
+    commentCount: submission.comments.length,
+  };
 }
 
 /**

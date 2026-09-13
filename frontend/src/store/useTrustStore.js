@@ -144,6 +144,31 @@ export const useTrustStore = create((set, get) => ({
     }
   },
 
+  // Comment on a forum post. Not optimistic like reactToPost -- a comment's
+  // real _id/createdAt only exist once the server assigns them, and there's
+  // nothing meaningful to show before that (unlike a vote count, which can
+  // be computed client-side in advance).
+  isCommenting: false,
+  commentOnPost: async (postId, text) => {
+    set({ isCommenting: true, forumError: null })
+    try {
+      const res = await api.post(`/community/submissions/${postId}/comments`, { text })
+      set({
+        forumPosts: get().forumPosts.map((p) =>
+          p._id === postId
+            ? { ...p, comments: [res.data.comment, ...(p.comments || [])], commentCount: res.data.commentCount }
+            : p
+        ),
+      })
+      return true
+    } catch (error) {
+      set({ forumError: getErrorMessage(error, 'Could not post your comment') })
+      return false
+    } finally {
+      set({ isCommenting: false })
+    }
+  },
+
   nearbySuggestionCount: null,
   fetchNearbySuggestionCount: async (destId) => {
     if (!destId) return

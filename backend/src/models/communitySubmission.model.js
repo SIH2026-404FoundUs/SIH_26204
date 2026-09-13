@@ -38,6 +38,24 @@ const communitySubmissionSchema = new mongoose.Schema(
     // Waitlist's declinedDestinations elsewhere in this codebase.
     likedBy: { type: [String], default: [] },
     dislikedBy: { type: [String], default: [] },
+    // Community Forum "views" -- userIds only, same anonymized-count
+    // pattern as likedBy/dislikedBy: one entry per unique viewer (added the
+    // first time their feed fetch includes this post), so the count means
+    // "N travellers have seen this", not "N page loads".
+    viewedBy: { type: [String], default: [] },
+    // Community Forum comments -- short free-text replies, anonymized the
+    // same way the post itself is (userId never leaves the API response,
+    // only used server-side to mark a viewer's own comment as `isMine`).
+    comments: {
+      type: [
+        {
+          userId: { type: String, required: true },
+          text: { type: String, required: true, trim: true, maxlength: 500 },
+          createdAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );

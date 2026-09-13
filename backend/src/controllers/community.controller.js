@@ -7,6 +7,7 @@ import {
   getApprovedSubmissions,
   countNearbySuggestions,
   reactToSubmission,
+  addCommentToSubmission,
 } from "../services/community/communityService.js";
 import { getDestination } from "../services/pressure/seed.js";
 import Visit from "../models/visit.model.js";
@@ -156,6 +157,21 @@ export const reactToSubmissionController = async (req, res) => {
     res.status(result.status).json(result);
   } catch (error) {
     console.log("Error in reactToSubmission controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// POST /community/submissions/:id/comments  { text } -- Community Forum
+// comments. Requires a real signed-in user for the same reason a reaction
+// does (attributable to exactly one account); every authenticated role may
+// comment, matching /forum's RequireAuth (not RequireRole) gate.
+export const addCommentController = async (req, res) => {
+  try {
+    const { text } = req.body;
+    const result = await addCommentToSubmission(req.params.id, String(req.user._id), text, models);
+    res.status(result.status).json(result);
+  } catch (error) {
+    console.log("Error in addComment controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

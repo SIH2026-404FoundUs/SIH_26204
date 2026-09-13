@@ -8,6 +8,7 @@ import {
   getNearbySuggestionCountController,
   reviewSubmissionController,
   reactToSubmissionController,
+  addCommentController,
   uploadPhotosMiddleware,
   uploadPhotosController,
 } from "../controllers/community.controller.js";
@@ -27,5 +28,6 @@ router.get("/submissions/approved", optionalAuth, getApprovedSubmissionsControll
 router.get("/nearby-count", getNearbySuggestionCountController);
 router.post("/submissions/:id/review", protectRoute, reviewSubmissionController);
 router.post("/submissions/:id/react", protectRoute, reactToSubmissionController);
+router.post("/submissions/:id/comments", protectRoute, addCommentController);
 
 export default router;
