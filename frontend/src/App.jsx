@@ -18,6 +18,7 @@ import HirePeople from './components/operator/HirePeople'
 import OperatorWaitlistOffers from './components/operator/OperatorWaitlistOffers'
 import OperatorAnalytics from './components/operator/OperatorAnalytics'
 import OperatorVerifyVisit from './components/operator/OperatorVerifyVisit'
+import ContentGenerator from './components/operator/ContentGenerator'
 import AuthorityDashboard from './components/authority/AuthorityDashboard'
 import VisitVerify from './components/trust/VisitVerify'
 import CommunitySubmit from './components/trust/CommunitySubmit'
@@ -100,6 +101,7 @@ function App() {
           <Route path="/hire-people" element={<RequireRole role="operator"><HirePeople /></RequireRole>} />
           <Route path="/operator/waitlist" element={<RequireRole role="operator"><OperatorWaitlistOffers /></RequireRole>} />
           <Route path="/operator/analytics" element={<RequireRole role="operator"><OperatorAnalytics /></RequireRole>} />
+          <Route path="/operator/content-generator" element={<RequireRole role="operator"><ContentGenerator /></RequireRole>} />
           {/* Same URL, role-branched (§14-19): travellers get "Suggest a
               Place" (CommunitySubmit), authorities get the "Community
               Review" moderation UI (CommunityReview) -- both nav entries

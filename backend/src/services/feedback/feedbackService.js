@@ -279,7 +279,16 @@ export async function processBusinessFeedback(businessId, models = {}, aiOptions
   let reviews = [];
   if (FeedbackModel && typeof FeedbackModel.find === "function") {
     const query = FeedbackModel.find({ businessId });
-    reviews = query && typeof query.sort === "function" ? await query.sort({ createdAt: -1 }) : await query;
+    // .lean() -- a real Mongoose document's fields aren't own-enumerable
+    // properties, so translateFeedbackReviews's `{...rev}` spread (further
+    // down this same function) silently drops rating/comment/etc when this
+    // is a live document instead of a plain object -- surfaced the first
+    // time this ran against a real DB rather than a test's plain mocks,
+    // where every review looked like a 3-star/undefined rating and every
+    // theme came back mislabeled "negative" regardless of the real ratings.
+    reviews = query && typeof query.sort === "function"
+      ? await (typeof query.lean === "function" ? query.sort({ createdAt: -1 }).lean() : query.sort({ createdAt: -1 }))
+      : await query;
   }
 
   // Threshold Check: Require >= 5 feedback rows
@@ -362,7 +371,10 @@ export async function getBusinessFeedbackInsights(businessId, models = {}) {
   let reviews = [];
   if (FeedbackModel && typeof FeedbackModel.find === "function") {
     const query = FeedbackModel.find({ businessId });
-    reviews = query && typeof query.sort === "function" ? await query.sort({ createdAt: -1 }) : await query;
+    // .lean() -- see the matching comment in processBusinessFeedback above.
+    reviews = query && typeof query.sort === "function"
+      ? await (typeof query.lean === "function" ? query.sort({ createdAt: -1 }).lean() : query.sort({ createdAt: -1 }))
+      : await query;
   }
 
   let business = null;

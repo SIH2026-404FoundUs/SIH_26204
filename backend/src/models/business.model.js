@@ -124,6 +124,25 @@ const businessSchema = new mongoose.Schema({
     type: String,
     enum: ["self-declared", "visit-verified", "registered"],
   },
+  // AI Tourist Feedback Intelligence (spec §3.2) cache -- written by
+  // processBusinessFeedback() once a business has >= MIN_FEEDBACK_THRESHOLD
+  // reviews. Cached here (rather than recomputed on every read) so
+  // GET .../insights can serve the last processed summary instantly;
+  // getBusinessFeedbackInsights() only recomputes on the fly if these are
+  // still empty.
+  aiThemes: {
+    type: [mongoose.Schema.Types.Mixed],
+    default: [],
+  },
+  aiActions: {
+    type: [mongoose.Schema.Types.Mixed],
+    default: [],
+  },
+  feedbackSummary: {
+    totalReviews: { type: Number },
+    averageRating: { type: Number },
+    lastProcessedAt: { type: Date },
+  },
   // bharani-tasks.md Section 1.5 (registration assist) — collected for the
   // state homestay registration application, not for going LIVE/discoverable
   // (Section 1's own framing keeps those explicitly separate concerns), so

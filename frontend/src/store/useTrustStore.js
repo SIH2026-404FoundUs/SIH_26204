@@ -30,6 +30,27 @@ export const useTrustStore = create((set, get) => ({
     }
   },
 
+  // AI Tourist Feedback Intelligence -- submission only lives here; a
+  // verified visit is the gate (checked server-side against the Visit
+  // collection, same one Proof-of-Visit itself writes to), so this is only
+  // ever offered right after VisitVerify.jsx's own success state.
+  isSubmittingFeedback: false,
+  feedbackResult: null,
+  feedbackError: null,
+  submitFeedback: async ({ businessId, rating, comment }) => {
+    set({ isSubmittingFeedback: true, feedbackError: null, feedbackResult: null })
+    try {
+      const res = await api.post('/v1/feedback', { businessId, rating, comment })
+      set({ feedbackResult: res.data })
+      return true
+    } catch (error) {
+      set({ feedbackError: getErrorMessage(error, 'Could not submit your feedback') })
+      return false
+    } finally {
+      set({ isSubmittingFeedback: false })
+    }
+  },
+
   // community discovery ("Suggest a Place" for travellers)
   isSubmittingPlace: false,
   isUploadingPhotos: false,

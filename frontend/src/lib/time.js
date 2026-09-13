@@ -12,3 +12,18 @@ export function timeAgo(dateString) {
   }
   return 'just now'
 }
+
+// The forward-looking counterpart -- "expires in 42m" for a flash offer's
+// real expiresAt, not a decorative countdown. Falls back to "expired" for a
+// timestamp already in the past rather than a nonsensical negative value.
+export function timeUntil(dateString) {
+  if (!dateString) return ''
+  const seconds = Math.floor((new Date(dateString).getTime() - Date.now()) / 1000)
+  if (seconds <= 0) return 'expired'
+  const units = [['d', 86400], ['h', 3600], ['m', 60]]
+  for (const [label, secs] of units) {
+    const value = Math.floor(seconds / secs)
+    if (value >= 1) return `${value}${label}`
+  }
+  return '<1m'
+}
