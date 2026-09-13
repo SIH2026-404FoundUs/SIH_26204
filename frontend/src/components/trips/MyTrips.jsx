@@ -111,7 +111,21 @@ export default function MyTrips() {
       {error && <div className="mb-4"><Alert tone="error">{error}</Alert></div>}
       {isLoading ? <LoadingState label="Loading your trips…" /> : trips.length === 0 ? <EmptyState icon={RouteIcon} title="No trips yet" description="Plan a trip and it'll show up here, including whether it was redirected to relieve crowding." action={<Link to="/home"><Button variant="primary">Plan a trip</Button></Link>} /> : <>
         <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[[Compass, 'Total trips', stats.total, 'Your saved planning history'], [CheckCircle2, 'Planned', stats.planned, 'Ready-to-use trip plans'], [CircleDollarSign, 'Savings', formatMoney(stats.savings) || '₹0', 'From pressure-aware swaps'], [RouteIcon, 'Redistributed', stats.redirected, 'Trips that eased pressure']].map(([Icon, label, value, helper]) => <div key={label} className="rounded-2xl border border-paper-dim bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-ash">{label}</span><Icon size={17} className="text-pressure" /></div><p className="mt-2 font-display text-2xl text-ink">{value}</p><p className="mt-1 text-xs text-ash">{helper}</p></div>)}
+          {[
+            [Compass, 'Total trips', stats.total, 'Your saved planning history', 'bg-ink text-paper'],
+            [CheckCircle2, 'Planned', stats.planned, 'Ready-to-use trip plans', 'bg-relief/15 text-relief'],
+            [CircleDollarSign, 'Savings', formatMoney(stats.savings) || '₹0', 'From pressure-aware swaps', 'bg-relief/15 text-relief'],
+            [RouteIcon, 'Redistributed', stats.redirected, 'Trips that eased pressure', 'bg-pressure/15 text-pressure'],
+          ].map(([Icon, label, value, helper, chip]) => (
+            <div key={label} className="rounded-2xl border border-paper-dim bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-ash">{label}</span>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-full ${chip}`}><Icon size={16} /></span>
+              </div>
+              <p className="mt-2 font-display text-2xl text-ink">{value}</p>
+              <p className="mt-1 text-xs text-ash">{helper}</p>
+            </div>
+          ))}
         </div>
         <div className="mb-4 rounded-2xl border border-paper-dim bg-white p-3 shadow-sm">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -128,12 +142,17 @@ export default function MyTrips() {
           const destId = trip.redirectedToDestId || trip.requestedDestId
           const expanded = expandedId === trip._id
           const hasItinerary = Boolean(trip.itinerary?.days?.length)
-          return <Card key={trip._id} className={`overflow-hidden transition-shadow ${expanded ? 'shadow-md ring-1 ring-pressure/10' : 'hover:shadow-md'}`}>
-            <button type="button" className="w-full text-left" onClick={() => setExpandedId(expanded ? null : trip._id)} aria-expanded={expanded}>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div className="flex items-start gap-3"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-ink text-paper"><Compass size={21} /></div><div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-pressure">{trip.origin ? `${trip.origin} →` : 'Saved journey'}</p><h2 className="mt-1 font-display text-xl text-ink">{getDestinationLabel(destId)}</h2><p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ash"><span className="inline-flex items-center gap-1"><CalendarDays size={13} /> {dates?.startDate ? `${displayDate(dates.startDate)}${dates.endDate ? ` – ${displayDate(dates.endDate)}` : ''}` : 'Dates not set'}</span>{trip.travellers != null && <span>· {trip.travellers} traveller{trip.travellers === 1 ? '' : 's'}</span>}</p></div></div><div className="flex items-center gap-1.5 sm:pt-1"><Badge tone={state.tone}>{state.label}</Badge><Badge tone={redist.tone}>{redist.label}</Badge><ChevronDown size={17} className={`ml-1 text-ash transition-transform ${expanded ? 'rotate-180' : ''}`} /></div></div>
+          const wasRedistributed = Boolean(trip.redistribution?.kind && trip.redistribution.kind !== 'none')
+          return <Card
+            key={trip._id}
+            padding="p-0"
+            className={`overflow-hidden border-l-4 transition-shadow ${wasRedistributed ? 'border-l-relief' : 'border-l-paper-dim'} ${expanded ? 'shadow-md ring-1 ring-pressure/10' : 'hover:shadow-md'}`}
+          >
+            <button type="button" className="w-full p-5 text-left" onClick={() => setExpandedId(expanded ? null : trip._id)} aria-expanded={expanded}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div className="flex items-start gap-3"><div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${wasRedistributed ? 'bg-relief text-paper' : 'bg-ink text-paper'}`}><Compass size={21} /></div><div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-pressure">{trip.origin ? `${trip.origin} →` : 'Saved journey'}</p><h2 className="mt-1 font-display text-xl text-ink">{getDestinationLabel(destId)}</h2><p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ash"><span className="inline-flex items-center gap-1"><CalendarDays size={13} /> {dates?.startDate ? `${displayDate(dates.startDate)}${dates.endDate ? ` – ${displayDate(dates.endDate)}` : ''}` : 'Dates not set'}</span>{trip.travellers != null && <span>· {trip.travellers} traveller{trip.travellers === 1 ? '' : 's'}</span>}</p></div></div><div className="flex items-center gap-1.5 sm:pt-1"><Badge tone={state.tone}>{state.label}</Badge><Badge tone={redist.tone}>{redist.label}</Badge><ChevronDown size={17} className={`ml-1 text-ash transition-transform ${expanded ? 'rotate-180' : ''}`} /></div></div>
               <div className="mt-4 grid grid-cols-2 gap-2 border-t border-paper-dim pt-3 text-xs sm:grid-cols-4"><span><span className="block text-ash">Budget</span><strong className="mt-1 block text-ink">{formatMoney(trip.costBreakdown?.grandTotal || trip.budgetINR) || '—'}</strong></span><span><span className="block text-ash">Route</span><strong className="mt-1 block text-ink">{trip.transport?.distanceKm != null ? `${trip.transport.distanceKm} km` : '—'}</strong></span><span><span className="block text-ash">Itinerary</span><strong className="mt-1 block text-ink">{hasItinerary ? `${trip.itinerary.days.length} days` : 'Not saved'}</strong></span><span><span className="block text-ash">Savings</span><strong className="mt-1 block text-relief">{formatMoney(trip.redistribution?.savingINR) || '—'}</strong></span></div>
             </button>
-            {expanded && <SavedTripDetails trip={trip} onDownload={() => handleDownload(trip)} downloading={downloadingId === trip._id} />}
+            {expanded && <div className="px-5 pb-5"><SavedTripDetails trip={trip} onDownload={() => handleDownload(trip)} downloading={downloadingId === trip._id} /></div>}
           </Card>
         })}</div>}
       </>}
