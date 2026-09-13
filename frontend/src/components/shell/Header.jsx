@@ -3,7 +3,7 @@ import {
   Loader2, LogOut, Menu, X, ChevronDown, Compass, MapPinned,
   ShieldCheck, Store, Route, UserRound, Wrench, Landmark,
   Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users, Bot,
-  PanelLeftClose, PanelLeftOpen, CheckCircle2,
+  PanelLeftClose, PanelLeftOpen, CheckCircle2, Megaphone,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -51,7 +51,7 @@ const TRAVELLER_MORE = [
   { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
   { to: '/safety', label: 'Safety', icon: ShieldCheck },
 ]
-// Operator primary bar trimmed to exactly the five post-login features, no
+// Operator primary bar trimmed down to just the post-login features, no
 // More section (same pattern as Authority below), no Profile (reachable via
 // the account menu like every other role) -- Home, Operator console,
 // Businesses, Explore, Map, and Alerts are no longer operator nav items.
@@ -64,13 +64,24 @@ const TRAVELLER_MORE = [
 // nav slot every time this operator logs back in. Analytics is real
 // aggregate data over Bookings/Visits/Waitlist/Offers for this operator's
 // own businesses (GET /v1/analytics/operator) -- never per-traveller
-// identity, only counts.
+// identity, only counts. Content Generator is the Tourism Publicity
+// Generator (text/voice in, Groq-primary/Mistral-fallback marketing copy
+// out, backend/src/services/content/contentGeneratorService.js) --
+// operator-only both here and at the route's actual authorization boundary
+// (requireRole("operator") on the backend route). Ordered by how often an
+// operator actually reaches for each one, not alphabetically: Console
+// (the home base) and Register Business (one-time setup, drops out once
+// done) lead; Verify a Visit and Waitlist & Offers are the two genuinely
+// daily operational tasks, so they come right after; Content Generator and
+// Hire People are periodic/occasional; Multimodal Agent is an anytime
+// helper, so it closes out the list the same way it does for every role.
 const OPERATOR_PRIMARY_BASE = [
   { to: '/operator', label: 'Operator Console', icon: Wrench },
   { to: '/register-business', label: 'Register Business', icon: Store },
-  { to: '/hire-people', label: 'Hire People', icon: Users },
-  { to: '/operator/waitlist', label: 'Waitlist & Offers', icon: Tag },
   { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
+  { to: '/operator/waitlist', label: 'Waitlist & Offers', icon: Tag },
+  { to: '/operator/content-generator', label: 'Content Generator', icon: Megaphone },
+  { to: '/hire-people', label: 'Hire People', icon: Users },
   { to: '/multimodal-agent', label: 'Multimodal Agent', icon: Bot },
 ]
 const OPERATOR_MORE = []
@@ -203,6 +214,14 @@ function notificationSummary(n) {
   }
 }
 
+// Offer/waitlist_fulfilled notifications are about something claimable on
+// the Offers & Waitlist page's own Offers tab -- clicking one there is more
+// useful than landing on the full /notifications feed. Alerts have no such
+// dedicated page of their own, so they keep going to /notifications.
+function notificationLinkTo(n) {
+  return n.type === 'offer' || n.type === 'waitlist_fulfilled' ? '/offers' : '/notifications'
+}
+
 // The bell lives in the header itself now (not a nav-menu entry) so the
 // unread-style count is visible on every page, not just after navigating to
 // /notifications -- polls the same three-source feed
@@ -263,7 +282,7 @@ function NotificationBell() {
                 return (
                   <Link
                     key={n.id}
-                    to="/notifications"
+                    to={notificationLinkTo(n)}
                     onClick={() => setOpen(false)}
                     className="flex items-start gap-2.5 px-3 py-2.5 transition hover:bg-ink/5"
                   >
