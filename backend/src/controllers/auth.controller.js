@@ -3,7 +3,8 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { validatePasswordPolicy } from "../lib/passwordPolicy.js";
 import { issueAuthToken, findValidAuthToken, consumeAuthToken } from "../lib/authTokens.js";
-import { sendMail, passwordResetEmail } from "../lib/mailer.js";
+import { sendMail } from "../lib/mailer.js";
+import { passwordResetEmail, welcomeEmail } from "../lib/emailTemplates.js";
 import mongoose from "mongoose";
 import multer from "multer";
 import cloudinary from "../lib/cloudinary.js";
@@ -82,6 +83,10 @@ export const signup = async (req, res) => {
     // signup logs the traveller straight in rather than making them turn
     // around and sign in again with the password they just typed.
     generateToken(newUser._id, newUser.tokenVersion, res);
+
+    // Best-effort, never blocks or fails the signup response itself -- same
+    // fire-and-forget convention as every other side-effect email in this file.
+    sendMail({ to: newUser.email, ...welcomeEmail({ fullName: newUser.fullName, role: newUser.role }) }).catch(() => {});
 
     res.status(201).json({
       _id: newUser._id,

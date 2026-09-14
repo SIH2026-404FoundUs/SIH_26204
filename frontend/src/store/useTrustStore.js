@@ -101,17 +101,13 @@ export const useTrustStore = create((set, get) => ({
   // previously a submission just vanished into the queue with no way to
   // ever check back on it.
   mySubmissions: [],
-  isLoadingMySubmissions: false,
 
   fetchMySubmissions: async () => {
-    set({ isLoadingMySubmissions: true })
     try {
       const res = await api.get('/community/submissions/mine')
       set({ mySubmissions: res.data })
     } catch {
       // Non-critical for the submit form itself -- leave silently empty.
-    } finally {
-      set({ isLoadingMySubmissions: false })
     }
   },
 
@@ -317,12 +313,85 @@ export const useTrustStore = create((set, get) => ({
     try {
       const res = await api.post('/v1/safety/complaints', { destId, category, text })
       set({ complaintResult: res.data })
+      if (res.data?.success) get().fetchMyComplaints() // land in "Your complaints" immediately, not waiting on a manual refresh
       return true
     } catch (error) {
       set({ safetyError: getErrorMessage(error, 'Could not submit your complaint') })
       return false
     } finally {
       set({ isSubmittingComplaint: false })
+    }
+  },
+
+  // "Your complaints" history -- GET /v1/safety/complaints/mine existed with
+  // no frontend consumer at all (a traveller could submit a report but never
+  // see it again).
+  myComplaints: [],
+  isLoadingComplaints: false,
+
+  fetchMyComplaints: async () => {
+    set({ isLoadingComplaints: true })
+    try {
+      const res = await api.get('/v1/safety/complaints/mine')
+      set({ myComplaints: res.data })
+    } catch (error) {
+      set({ safetyError: getErrorMessage(error, 'Could not load your complaints') })
+    } finally {
+      set({ isLoadingComplaints: false })
+    }
+  },
+
+  // Shareable Trip Record -- a real, working PII-minimized share-link
+  // endpoint (create/read/revoke) with no frontend consumer at all before
+  // this. Only the most recently created link is kept in state: the backend
+  // has no "list my shares" endpoint, so this deliberately doesn't pretend
+  // to show a history it can't actually fetch -- create a new one any time,
+  // revoke the current one, that's the real surface available.
+  activeShare: null,
+  isCreatingShare: false,
+  shareError: null,
+
+  createTripShare: async ({ tripId, title, destId, startDate, endDate, stops }) => {
+    set({ isCreatingShare: true, shareError: null })
+    try {
+      const res = await api.post('/v1/safety/trips/share', { tripId, title, destId, startDate, endDate, stops })
+      set({ activeShare: { shareToken: res.data.shareToken, expiresAt: res.data.expiresAt } })
+      return true
+    } catch (error) {
+      set({ shareError: getErrorMessage(error, 'Could not create a share link') })
+      return false
+    } finally {
+      set({ isCreatingShare: false })
+    }
+  },
+
+  revokeTripShare: async () => {
+    const token = get().activeShare?.shareToken
+    if (!token) return
+    set({ shareError: null })
+    try {
+      await api.post(`/v1/safety/trips/share/${token}/revoke`)
+      set({ activeShare: null })
+    } catch (error) {
+      set({ shareError: getErrorMessage(error, 'Could not revoke this share link') })
+    }
+  },
+
+  // Public read-only viewer (no auth -- anyone with the link, e.g. family
+  // back home, opens GET /v1/safety/trips/share/:token directly).
+  sharedTrip: null,
+  isLoadingSharedTrip: false,
+  sharedTripError: null,
+
+  fetchSharedTrip: async (token) => {
+    set({ isLoadingSharedTrip: true, sharedTripError: null, sharedTrip: null })
+    try {
+      const res = await api.get(`/v1/safety/trips/share/${token}`)
+      set({ sharedTrip: res.data.tripProjection })
+    } catch (error) {
+      set({ sharedTripError: getErrorMessage(error, 'This link is invalid, expired, or was revoked') })
+    } finally {
+      set({ isLoadingSharedTrip: false })
     }
   },
 
@@ -365,6 +434,43 @@ export const useTrustStore = create((set, get) => ({
     }
   },
 
+  // Complaint moderation (authority-only) -- every complaint used to be
+  // stuck at "logged" forever with no way for anyone to act on it. GET
+  // /v1/safety/complaints (all of them) + PATCH .../:id/status close that
+  // loop; the submitter gets a real email on the status change.
+  allComplaints: [],
+  isLoadingAllComplaints: false,
+  isUpdatingComplaintStatus: false,
+
+  fetchAllComplaints: async ({ status, silent = false } = {}) => {
+    if (!silent) set({ isLoadingAllComplaints: true })
+    set({ moderationError: null })
+    try {
+      const res = await api.get('/v1/safety/complaints', { params: { status: status || undefined } })
+      set({ allComplaints: res.data })
+    } catch (error) {
+      set({ moderationError: getErrorMessage(error, 'Could not load complaints') })
+    } finally {
+      if (!silent) set({ isLoadingAllComplaints: false })
+    }
+  },
+
+  updateComplaintStatus: async (complaintId, status) => {
+    set({ isUpdatingComplaintStatus: true, moderationError: null })
+    try {
+      const res = await api.patch(`/v1/safety/complaints/${complaintId}/status`, { status })
+      set((state) => ({
+        allComplaints: state.allComplaints.map((c) => (c._id === complaintId ? res.data.complaint : c)),
+      }))
+      return true
+    } catch (error) {
+      set({ moderationError: getErrorMessage(error, 'Could not update this complaint') })
+      return false
+    } finally {
+      set({ isUpdatingComplaintStatus: false })
+    }
+  },
+
   // business search (growth-ranked)
   businesses: [],
   isLoadingBusinesses: false,
@@ -387,15 +493,14 @@ export const useTrustStore = create((set, get) => ({
   // from; otherwise a pending request, never a fabricated instant "booked".
   isBooking: false,
   bookingError: null,
-  lastBooking: null,
   myBookings: [],
   isLoadingBookings: false,
 
   createBooking: async ({ businessId, date, travellers, notes }) => {
-    set({ isBooking: true, bookingError: null, lastBooking: null })
+    set({ isBooking: true, bookingError: null })
     try {
       const res = await api.post('/v1/bookings', { businessId, date, travellers, notes })
-      set((state) => ({ lastBooking: res.data, myBookings: [res.data, ...state.myBookings] }))
+      set((state) => ({ myBookings: [res.data, ...state.myBookings] }))
       return res.data
     } catch (error) {
       set({ bookingError: getErrorMessage(error, 'Could not book this service') })

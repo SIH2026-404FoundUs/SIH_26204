@@ -6,7 +6,6 @@ export const useAuthStore = create((set) => ({
   isCheckingAuth: true,
   isSigningUp: false,
   isLoggingIn: false,
-  isUpdatingProfile: false,
   error: null,
 
   clearError: () => set({ error: null }),
@@ -66,7 +65,7 @@ export const useAuthStore = create((set) => ({
   },
 
   updateProfile: async (data) => {
-    set({ isUpdatingProfile: true, error: null })
+    set({ error: null })
     try {
       const res = await api.put('/auth/update-profile', data)
       set({ authUser: res.data })
@@ -74,8 +73,6 @@ export const useAuthStore = create((set) => ({
     } catch (error) {
       set({ error: getErrorMessage(error, 'Could not update your profile') })
       return false
-    } finally {
-      set({ isUpdatingProfile: false })
     }
   },
 

@@ -1,6 +1,8 @@
 import Booking from "../models/booking.model.js";
 import Business from "../models/business.model.js";
 import BusinessAvailability from "../models/businessAvailability.model.js";
+import { sendMail } from "../lib/mailer.js";
+import { bookingConfirmationEmail } from "../lib/emailTemplates.js";
 
 // Business.type -> BusinessAvailability.resourceType. Same mapping a real
 // operator-declared-availability row would use (businessAvailability.model.js's
@@ -56,6 +58,13 @@ export const createBookingController = async (req, res) => {
       status: availability ? "confirmed" : "pending",
       availabilityMatched: !!availability,
     });
+
+    // Best-effort, never blocks the response -- honestly reflects
+    // confirmed vs pending (see this controller's own header comment).
+    sendMail({
+      to: req.user.email,
+      ...bookingConfirmationEmail({ fullName: req.user.fullName, businessName: business.name, destId: business.destId, date: bookingDate, status: booking.status }),
+    }).catch(() => {});
 
     res.status(201).json(booking);
   } catch (error) {
