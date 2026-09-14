@@ -103,3 +103,59 @@ export async function getUserComplaints(userId, models = {}) {
 
   return [];
 }
+
+/**
+ * Every logged complaint, for the authority moderation view -- optionally
+ * filtered to one status (e.g. only "logged" ones still needing a look).
+ *
+ * @param {Object} [params] - { status }.
+ * @param {Object} [models] - Database models (ComplaintModel).
+ * @returns {Promise<Array<Object>>} All matching complaints, newest first.
+ */
+export async function getAllComplaints({ status } = {}, models = {}) {
+  const { ComplaintModel } = models;
+  if (!ComplaintModel || typeof ComplaintModel.find !== "function") return [];
+  const filter = status ? { status } : {};
+  return ComplaintModel.find(filter).sort({ createdAt: -1 });
+}
+
+export const VALID_COMPLAINT_STATUSES = ["logged", "under_review", "resolved"];
+
+/**
+ * Every complaint was created "logged" and nothing ever moved it -- there
+ * was no authority-facing way to change a status at all until this. Real
+ * status progression, no auto-resolution: an authority has to actually act.
+ *
+ * @param {string} complaintId - Target complaint ID.
+ * @param {string} status - One of VALID_COMPLAINT_STATUSES.
+ * @param {Object} [models] - Database models (ComplaintModel, AuditLogModel).
+ * @returns {Promise<Object>} Result with the updated complaint.
+ */
+export async function updateComplaintStatus(complaintId, status, models = {}) {
+  const { ComplaintModel, AuditLogModel } = models;
+
+  if (!complaintId || !VALID_COMPLAINT_STATUSES.includes(status)) {
+    return { success: false, status: 400, error: "INVALID_STATUS", message: `status must be one of: ${VALID_COMPLAINT_STATUSES.join(", ")}` };
+  }
+  if (!ComplaintModel || typeof ComplaintModel.findByIdAndUpdate !== "function") {
+    return { success: false, status: 500, error: "MODEL_UNAVAILABLE", message: "Could not update complaint" };
+  }
+
+  const complaint = await ComplaintModel.findByIdAndUpdate(complaintId, { $set: { status } }, { new: true });
+  if (!complaint) {
+    return { success: false, status: 404, error: "COMPLAINT_NOT_FOUND", message: "Complaint not found" };
+  }
+
+  if (AuditLogModel && typeof AuditLogModel.create === "function") {
+    await AuditLogModel.create({
+      actor: "authority",
+      action: "complaint.status_changed",
+      target: String(complaintId),
+      reasonCode: `COMPLAINT_${status.toUpperCase()}`,
+      meta: { status },
+      at: new Date(),
+    }).catch(() => {});
+  }
+
+  return { success: true, status: 200, complaint };
+}

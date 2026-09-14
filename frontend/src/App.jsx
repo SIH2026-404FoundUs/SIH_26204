@@ -27,6 +27,7 @@ import CommunityForum from './components/trust/CommunityForum'
 import OffersWaitlist from './components/trust/OffersWaitlist'
 import Alerts from './components/trust/Alerts'
 import Safety from './components/trust/Safety'
+import SharedTripView from './components/trust/SharedTripView'
 import Businesses from './components/trust/Businesses'
 import AvailableServices from './components/trust/AvailableServices'
 import Notifications from './components/trust/Notifications'
@@ -81,6 +82,9 @@ function App() {
           {/* Public safety advisory read (spec §3.3) -- also reachable from
               the authenticated nav, same page either way. */}
           <Route path="/alerts" element={<Page><Alerts /></Page>} />
+          {/* Public Shareable Trip Record viewer (spec §5) -- no account
+              needed, matching the backend's own GET (no protectRoute). */}
+          <Route path="/trip/share/:token" element={<Page><SharedTripView /></Page>} />
 
           {/* Authenticated experience (§57/§58) */}
           <Route path="/home" element={<RequireAuth wide><TripPlanner /></RequireAuth>} />
