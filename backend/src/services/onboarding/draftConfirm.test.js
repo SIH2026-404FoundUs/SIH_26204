@@ -128,6 +128,42 @@ describe("DRAFT_CONFIRM listing summary generation", () => {
     expect(summary).toContain("Photos: 3");
     expect(summary).toContain("Reply YES to confirm, or tell me what you would like to change.");
   });
+
+  test("Telugu draft confirmation summary contains Telugu headers and footers", async () => {
+    const biz = await Business.create({
+      _id: "biz_draft_summary_te",
+      name: "Araku Valley Homestay",
+      type: "homestay",
+      ownerPhone: "919222222202",
+      destId: "araku",
+      nearestLandmark: "Near Coffee Museum",
+      capacity: 3,
+      priceRangeINR: { min: 1500, max: 2000 },
+      photos: ["p1.jpg", "p2.jpg"],
+      onboardingState: "DRAFT_CONFIRM",
+      transcriptLang: "te",
+    });
+
+    const summary = await buildDraftConfirmationMessage(biz._id, "te", { includeIntro: true });
+
+    expect(summary).toContain("మీ లభ్యత తేదీలు మరియు యూనిట్లు నమోదు చేయబడ్డాయి.");
+    expect(summary).toContain("దయచేసి మీ లిస్టింగ్‌ను నిర్ధారించండి");
+    expect(summary).toContain("Name: Araku Valley Homestay");
+    expect(summary).toContain("Location: Near Coffee Museum");
+    expect(summary).toContain("నిర్ధారించడానికి YES అని పంపండి");
+  });
+
+  test("getClarificationMessage and getLiveConfirmedMessage return correct language and fallback", () => {
+    expect(getClarificationMessage("te")).toMatch(/[\u0C00-\u0C7F]/);
+    expect(getClarificationMessage("hi")).toMatch(/[ऀ-ॿ]/);
+    expect(getClarificationMessage("en")).toContain("We could not understand your reply");
+    expect(getClarificationMessage("unknown")).toBe(getClarificationMessage("en"));
+
+    expect(getLiveConfirmedMessage("te")).toMatch(/[\u0C00-\u0C7F]/);
+    expect(getLiveConfirmedMessage("hi")).toMatch(/[ऀ-ॿ]/);
+    expect(getLiveConfirmedMessage("en")).toContain("Congratulations! Your listing is now LIVE");
+    expect(getLiveConfirmedMessage("unknown")).toBe(getLiveConfirmedMessage("en"));
+  });
 });
 
 describe("DRAFT_CONFIRM confirmation flow", () => {
@@ -190,6 +226,30 @@ describe("DRAFT_CONFIRM confirmation flow", () => {
     const saved = await Business.findOne({ _id: "biz_draft_confirm_1" });
     expect(saved.onboardingState).toBe("LIVE");
     expect(saved.verificationTier).toBe("self-declared");
+  });
+
+  test("Telugu confirmation 'yes I confirm' → LIVE and sends Telugu live confirmation", async () => {
+    const sendMessageFn = jest.fn();
+
+    const result = await processDraftConfirmReply({
+      ownerPhone: "919333333301",
+      text: "yes I confirm",
+      messageId: "wamid.confirm.te.1",
+      sendMessageFn,
+      language: "te",
+    });
+
+    expect(result.applied).toBe(true);
+    expect(result.onboardingState).toBe("LIVE");
+
+    const saved = await Business.findOne({ _id: "biz_draft_confirm_1" });
+    expect(saved.onboardingState).toBe("LIVE");
+    expect(saved.verificationTier).toBe("self-declared");
+
+    expect(sendMessageFn).toHaveBeenCalledWith(
+      "919333333301",
+      expect.stringMatching(/[\u0C00-\u0C7F]/)
+    );
   });
 
   test("ambiguous reply does not transition to LIVE and asks for clarification", async () => {

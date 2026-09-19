@@ -1306,10 +1306,12 @@ async def transcribe_endpoint(audio: UploadFile = File(...)) -> dict:
     """
     audio_bytes = await audio.read()
     try:
-        # transcribe() is blocking CPU/GPU work — run it off the event loop
-        # so one in-flight transcription doesn't stall every other request
-        # (plan_trip/confirm_trip already follow this same pattern above).
-        return await run_in_threadpool(run_transcription, audio_bytes)
+        return await run_in_threadpool(
+            run_transcription,
+            audio_bytes,
+            content_type=audio.content_type,
+            filename=audio.filename,
+        )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"transcription failed: {exc}") from exc
 
