@@ -1,6 +1,14 @@
 import { describe, test, expect } from "@jest/globals";
 import { REQUIRED_FIELDS_FOR_LIVE } from "./stateMachine.js";
-import { getNextFollowUpQuestion, getNextMissingRequiredField, getPhotosFollowUpQuestion } from "./followUp.js";
+import {
+  getNextFollowUpQuestion,
+  getNextMissingRequiredField,
+  getPhotosFollowUpQuestion,
+  getDatesFollowUpQuestion,
+  getInvalidDatesQuestion,
+  getMissingUnitsQuestion,
+  getAvailabilityConfirmedMessage,
+} from "./followUp.js";
 
 const completeFields = {
   name: "Green Valley Homestay",
@@ -96,6 +104,31 @@ describe("getNextFollowUpQuestion", () => {
       // Devanagari script range, not just "not English" -- a real
       // translation, not a coincidentally-different string.
       expect(question).toMatch(/[ऀ-ॿ]/);
+      expect(question).toBe("आपकी संपत्ति या व्यवसाय का नाम क्या है?");
+    });
+
+    test("returns Telugu text when language is 'te'", () => {
+      const question = getNextFollowUpQuestion({ ...completeFields, name: null }, "te");
+      expect(question).toMatch(/[\u0C00-\u0C7F]/);
+      expect(question).toBe("మీ ఆస్తి లేదా వ్యాపారం పేరు ఏమిటి?");
+    });
+
+    test("returns Tamil text when language is 'ta'", () => {
+      const question = getNextFollowUpQuestion({ ...completeFields, name: null }, "ta");
+      expect(question).toMatch(/[\u0B80-\u0BFF]/);
+      expect(question).toBe("உங்கள் சொத்து அல்லது வணிகத்தின் பெயர் என்ன?");
+    });
+
+    test("returns Kannada text when language is 'kn'", () => {
+      const question = getNextFollowUpQuestion({ ...completeFields, name: null }, "kn");
+      expect(question).toMatch(/[\u0C80-\u0CFF]/);
+      expect(question).toBe("ನಿಮ್ಮ ಆಸ್ತಿ ಅಥವಾ ವ್ಯವಹಾರದ ಹೆಸರೇನು?");
+    });
+
+    test("returns Bengali text when language is 'bn'", () => {
+      const question = getNextFollowUpQuestion({ ...completeFields, name: null }, "bn");
+      expect(question).toMatch(/[\u0980-\u09FF]/);
+      expect(question).toBe("আপনার সম্পত্তি বা ব্যবসার নাম কি?");
     });
 
     test("falls back to English for an unrecognized/untranslated language code", () => {
@@ -185,5 +218,46 @@ describe("getPhotosFollowUpQuestion", () => {
   test("returns Hindi photo prompt for 'hi'", () => {
     const question = getPhotosFollowUpQuestion("hi");
     expect(question).toMatch(/[ऀ-ॿ]/);
+  });
+
+  test("returns Telugu photo prompt for 'te'", () => {
+    const question = getPhotosFollowUpQuestion("te");
+    expect(question).toMatch(/[\u0C00-\u0C7F]/);
+    expect(question).toBe("దయచేసి మీ ఆస్తికి సంబంధించిన 3 నుండి 5 ఫోటోలను పంపండి.");
+  });
+
+  test("returns Tamil photo prompt for 'ta'", () => {
+    const question = getPhotosFollowUpQuestion("ta");
+    expect(question).toMatch(/[\u0B80-\u0BFF]/);
+  });
+});
+
+describe("multilingual follow-up helper functions", () => {
+  test("getDatesFollowUpQuestion returns Telugu for 'te', Hindi for 'hi', English for 'en', fallback for unknown", () => {
+    expect(getDatesFollowUpQuestion("te")).toMatch(/[\u0C00-\u0C7F]/);
+    expect(getDatesFollowUpQuestion("hi")).toMatch(/[ऀ-ॿ]/);
+    expect(getDatesFollowUpQuestion("en")).toContain("Please tell us which dates");
+    expect(getDatesFollowUpQuestion("unknown")).toBe(getDatesFollowUpQuestion("en"));
+  });
+
+  test("getInvalidDatesQuestion returns Telugu for 'te', Hindi for 'hi', English for 'en', fallback for unknown", () => {
+    expect(getInvalidDatesQuestion("te")).toMatch(/[\u0C00-\u0C7F]/);
+    expect(getInvalidDatesQuestion("hi")).toMatch(/[ऀ-ॿ]/);
+    expect(getInvalidDatesQuestion("en")).toContain("couldn't clearly understand");
+    expect(getInvalidDatesQuestion("unknown")).toBe(getInvalidDatesQuestion("en"));
+  });
+
+  test("getMissingUnitsQuestion returns Telugu for 'te', Hindi for 'hi', English for 'en', fallback for unknown", () => {
+    expect(getMissingUnitsQuestion("te")).toMatch(/[\u0C00-\u0C7F]/);
+    expect(getMissingUnitsQuestion("hi")).toMatch(/[ऀ-ॿ]/);
+    expect(getMissingUnitsQuestion("en")).toContain("rooms or units are available");
+    expect(getMissingUnitsQuestion("unknown")).toBe(getMissingUnitsQuestion("en"));
+  });
+
+  test("getAvailabilityConfirmedMessage returns Telugu for 'te', Hindi for 'hi', English for 'en', fallback for unknown", () => {
+    expect(getAvailabilityConfirmedMessage("te")).toMatch(/[\u0C00-\u0C7F]/);
+    expect(getAvailabilityConfirmedMessage("hi")).toMatch(/[ऀ-ॿ]/);
+    expect(getAvailabilityConfirmedMessage("en")).toContain("availability dates and units have been recorded");
+    expect(getAvailabilityConfirmedMessage("unknown")).toBe(getAvailabilityConfirmedMessage("en"));
   });
 });

@@ -79,6 +79,66 @@ describe("dateParser unit tests", () => {
     expect(parseUnitCount("I am open in October")).toBeNull();
     expect(parseUnitCount("many rooms")).toBeNull();
   });
+
+  test("parses Telugu exact example: 'అక్టోబర్ 10 నుంచి అక్టోబర్ 20 వరకు'", () => {
+    const text = "అక్టోబర్ 10 నుంచి అక్టోబర్ 20 వరకు";
+    const res = parseAvailabilityDates(text, 2026);
+    expect(res).not.toBeNull();
+    expect(res.startDate.toISOString()).toBe("2026-10-10T00:00:00.000Z");
+    expect(res.endDate.toISOString()).toBe("2026-10-20T00:00:00.000Z");
+
+    const dates = generateDateRange(res.startDate, res.endDate);
+    expect(dates.length).toBe(11);
+    expect(parseUnitCount(text)).toBeNull();
+  });
+
+  test("parses Telugu exact example: 'అక్టోబర్ 12 నుంచి అక్టోబర్ 15 వరకు మూడు గదులు ఖాళీగా ఉన్నాయి'", () => {
+    const text = "అక్టోబర్ 12 నుంచి అక్టోబర్ 15 వరకు మూడు గదులు ఖాళీగా ఉన్నాయి";
+    const res = parseAvailabilityDates(text, 2026);
+    expect(res).not.toBeNull();
+    expect(res.startDate.toISOString()).toBe("2026-10-12T00:00:00.000Z");
+    expect(res.endDate.toISOString()).toBe("2026-10-15T00:00:00.000Z");
+
+    const dates = generateDateRange(res.startDate, res.endDate);
+    expect(dates.length).toBe(4);
+    expect(parseUnitCount(text)).toBe(3);
+  });
+
+  test("parses Telugu number words and room words", () => {
+    expect(parseUnitCount("మూడు గదులు ఖాళీగా ఉన్నాయి")).toBe(3);
+    expect(parseUnitCount("రెండు రూమ్స్")).toBe(2);
+    expect(parseUnitCount("నాలుగు గదులు")).toBe(4);
+    expect(parseUnitCount("ఒక గది")).toBe(1);
+    expect(parseUnitCount("5 గదులు")).toBe(5);
+  });
+
+  test("parses Telugu date range variations and Indic numerals", () => {
+    const r1 = parseAvailabilityDates("అక్టోబర్ 10 నుంచి 20 వరకు", 2026);
+    expect(r1).not.toBeNull();
+    expect(r1.startDate.toISOString()).toBe("2026-10-10T00:00:00.000Z");
+    expect(r1.endDate.toISOString()).toBe("2026-10-20T00:00:00.000Z");
+
+    const r2 = parseAvailabilityDates("10 అక్టోబర్ నుంచి 20 అక్టోబర్ వరకు", 2026);
+    expect(r2).not.toBeNull();
+    expect(r2.startDate.toISOString()).toBe("2026-10-10T00:00:00.000Z");
+    expect(r2.endDate.toISOString()).toBe("2026-10-20T00:00:00.000Z");
+
+    const r3 = parseAvailabilityDates("౧౦ అక్టోబర్ నుంచి ౨౦ అక్టోబర్ వరకు", 2026);
+    expect(r3).not.toBeNull();
+    expect(r3.startDate.toISOString()).toBe("2026-10-10T00:00:00.000Z");
+    expect(r3.endDate.toISOString()).toBe("2026-10-20T00:00:00.000Z");
+  });
+
+  test("parses Hindi dates and number words in Devanagari", () => {
+    const res = parseAvailabilityDates("10 अक्टूबर से 20 अक्टूबर तक", 2026);
+    expect(res).not.toBeNull();
+    expect(res.startDate.toISOString()).toBe("2026-10-10T00:00:00.000Z");
+    expect(res.endDate.toISOString()).toBe("2026-10-20T00:00:00.000Z");
+
+    expect(parseUnitCount("तीन कमरे उपलब्ध हैं")).toBe(3);
+    expect(parseUnitCount("दो कमरे")).toBe(2);
+    expect(parseUnitCount("अक्टूबर 10 से अक्टूबर 20 तक तीन कमरे")).toBe(3);
+  });
 });
 
 describe("AWAITING_DATES voice onboarding flow", () => {
@@ -298,5 +358,88 @@ describe("AWAITING_DATES voice onboarding flow", () => {
       expect(rec.units).toEqual({ total: 4, available: 4 });
       expect(rec.source).toBe("business_declared");
     }
+  });
+
+  test("Telugu audio flow: parses 'అక్టోబర్ 12 నుంచి అక్టోబర్ 15 వరకు మూడు గదులు ఖాళీగా ఉన్నాయి' and transitions to DRAFT_CONFIRM", async () => {
+    await Business.create({
+      _id: "biz_test_dates_telugu_1",
+      ownerPhone: "919111111106",
+      onboardingState: "AWAITING_DATES",
+      destId: "araku",
+      name: "Araku Valley Homestay",
+      priceRangeINR: { min: 1500, max: 2500 },
+      transcriptLang: "te",
+    });
+
+    const sendMessageFn = jest.fn();
+    const transcribeFn = async () => ({
+      transcript: "అక్టోబర్ 12 నుంచి అక్టోబర్ 15 వరకు మూడు గదులు ఖాళీగా ఉన్నాయి",
+      detectedLanguage: "te",
+    });
+
+    const result = await processInboundAudio({
+      audioBuffer: stubAudio,
+      ownerPhone: "919111111106",
+      messageId: "wamid.dates.telugu.1",
+      transcribeFn,
+      sendMessageFn,
+    });
+
+    expect(result.applied).toBe(true);
+    expect(result.onboardingState).toBe("DRAFT_CONFIRM");
+    expect(result.availability.recordCount).toBe(4); // 12, 13, 14, 15
+    expect(result.availability.units).toBe(3);
+    expect(result.availability.resourceType).toBe("room");
+
+    const savedBiz = await Business.findOne({ _id: "biz_test_dates_telugu_1" });
+    expect(savedBiz.onboardingState).toBe("DRAFT_CONFIRM");
+
+    const records = await BusinessAvailability.find({ businessId: "biz_test_dates_telugu_1" }).sort({ date: 1 });
+    expect(records.length).toBe(4);
+    for (const rec of records) {
+      expect(rec.businessId).toBe("biz_test_dates_telugu_1");
+      expect(rec.resourceType).toBe("room");
+      expect(rec.units).toEqual({ total: 3, available: 3 });
+      expect(rec.pricePerNight).toBe(1500);
+      expect(rec.isOpen).toBe(true);
+      expect(rec.source).toBe("business_declared");
+    }
+
+    expect(sendMessageFn).toHaveBeenCalledTimes(1);
+  });
+
+  test("Telugu audio flow missing units: 'అక్టోబర్ 10 నుంచి అక్టోబర్ 20 వరకు' triggers missing-units follow-up", async () => {
+    await Business.create({
+      _id: "biz_test_dates_telugu_nounits",
+      ownerPhone: "919111111107",
+      onboardingState: "AWAITING_DATES",
+      destId: "araku",
+    });
+
+    const sendMessageFn = jest.fn();
+    const transcribeFn = async () => ({
+      transcript: "అక్టోబర్ 10 నుంచి అక్టోబర్ 20 వరకు",
+      detectedLanguage: "te",
+    });
+
+    const result = await processInboundAudio({
+      audioBuffer: stubAudio,
+      ownerPhone: "919111111107",
+      messageId: "wamid.dates.telugu.2",
+      transcribeFn,
+      sendMessageFn,
+    });
+
+    expect(result.applied).toBe(false);
+    expect(result.reason).toBe("missing_units");
+    expect(result.onboardingState).toBe("AWAITING_DATES");
+
+    const savedBiz = await Business.findOne({ _id: "biz_test_dates_telugu_nounits" });
+    expect(savedBiz.onboardingState).toBe("AWAITING_DATES");
+
+    const records = await BusinessAvailability.find({ businessId: "biz_test_dates_telugu_nounits" });
+    expect(records.length).toBe(0);
+
+    expect(sendMessageFn).toHaveBeenCalledTimes(1);
   });
 });

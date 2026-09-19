@@ -1,89 +1,180 @@
 # ai-service/app/onboarding/transcribe.py
 #
-# bharani-tasks.md Section 1.2 — real faster-whisper transcription backend.
+# Voice Onboarding — Sarvam Saaras v4 STT integration.
 #
-# Loads distil-large-v3 once, when this module is first imported (i.e. once
-# per running ai-service process), never per-request — reloading a model
-# this size on every call would turn the spec's own "1-3x realtime on CPU"
-# warning into something far worse during a demo.
+# Replaces Whisper large-v3-turbo with Sarvam AI's Saaras v4 model via
+# synchronous REST API (POST https://api.sarvam.ai/speech-to-text).
 #
-# Device selection follows Section 1.2 directly: "Do not use large-v3 on
-# CPU... Use a GPU if at all available." Tries CUDA first (float16, the
-# standard high-throughput CTranslate2 quantization for GPU); falls back to
-# CPU (int8) if CUDA isn't usable for any reason, rather than failing to
-# start the service entirely.
-#
-# "Usable" is verified, not assumed from construction succeeding: CTranslate2
-# defers binding CUDA runtime libraries (e.g. cuBLAS) until the first real
-# compute call, not model construction (confirmed against a real production
-# failure — WhisperModel(..., device="cuda") constructed and the service
-# started fine, but the first actual transcribe() call threw "Library
-# cublas64_12.dll is not found or cannot be loaded", entirely outside this
-# function's original try/except). So after constructing the CUDA candidate,
-# _load_model() now forces one throwaway transcription (1 second of silence,
-# no network/file dependency) to trigger that same encode step immediately,
-# while still inside the try/except — a broken CUDA runtime is caught here,
-# once, at import time, rather than surfacing as a 500 on a real request.
-#
-# Endpoint registration lives in app/main.py as a direct @app.post
-# decorator (matching that file's convention for /api/plan-trip and
-# /api/plan-trip/confirm) — this module exposes only the model and the
-# plain transcription function main.py's endpoint calls into, not a router.
+# Satisfies the contract matching backend/src/services/onboarding/transcription.js:
+# given raw audio bytes, returns { "transcript": str, "detectedLanguage": str }.
 
-import io
 import logging
+import os
+from typing import Optional, Tuple
 
-import numpy as np
-from faster_whisper import WhisperModel
+import requests
 
 logger = logging.getLogger(__name__)
 
-MODEL_NAME = "large-v3-turbo"
+SARVAM_STT_URL = "https://api.sarvam.ai/speech-to-text"
+SARVAM_MODEL = "saaras:v4"
 
-# 1 second of silence at 16kHz (Whisper's expected sample rate) — enough to
-# force the model's encode/language-detection step without needing any real
-# audio file or network call.
-_PROBE_AUDIO = np.zeros(16000, dtype=np.float32)
+# Explicit 23-language mapping for Sarvam Saaras v4 (22 Indic languages + English).
+# Maps Sarvam's BCP-47 language codes to normalized short codes expected by the application.
+SARVAM_LANGUAGE_MAP = {
+    "hi-IN": "hi",    # Hindi
+    "te-IN": "te",    # Telugu
+    "ta-IN": "ta",    # Tamil
+    "kn-IN": "kn",    # Kannada
+    "ml-IN": "ml",    # Malayalam
+    "bn-IN": "bn",    # Bengali
+    "mr-IN": "mr",    # Marathi
+    "gu-IN": "gu",    # Gujarati
+    "pa-IN": "pa",    # Punjabi
+    "od-IN": "od",    # Odia
+    "or-IN": "od",    # Odia (standard ISO alternative)
+    "as-IN": "as",    # Assamese
+    "ur-IN": "ur",    # Urdu
+    "ne-IN": "ne",    # Nepali
+    "kok-IN": "kok",  # Konkani
+    "ks-IN": "ks",    # Kashmiri
+    "sd-IN": "sd",    # Sindhi
+    "sa-IN": "sa",    # Sanskrit
+    "sat-IN": "sat",  # Santali
+    "mni-IN": "mni",  # Manipuri
+    "brx-IN": "brx",  # Bodo
+    "mai-IN": "mai",  # Maithili
+    "doi-IN": "doi",  # Dogri
+    "en-IN": "en",    # English (Indian)
+    "en-US": "en",    # English (Global)
+    "en-GB": "en",    # English (Global)
+}
 
 
-def _load_model() -> WhisperModel:
-    try:
-        import ctranslate2
+def normalize_language_code(code: Optional[str]) -> str:
+    """
+    Normalizes Sarvam language codes (e.g. 'hi-IN') to the short code ('hi')
+    expected by downstream components.
+    """
+    if not code or not isinstance(code, str):
+        return "unknown"
+    cleaned = code.strip()
+    if cleaned in SARVAM_LANGUAGE_MAP:
+        return SARVAM_LANGUAGE_MAP[cleaned]
+    lower = cleaned.lower()
+    for k, v in SARVAM_LANGUAGE_MAP.items():
+        if k.lower() == lower:
+            return v
+    # Fallback to language subtag before hyphen (e.g. 'hi-XX' -> 'hi')
+    prefix = lower.split("-")[0]
+    return prefix if prefix else "unknown"
 
-        if ctranslate2.get_cuda_device_count() > 0:
-            logger.info("onboarding.transcribe: loading %s on CUDA (float16)", MODEL_NAME)
-            candidate = WhisperModel(MODEL_NAME, device="cuda", compute_type="float16")
 
-            # Construction succeeding does not prove CUDA actually works —
-            # see module docstring. Force the real encode step now, still
-            # inside this try/except, so a broken CUDA runtime falls through
-            # to the CPU branch below instead of only failing later, on a
-            # real request, outside this function entirely.
-            segments, _info = candidate.transcribe(_PROBE_AUDIO)
-            list(segments)  # segments is a lazy generator; force full consumption
+def detect_audio_mime(
+    audio_bytes: bytes,
+    content_type: Optional[str] = None,
+    filename: Optional[str] = None,
+) -> Tuple[str, str]:
+    """
+    Determines the MIME type and appropriate filename for the audio payload.
+    Uses caller-provided content_type if specific, or inspects magic bytes.
+    Defaults to audio/ogg (WhatsApp voice note default) if unrecognized.
+    """
+    # Use caller-provided content_type if it is specific
+    if content_type and content_type != "application/octet-stream" and "/" in content_type:
+        mime = content_type.split(";")[0].strip().lower()
+        ext = mime.split("/")[-1]
+        fname = filename or f"audio.{ext}"
+        return mime, fname
 
-            return candidate
-    except Exception as exc:  # pragma: no cover - depends on the runtime GPU/driver
-        logger.warning("onboarding.transcribe: GPU path unavailable (%s), falling back to CPU int8", exc)
+    # Detect via magic bytes
+    if audio_bytes.startswith(b"OggS"):
+        return "audio/ogg", filename or "audio.ogg"
+    if audio_bytes.startswith(b"RIFF"):
+        return "audio/wav", filename or "audio.wav"
+    if audio_bytes.startswith(b"ID3") or (len(audio_bytes) > 2 and audio_bytes[:2] in (b"\xff\xfb", b"\xff\xf3", b"\xff\xf2")):
+        return "audio/mpeg", filename or "audio.mp3"
+    if len(audio_bytes) >= 8 and audio_bytes[4:8] == b"ftyp":
+        return "audio/mp4", filename or "audio.m4a"
+    if audio_bytes.startswith(b"fLaC"):
+        return "audio/flac", filename or "audio.flac"
+    if audio_bytes.startswith(b"#!AMR"):
+        return "audio/amr", filename or "audio.amr"
+
+    return "audio/ogg", filename or "audio.ogg"
+
+
+def run_transcription(
+    audio_bytes: bytes,
+    content_type: Optional[str] = None,
+    filename: Optional[str] = None,
+) -> dict:
+    """
+    Transcribes audio using Sarvam Saaras v4 REST API.
+    Auto-detects spoken language using language_code='unknown'.
+    Keeps the transcript in the original spoken language (mode='transcribe').
+    Normalizes detected language code to short format (e.g. 'hi').
+
+    Returns:
+        dict: { "transcript": str, "detectedLanguage": str }
+    """
+    api_key = os.environ.get("SARVAM_API_KEY")
+    if not api_key or not api_key.strip():
+        raise RuntimeError("SARVAM_API_KEY is not set in the environment.")
+
+    mime_type, file_name = detect_audio_mime(audio_bytes, content_type, filename)
+
+    headers = {
+        "api-subscription-key": api_key.strip(),
+    }
+
+    data = {
+        "model": SARVAM_MODEL,
+        "language_code": "unknown",  # Automatic language detection
+        "mode": "transcribe",        # Original spoken language, no translation
+    }
+
+    files = {
+        "file": (file_name, audio_bytes, mime_type),
+    }
 
     logger.info(
-        "onboarding.transcribe: loading %s on CPU (int8) — Section 1.2: expect ~1-3x realtime",
-        MODEL_NAME,
+        "onboarding.transcribe: sending audio to Sarvam Saaras v4 (mime=%s, size=%d bytes)",
+        mime_type,
+        len(audio_bytes),
     )
-    return WhisperModel(MODEL_NAME, device="cpu", compute_type="int8")
 
+    try:
+        response = requests.post(
+            SARVAM_STT_URL,
+            headers=headers,
+            data=data,
+            files=files,
+            timeout=60,
+        )
+    except requests.RequestException as exc:
+        logger.error("onboarding.transcribe: network error reaching Sarvam API: %s", exc)
+        raise RuntimeError(f"Failed to reach Sarvam transcription service: {exc}") from exc
 
-# Loaded at import time, not lazily on first request — see module docstring.
-_model = _load_model()
+    if not response.ok:
+        try:
+            err_json = response.json()
+            err_detail = err_json.get("detail", str(err_json))
+        except Exception:
+            err_detail = response.text
+        logger.error(
+            "onboarding.transcribe: Sarvam API returned HTTP %d: %s",
+            response.status_code,
+            err_detail,
+        )
+        raise RuntimeError(f"Sarvam transcription failed with status {response.status_code}: {err_detail}")
 
+    resp_data = response.json()
+    transcript = resp_data.get("transcript", "")
+    raw_lang = resp_data.get("language_code", "")
+    detected_lang = normalize_language_code(raw_lang)
 
-def run_transcription(audio_bytes: bytes) -> dict:
-    """
-    Real contract this must satisfy, matching
-    backend/src/services/onboarding/transcription.js's transcribeFn:
-    given raw audio bytes, return { transcript: string, detectedLanguage: string }.
-    """
-    # language=None (the default) -> auto-detect, per Section 1.2.
-    segments, info = _model.transcribe(io.BytesIO(audio_bytes))
-    transcript = "".join(segment.text for segment in segments).strip()
-    return {"transcript": transcript, "detectedLanguage": info.language}
+    return {
+        "transcript": transcript,
+        "detectedLanguage": detected_lang,
+    }

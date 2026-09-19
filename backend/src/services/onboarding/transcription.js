@@ -17,8 +17,33 @@
 
 const DEFAULT_TRANSCRIBE_SERVICE_URL = "http://localhost:8000/onboarding/transcribe";
 
+function detectAudioMimeType(buffer) {
+  if (!buffer || buffer.length < 4) {
+    return { mimeType: "audio/ogg", filename: "audio.ogg" };
+  }
+  if (buffer.subarray(0, 4).toString("ascii") === "OggS") {
+    return { mimeType: "audio/ogg", filename: "audio.ogg" };
+  }
+  if (buffer.subarray(0, 4).toString("ascii") === "RIFF") {
+    return { mimeType: "audio/wav", filename: "audio.wav" };
+  }
+  if (buffer.subarray(0, 3).toString("ascii") === "ID3" || (buffer[0] === 0xff && (buffer[1] & 0xe0) === 0xe0)) {
+    return { mimeType: "audio/mpeg", filename: "audio.mp3" };
+  }
+  if (buffer.length >= 8 && buffer.subarray(4, 8).toString("ascii") === "ftyp") {
+    return { mimeType: "audio/mp4", filename: "audio.m4a" };
+  }
+  if (buffer.subarray(0, 4).toString("ascii") === "fLaC") {
+    return { mimeType: "audio/flac", filename: "audio.flac" };
+  }
+  if (buffer.length >= 5 && buffer.subarray(0, 5).toString("ascii") === "#!AMR") {
+    return { mimeType: "audio/amr", filename: "audio.amr" };
+  }
+  return { mimeType: "audio/ogg", filename: "audio.ogg" };
+}
+
 /**
- * Real transcription backend. Calls the local faster-whisper FastAPI
+ * Real transcription backend. Calls the local transcription FastAPI
  * service (ai-service/app/onboarding/transcribe.py) over HTTP, posting the
  * raw audio bytes as multipart/form-data under the field name "audio" (the
  * name that endpoint's `UploadFile = File(...)` parameter expects) and
@@ -33,8 +58,9 @@ const DEFAULT_TRANSCRIBE_SERVICE_URL = "http://localhost:8000/onboarding/transcr
 async function callWhisperService(audioBuffer) {
   const url = process.env.TRANSCRIBE_SERVICE_URL || DEFAULT_TRANSCRIBE_SERVICE_URL;
 
+  const { mimeType, filename } = detectAudioMimeType(audioBuffer);
   const form = new FormData();
-  form.append("audio", new Blob([audioBuffer]), "audio");
+  form.append("audio", new Blob([audioBuffer], { type: mimeType }), filename);
 
   let response;
   try {

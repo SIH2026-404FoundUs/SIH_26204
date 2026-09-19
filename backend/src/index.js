@@ -4,6 +4,8 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import dns from "dns";
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
 import { connectDB } from "./lib/db.js";
 import authRoutes from "./routes/auth.route.js";
 import budgetRoutes from "./routes/budget.routes.js";
