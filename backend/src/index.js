@@ -33,6 +33,8 @@ import dashboardRoutes from "./routes/dashboard.route.js";
 import destinationsRoutes from "./routes/destinations.route.js";
 import bookingsRoutes from "./routes/bookings.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
+import contentRoutes from "./routes/content.route.js";
+import feedbackRoutes from "./routes/feedback.route.js";
 import { startAlertPolling } from "./jobs/scheduler.js";
 
 // dotenv.config() with no path loads .env from process.cwd(), which silently
@@ -100,6 +102,8 @@ app.use("/api/v1/users", usersRoutes);
 app.use("/api/v1/safety", safetyRoutes);
 app.use("/api/v1/trips", tripsRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
+app.use("/api/v1/content", contentRoutes); // Tourism Publicity Generator -- operator-only
+app.use("/api/v1/feedback", feedbackRoutes); // AI Tourist Feedback Intelligence
 
 app.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);

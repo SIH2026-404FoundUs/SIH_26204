@@ -1,7 +1,8 @@
 import crypto from "crypto";
 import Business from "../models/business.model.js";
+import BusinessAvailability from "../models/businessAvailability.model.js";
 import { getPressure } from "../services/pressure/service.js";
-import { rankBusinessesForGrowth } from "../services/feedback/growthRanking.js";
+import { rankBusinessesForGrowth, calculateBusinessGrowthRank } from "../services/feedback/growthRanking.js";
 import { slugify } from "../services/community/similarityUtils.js";
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -11,6 +12,98 @@ const today = () => new Date().toISOString().slice(0, 10);
 const LOW_PRESSURE_THRESHOLD = 0.3;
 
 const BUSINESS_TYPES = ["homestay", "guesthouse", "hotel", "restaurant", "guide", "driver", "cook"];
+const RESOURCE_TYPE_BY_BUSINESS_TYPE = { homestay: "room", guesthouse: "room", hotel: "room", restaurant: "table", guide: "service", driver: "service", cook: "service" };
+const asDate = (value) => {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+const ownedBusiness = (req, id) => Business.findOne({ _id: id, ownerUserId: String(req.user._id) });
+
+export const getBusinessAvailabilityController = async (req, res) => {
+  try {
+    if (req.user.role !== "operator") return res.status(403).json({ message: "operator role required" });
+    const business = await ownedBusiness(req, req.params.id);
+    if (!business) return res.status(404).json({ message: "business not found" });
+    const from = asDate(req.query.from) || new Date(new Date().toISOString().slice(0, 10) + "T00:00:00.000Z");
+    const rows = await BusinessAvailability.find({ businessId: business._id, date: { $gte: from } }).sort({ date: 1 }).lean();
+    res.status(200).json(rows);
+  } catch (error) { console.log("Error in getBusinessAvailability controller", error.message); res.status(500).json({ message: "Internal Server Error" }); }
+};
+
+export const upsertBusinessAvailabilityController = async (req, res) => {
+  try {
+    if (req.user.role !== "operator") return res.status(403).json({ message: "operator role required" });
+    const business = await ownedBusiness(req, req.params.id);
+    if (!business) return res.status(404).json({ message: "business not found" });
+    const { date: rawDate, units, available, pricePerNight, discountPct, isOpen = true } = req.body;
+    const date = asDate(rawDate); const total = Number(units);
+    if (!date) return res.status(400).json({ message: "date must be YYYY-MM-DD" });
+    if (!Number.isInteger(total) || total < 0) return res.status(400).json({ message: "units must be a non-negative whole number" });
+    const resourceType = RESOURCE_TYPE_BY_BUSINESS_TYPE[business.type] || "service";
+    const nextAvailable = isOpen === false ? 0 : (available === undefined ? total : Number(available));
+    if (!Number.isInteger(nextAvailable) || nextAvailable < 0 || nextAvailable > total) return res.status(400).json({ message: "available must be between 0 and units" });
+    const price = pricePerNight === undefined || pricePerNight === "" ? undefined : Number(pricePerNight);
+    const discount = discountPct === undefined || discountPct === "" ? 0 : Number(discountPct);
+    if (price !== undefined && (!Number.isFinite(price) || price < 0)) return res.status(400).json({ message: "price must be zero or greater" });
+    if (!Number.isFinite(discount) || discount < 0 || discount > 40) return res.status(400).json({ message: "discount must be between 0 and 40" });
+    const row = await BusinessAvailability.findOneAndUpdate(
+      { businessId: business._id, date, resourceType },
+      { $set: { units: { total, available: nextAvailable }, pricePerNight: price, discountPct: discount, isOpen: Boolean(isOpen), source: "business_declared", updatedAt: new Date() }, $setOnInsert: { _id: `avail_${business._id}_${rawDate}` } },
+      { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
+    ).lean();
+    res.status(200).json(row);
+  } catch (error) { console.log("Error in upsertBusinessAvailability controller", error.message); res.status(500).json({ message: "Internal Server Error" }); }
+};
+
+// GET /api/v1/businesses/:id/growth -- operator-only, own business only.
+// Surfaces the SAME formula searchBusinessesController already sorts by
+// (calculateBusinessGrowthRank, spec §3.4) so an operator can actually see
+// their own multiplier breakdown instead of the ranking working invisibly
+// in the background of traveller search results.
+export const getBusinessGrowthController = async (req, res) => {
+  try {
+    if (req.user.role !== "operator") return res.status(403).json({ message: "operator role required" });
+    const business = await ownedBusiness(req, req.params.id);
+    if (!business) return res.status(404).json({ message: "business not found" });
+
+    const pressureRow = business.destId ? await getPressure(business.destId, today()) : null;
+    const isInLowPressureDest = typeof pressureRow?.score === "number" && pressureRow.score < LOW_PRESSURE_THRESHOLD;
+
+    const { rank, multipliers } = calculateBusinessGrowthRank(business, { isInLowPressureDest });
+
+    // Plain-language nudges -- only for factors an operator can actually
+    // still act on. onboardedVia is fixed at onboarding time (nothing to
+    // suggest there); verificationTier and the pressure-driven bonus are
+    // both real, current, actionable state.
+    const nudges = [];
+    if (business.verificationTier !== "registered") {
+      nudges.push(
+        business.verificationTier === "visit-verified"
+          ? "Complete full registration to reach the top verification tier and its full ranking boost."
+          : "Get at least one traveller to verify a visit, or complete full registration, for a ranking boost."
+      );
+    }
+    if (!isInLowPressureDest) {
+      nudges.push("This destination isn't low-pressure right now -- the redistribution bonus isn't active today, but check back as pressure changes.");
+    }
+
+    res.status(200).json({
+      businessId: business._id,
+      rank,
+      multipliers,
+      factors: {
+        isLocallyOnboarded: business.onboardedVia === "whatsapp",
+        verificationTier: business.verificationTier || "self-declared",
+        isInLowPressureDest,
+      },
+      nudges,
+    });
+  } catch (error) {
+    console.log("Error in getBusinessGrowth controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 // GET /api/v1/businesses/search?destId=&type=
 // Wraps Business.find() + the existing growthRanking formula (spec §3.4) — no

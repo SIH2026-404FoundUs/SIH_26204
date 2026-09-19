@@ -22,6 +22,10 @@ export const useOperatorStore = create((set) => ({
   businessesError: null,
   isRegistering: false,
   registerError: null,
+  availability: [],
+  isLoadingAvailability: false,
+  availabilityError: null,
+  isSavingAvailability: false,
 
   fetchMyBusinesses: async () => {
     set({ isLoadingBusinesses: true, businessesError: null })
@@ -47,6 +51,28 @@ export const useOperatorStore = create((set) => ({
     } finally {
       set({ isRegistering: false })
     }
+  },
+
+  fetchAvailability: async (businessId) => {
+    set({ isLoadingAvailability: true, availabilityError: null })
+    try {
+      const res = await api.get(`/v1/businesses/${businessId}/availability`)
+      set({ availability: res.data })
+    } catch (error) {
+      set({ availabilityError: getErrorMessage(error, 'Could not load availability') })
+    } finally { set({ isLoadingAvailability: false }) }
+  },
+
+  saveAvailability: async (businessId, data) => {
+    set({ isSavingAvailability: true, availabilityError: null })
+    try {
+      const res = await api.post(`/v1/businesses/${businessId}/availability`, data)
+      set((state) => ({ availability: [...state.availability.filter((row) => row._id !== res.data._id), res.data].sort((a, b) => new Date(a.date) - new Date(b.date)) }))
+      return true
+    } catch (error) {
+      set({ availabilityError: getErrorMessage(error, 'Could not save availability') })
+      return false
+    } finally { set({ isSavingAvailability: false }) }
   },
 
   // -- SmartWaitlist + offers --
@@ -186,6 +212,62 @@ export const useOperatorStore = create((set) => ({
       return false
     } finally {
       set({ isSubmittingHire: false })
+    }
+  },
+
+  // -- Local Tourism Business Growth Platform: the same growthRanking
+  // formula that already silently orders GET /v1/businesses/search results,
+  // now surfaced so an operator can see their own multiplier breakdown
+  // instead of it working invisibly in the background. --
+  growth: null,
+  isLoadingGrowth: false,
+  growthError: null,
+
+  fetchGrowth: async (businessId) => {
+    set({ isLoadingGrowth: true, growthError: null })
+    try {
+      const res = await api.get(`/v1/businesses/${businessId}/growth`)
+      set({ growth: res.data })
+    } catch (error) {
+      set({ growthError: getErrorMessage(error, 'Could not load growth insights') })
+    } finally {
+      set({ isLoadingGrowth: false })
+    }
+  },
+
+  // -- AI Tourist Feedback Intelligence: themes/actions extracted from real
+  // traveller reviews (GET reads whatever's cached; POST re-runs the
+  // extraction and re-caches it onto the business). --
+  feedbackInsights: null,
+  isLoadingFeedbackInsights: false,
+  isProcessingFeedback: false,
+  feedbackInsightsError: null,
+
+  fetchFeedbackInsights: async (businessId) => {
+    set({ isLoadingFeedbackInsights: true, feedbackInsightsError: null })
+    try {
+      const res = await api.get(`/v1/feedback/business/${businessId}/insights`)
+      set({ feedbackInsights: res.data })
+    } catch (error) {
+      set({ feedbackInsightsError: getErrorMessage(error, 'Could not load feedback insights') })
+    } finally {
+      set({ isLoadingFeedbackInsights: false })
+    }
+  },
+
+  reprocessFeedback: async (businessId) => {
+    set({ isProcessingFeedback: true, feedbackInsightsError: null })
+    try {
+      const res = await api.post(`/v1/feedback/business/${businessId}/process`)
+      if (res.data.processed) {
+        set({ feedbackInsights: { businessId, totalReviews: res.data.totalReviews, averageRating: res.data.averageRating, meetsThreshold: true, themes: res.data.themes, actions: res.data.actions } })
+      }
+      return res.data
+    } catch (error) {
+      set({ feedbackInsightsError: getErrorMessage(error, 'Could not process feedback') })
+      return null
+    } finally {
+      set({ isProcessingFeedback: false })
     }
   },
 

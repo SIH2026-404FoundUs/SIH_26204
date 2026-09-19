@@ -6,7 +6,6 @@ export const useAuthStore = create((set) => ({
   isCheckingAuth: true,
   isSigningUp: false,
   isLoggingIn: false,
-  isUpdatingProfile: false,
   error: null,
 
   clearError: () => set({ error: null }),
@@ -66,7 +65,7 @@ export const useAuthStore = create((set) => ({
   },
 
   updateProfile: async (data) => {
-    set({ isUpdatingProfile: true, error: null })
+    set({ error: null })
     try {
       const res = await api.put('/auth/update-profile', data)
       set({ authUser: res.data })
@@ -74,8 +73,38 @@ export const useAuthStore = create((set) => ({
     } catch (error) {
       set({ error: getErrorMessage(error, 'Could not update your profile') })
       return false
+    }
+  },
+
+  isUploadingPhoto: false,
+
+  uploadProfilePhoto: async (file) => {
+    set({ isUploadingPhoto: true, error: null })
+    try {
+      const formData = new FormData()
+      formData.append('photo', file)
+      const res = await api.post('/auth/profile-photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      set({ authUser: res.data })
+      return true
+    } catch (error) {
+      set({ error: getErrorMessage(error, 'Could not upload your photo') })
+      return false
     } finally {
-      set({ isUpdatingProfile: false })
+      set({ isUploadingPhoto: false })
+    }
+  },
+
+  removeProfilePhoto: async () => {
+    set({ error: null })
+    try {
+      const res = await api.delete('/auth/profile-photo')
+      set({ authUser: res.data })
+      return true
+    } catch (error) {
+      set({ error: getErrorMessage(error, 'Could not remove your photo') })
+      return false
     }
   },
 

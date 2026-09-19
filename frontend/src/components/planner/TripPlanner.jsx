@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, Users, Wallet, Navigation, Compass, Check, X, CalendarClock, Map as MapIcon } from 'lucide-react'
+import { Calendar, Users, Wallet, Navigation, Compass, Check, X, CalendarClock, Map as MapIcon, CloudSun, Hotel, ShieldCheck, Route as RouteIcon } from 'lucide-react'
 import { usePlannerStore } from '../../store/usePlannerStore'
 import { useTrustStore } from '../../store/useTrustStore'
 import PressureRing from '../pressure/PressureRing'
@@ -29,16 +29,13 @@ function TripForm({ onSubmit, isPlanning }) {
   }, [form.destId, fetchNearbySuggestionCount])
 
   return (
-    <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); onSubmit(form) }}>
-      <FormField label="Destination">
-        <DestinationSelect required value={form.destId} onChange={(v) => setForm((p) => ({ ...p, destId: v }))} />
-        {form.destId && nearbySuggestionCount != null && nearbySuggestionCount > 0 && (
-          <p className="mt-1.5 flex items-center gap-1 text-xs text-relief">
-            <Users size={12} aria-hidden="true" />
-            {nearbySuggestionCount} traveller{nearbySuggestionCount === 1 ? '' : 's'} suggested {nearbySuggestionCount === 1 ? 'a place' : 'places'} worth visiting nearby
-          </p>
-        )}
-      </FormField>
+    <form className="grid grid-cols-1 gap-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); onSubmit(form) }}>
+      <div className="sm:col-span-2 mb-1">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-relief">Start a considered trip</p>
+        <h2 className="mt-1 font-display text-2xl tracking-tight text-ink">Tell us what you’re planning.</h2>
+        <p className="mt-1 text-sm leading-6 text-ink/60">We’ll check pressure, route, weather, stays and your budget before shaping the days.</p>
+      </div>
+      <FormField label="Destination"><DestinationSelect required value={form.destId} onChange={(v) => setForm((p) => ({ ...p, destId: v }))} /></FormField>
       <FormField label="Travelling from">
         <div className="relative">
           <Navigation size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ash" aria-hidden="true" />
@@ -103,6 +100,26 @@ function AlternativeRow({ label, icon: Icon, pressure, requestedPressure, saving
 // The traveller sees the reading and the alternatives and must explicitly
 // accept or decline -- both buttons carry equal size, weight, and an icon,
 // per the doc's central integrity rule.
+function itineraryStopName(stop) {
+  if (!stop || typeof stop !== 'object') return 'Planned stop'
+  if (stop.location && typeof stop.location === 'object') return stop.location.name || 'Stay'
+  return stop.name || 'Planned stop'
+}
+
+function itineraryStopLabel(stop) {
+  if (stop?.slot === 'start') return 'Start from'
+  if (stop?.slot === 'end') return 'Return to'
+  return stop?.time || stop?.slot || 'Visit'
+}
+
+function shiftedEndDate(startDate, endDate, nextStartDate) {
+  if (!startDate || !endDate || !nextStartDate) return endDate
+  const duration = Math.round((new Date(`${endDate}T00:00:00`) - new Date(`${startDate}T00:00:00`)) / 86400000)
+  const nextEnd = new Date(`${nextStartDate}T00:00:00`)
+  nextEnd.setDate(nextEnd.getDate() + duration)
+  return nextEnd.toISOString().slice(0, 10)
+}
+
 function DecisionPanel() {
   const { pressure, alternatives, submitDecision, isPlanning } = usePlannerStore()
   const [selectedAlternative, setSelectedAlternative] = useState(null)
@@ -181,10 +198,35 @@ function DecisionPanel() {
 }
 
 function PlanResult() {
-  const { plan, request, pressure } = usePlannerStore()
+  const { plan, request, pressure, submitTrip, isPlanning } = usePlannerStore()
+  const [selectedAlternative, setSelectedAlternative] = useState(null)
   if (!plan) return null
   const { trip, redistribution, destId, startDate } = plan
   const switched = redistribution?.kind && redistribution.kind !== 'none'
+  const swapOffers = trip?.alternatives?.swapOffers
+  const destinationSwap = swapOffers?.destination_swap
+  const dateSwap = swapOffers?.date_swap
+  const hasSwapOffers = Boolean(destinationSwap || dateSwap)
+  const decisionAlternatives = plan?.alternatives
+  const alternativePlaces = decisionAlternatives?.places || []
+  const alternativeDates = decisionAlternatives?.dates || []
+  const hasDecisionAlternatives = alternativePlaces.length > 0 || alternativeDates.length > 0
+  const formatDate = (value) => value
+    ? new Date(`${value}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    : 'Unavailable'
+
+  const applySelectedAlternative = async () => {
+    if (!selectedAlternative || !request) return
+    await submitTrip({
+      origin: request.origin,
+      destId: selectedAlternative.destId || request.destId,
+      startDate: selectedAlternative.startDate || request.startDate,
+      endDate: selectedAlternative.endDate || request.endDate,
+      travellers: request.travellers,
+      budgetInr: request.budgetINR,
+      interests: request.interests,
+    })
+  }
 
   return (
     <Card>
@@ -249,13 +291,91 @@ function PlanResult() {
           {trip.itinerary.days.map((day) => (
             <div key={day.day} className="rounded-lg border border-paper-dim p-3 text-sm">
               <div className="font-medium text-ink/80">Day {day.day}</div>
-              <div className="text-ink/50">{day.stops?.length ?? 0} stop(s)</div>
+              <div className="mt-2 space-y-2">
+                {(day.stops || []).map((stop, index) => (
+                  <div key={`${itineraryStopName(stop)}-${index}`} className="flex items-start gap-3 rounded-md bg-paper-dim/40 px-2.5 py-2">
+                    <span className="w-20 shrink-0 text-xs font-medium text-ash">{itineraryStopLabel(stop)}</span>
+                    <div className="min-w-0">
+                      <div className="font-medium text-ink/80">{itineraryStopName(stop)}</div>
+                      {stop?.activity && <div className="mt-0.5 text-xs text-ink/50">{stop.activity}</div>}
+                      {typeof stop?.estimatedDuration === 'number' && <div className="mt-0.5 text-xs text-ink/40">About {stop.estimatedDuration} minutes</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
       )}
       {!trip?.itinerary?.days?.length && (
         <p className="mt-4 text-sm text-ink/60">Detailed day-by-day itinerary was not returned for this plan.</p>
+      )}
+
+      {hasSwapOffers && (
+        <div className="mt-5 rounded-lg border border-relief/25 bg-relief/5 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-xs font-medium uppercase tracking-wide text-relief">Quieter alternatives</div>
+              <p className="mt-1 text-xs text-ink/60">Optional verified suggestions for this destination and trip window.</p>
+            </div>
+            <span className="text-xs font-medium text-relief">No automatic changes</span>
+          </div>
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {destinationSwap && (
+              <button type="button" aria-pressed={selectedAlternative?.kind === 'destination'} onClick={() => setSelectedAlternative({ kind: 'destination', destId: destinationSwap.alternative_destination })} className={`w-full rounded-lg border bg-white p-3 text-left transition ${selectedAlternative?.kind === 'destination' ? 'border-relief ring-2 ring-relief/25' : 'border-paper-dim hover:border-relief/60'}`}>
+                <div className="text-xs font-medium uppercase tracking-wide text-ash">Destination</div>
+                <div className="mt-1 font-medium text-ink">{destinationSwap.alternative_name || destinationSwap.alternative_destination}</div>
+                {destinationSwap.pressure_after != null && <div className="mt-1 text-xs text-relief">{Math.round(destinationSwap.pressure_after * 100)}% pressure</div>}
+                {destinationSwap.reason?.length > 0 && <div className="mt-1 text-xs text-ink/60">{destinationSwap.reason.join(' · ')}</div>}
+              </button>
+            )}
+            {dateSwap && (
+              <button type="button" aria-pressed={selectedAlternative?.kind === 'date'} onClick={() => setSelectedAlternative({ kind: 'date', startDate: dateSwap.alternative_dates?.[0], endDate: dateSwap.alternative_dates?.[1] })} className={`w-full rounded-lg border bg-white p-3 text-left transition ${selectedAlternative?.kind === 'date' ? 'border-relief ring-2 ring-relief/25' : 'border-paper-dim hover:border-relief/60'}`}>
+                <div className="text-xs font-medium uppercase tracking-wide text-ash">Alternative dates</div>
+                <div className="mt-1 font-medium text-ink">
+                  {formatDate(dateSwap.alternative_dates?.[0])}
+                  {dateSwap.alternative_dates?.[1] && ` – ${formatDate(dateSwap.alternative_dates[1])}`}
+                </div>
+                {dateSwap.pressure_after != null && <div className="mt-1 text-xs text-relief">{Math.round(dateSwap.pressure_after * 100)}% pressure</div>}
+                {dateSwap.reason?.length > 0 && <div className="mt-1 text-xs text-ink/60">{dateSwap.reason.join(' · ')}</div>}
+              </button>
+            )}
+          </div>
+          {selectedAlternative && <button type="button" onClick={applySelectedAlternative} disabled={isPlanning} className="mt-3 w-full rounded-lg bg-relief px-3 py-2 text-xs font-semibold text-white transition hover:bg-relief/90 disabled:opacity-60">{isPlanning ? 'Applying alternative…' : 'Apply selected alternative'}</button>}
+        </div>
+      )}
+
+      {hasDecisionAlternatives && (
+        <div className="mt-5 rounded-lg border border-pressure/25 bg-pressure/5 p-4">
+          <div className="text-xs font-medium uppercase tracking-wide text-pressure">Alternatives offered</div>
+          <p className="mt-1 text-xs text-ink/60">These were available before continuing with the requested plan.</p>
+          {alternativePlaces.length > 0 && (
+            <div className="mt-3">
+              <div className="text-xs font-medium text-ink/70">Other destinations</div>
+              <div className="mt-2 space-y-2">
+                {alternativePlaces.map((place) => (
+                  <div key={place.destId} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm">
+                    <span className="font-medium text-ink/80">{place.displayName || place.destId}</span>
+                    {place.pressure != null && <span className="text-xs text-relief">{Math.round(place.pressure * 100)}% pressure</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {alternativeDates.length > 0 && (
+            <div className="mt-3">
+              <div className="text-xs font-medium text-ink/70">Quieter dates</div>
+              <div className="mt-2 space-y-2">
+                {alternativeDates.map((dateOption) => (
+                  <div key={dateOption.startDate} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm">
+                    <span className="font-medium text-ink/80">{formatDate(dateOption.startDate)}</span>
+                    {dateOption.pressure != null && <span className="text-xs text-relief">{Math.round(dateOption.pressure * 100)}% pressure</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </Card>
   )
@@ -265,9 +385,21 @@ export default function TripPlanner() {
   const { submitTrip, isPlanning, awaitingDecision, error, plan, clearError, reset } = usePlannerStore()
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-6xl">
+      <section className="relative mb-8 overflow-hidden rounded-2xl bg-ink px-6 py-8 text-paper shadow-[0_20px_60px_rgba(16,25,43,0.15)] sm:px-10 sm:py-10">
+        <div className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full border-[32px] border-pressure/15" />
+        <div className="pointer-events-none absolute -bottom-32 right-36 h-64 w-64 rounded-full border-[24px] border-relief/20" />
+        <div className="relative max-w-2xl">
+          <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-paper/55"><Compass size={15} className="text-pressure" /> Sahyatri trip desk</div>
+          <h1 className="font-display text-4xl leading-tight tracking-tight sm:text-5xl">Go somewhere good.<br /><span className="text-paper/60">Travel there thoughtfully.</span></h1>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-paper/70 sm:text-base">Build a trip around crowd pressure, route time, local weather, places to stay, and the budget you actually have.</p>
+          <div className="mt-6 flex flex-wrap gap-2 text-xs text-paper/75"><span className="rounded-full border border-paper/15 bg-paper/10 px-3 py-1.5">Pressure-aware</span><span className="rounded-full border border-paper/15 bg-paper/10 px-3 py-1.5">Real places &amp; stays</span><span className="rounded-full border border-paper/15 bg-paper/10 px-3 py-1.5">Flexible by design</span></div>
+        </div>
+      </section>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+      <div>
       <div className="flex items-start justify-between gap-4">
-        <PageHeader icon={Compass} title="Where are you headed, and when?" description="We check how crowded it'll be before you book — not after." />
+        <PageHeader icon={Compass} title="Plan your next escape" description="A clear plan starts with a clear picture of the trip." />
         <Link
           to="/map"
           className="mt-1 flex shrink-0 items-center gap-1.5 rounded-lg border border-paper-dim bg-white px-3 py-2 text-xs font-medium text-ink/70 transition hover:border-ink/40"
@@ -294,6 +426,26 @@ export default function TripPlanner() {
       {awaitingDecision && <div className="mb-6"><DecisionPanel /></div>}
       {plan && <div className="mb-4"><PlanResult /></div>}
       {plan && <Button variant="ghost" onClick={reset}>Plan another trip</Button>}
+      </div>
+      <aside className="space-y-4">
+        <Card className="bg-white">
+          <div className="mb-4 flex items-center gap-2"><div className="rounded-lg bg-relief/10 p-2 text-relief"><ShieldCheck size={18} /></div><h2 className="font-display text-xl">What you’ll get</h2></div>
+          <div className="space-y-4">
+            <div className="flex gap-3"><CloudSun size={17} className="mt-0.5 shrink-0 text-pressure" /><div><p className="text-sm font-semibold">Live trip signals</p><p className="mt-1 text-xs leading-5 text-ash">Weather, route time and pressure before you commit.</p></div></div>
+            <div className="flex gap-3"><Hotel size={17} className="mt-0.5 shrink-0 text-relief" /><div><p className="text-sm font-semibold">Useful places to stay</p><p className="mt-1 text-xs leading-5 text-ash">Real hotel and local place data where available.</p></div></div>
+            <div className="flex gap-3"><RouteIcon size={17} className="mt-0.5 shrink-0 text-ink/60" /><div><p className="text-sm font-semibold">A day-by-day rhythm</p><p className="mt-1 text-xs leading-5 text-ash">Morning, afternoon and evening ideas to follow.</p></div></div>
+          </div>
+        </Card>
+        <Card className="border-relief/20 bg-relief/5">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-relief">How it works</p>
+          <div className="mt-4 space-y-3 text-sm">
+            <div className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-relief text-xs font-bold text-paper">1</span><span className="leading-6 text-ink/70">Enter destination, dates and budget.</span></div>
+            <div className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-relief text-xs font-bold text-paper">2</span><span className="leading-6 text-ink/70">Review pressure and alternatives.</span></div>
+            <div className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-relief text-xs font-bold text-paper">3</span><span className="leading-6 text-ink/70">Take the plan to One Map.</span></div>
+          </div>
+        </Card>
+      </aside>
+      </div>
     </div>
   )
 }

@@ -16,7 +16,7 @@ import { TRAVEL_MODES } from './travelModes';
  */
 export default function TravelModeSelector({ value = 'DRIVE', onChange }) {
   return (
-    <div className="flex flex-wrap items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200">
+    <div className="flex flex-wrap items-center gap-1 rounded-lg bg-white/80 p-1">
       {TRAVEL_MODES.map((mode) => {
         const Icon = mode.icon;
         const isSelected = value === mode.key;
@@ -26,10 +26,10 @@ export default function TravelModeSelector({ value = 'DRIVE', onChange }) {
             key={mode.key}
             type="button"
             onClick={() => onChange && onChange(mode.key)}
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-bold transition-all ${
               isSelected
                 ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
             }`}
             title={`${mode.label} (${mode.key})`}
           >

@@ -90,6 +90,19 @@ export function complaintCategoryLabel(category) {
   return COMPLAINT_CATEGORY_LABEL[category] || category
 }
 
+// complaintService.js's own real status progression -- "logged" the moment
+// it's submitted, moving to "under_review"/"resolved" only when an
+// authority actually acts on it (no auto-resolution anywhere).
+export const COMPLAINT_STATUS = {
+  logged: { label: 'Logged', tone: 'info' },
+  under_review: { label: 'Under review', tone: 'warning' },
+  resolved: { label: 'Resolved', tone: 'success' },
+}
+
+export function complaintStatus(status) {
+  return COMPLAINT_STATUS[status] || { label: status, tone: 'neutral' }
+}
+
 // A trip's own honest acceptance-rate data (redistribution.kind), made
 // visible to the traveller who generated it -- the point of the My Trips
 // page per the frontend sitemap doc (Page 6).

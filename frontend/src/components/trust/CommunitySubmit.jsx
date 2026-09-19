@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { MapPinned, Upload, X, Users } from 'lucide-react'
+import { MapPinned, Upload, X, Users, ImagePlus, ListChecks, MapPin, Sparkles } from 'lucide-react'
 import { useTrustStore } from '../../store/useTrustStore'
 import { submissionStatus } from '../../lib/labels'
 import PageHeader from '../ui/PageHeader'
@@ -87,104 +87,128 @@ export default function CommunitySubmit() {
   const isBusy = isUploadingPhotos || isSubmittingPlace
 
   return (
-    <div className="mx-auto max-w-md">
-      <PageHeader
-        icon={MapPinned}
-        title="Suggest a place"
-        description="Know somewhere worth visiting that isn't on the map yet? Tell us about it. You'll need at least one verified visit anywhere on the platform to submit -- this keeps suggestions coming from real travellers."
-      />
-
-      <Link to="/forum" className="mb-4 flex items-center gap-1.5 text-sm font-medium text-pressure hover:underline">
+    <div className="mx-auto max-w-5xl">
+      <div className="flex items-start justify-between gap-4">
+        <PageHeader
+          icon={MapPinned}
+          title="Suggest a place"
+          description="Know somewhere worth visiting that isn't on the map yet? Tell us about it. You'll need at least one verified visit anywhere on the platform to submit -- this keeps suggestions coming from real travellers."
+        />
+        <Link
+          to="/forum"
+          className="mt-1 hidden shrink-0 items-center gap-1.5 rounded-lg border border-paper-dim bg-paper px-3 py-2 text-sm font-medium text-ink/70 transition hover:border-ink/40 hover:text-ink sm:flex"
+        >
+          <Users size={15} aria-hidden="true" /> See other suggestions
+        </Link>
+      </div>
+      <Link to="/forum" className="mb-4 flex items-center gap-1.5 text-sm font-medium text-pressure hover:underline sm:hidden">
         <Users size={15} aria-hidden="true" /> See what other travellers have suggested
       </Link>
 
-      <Card>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <FormField label="Place name">
-            <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Hidden waterfall" className={inputClass} />
-          </FormField>
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <Card className="lg:p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <section className="space-y-4">
+              <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink/50">
+                <Sparkles size={13} aria-hidden="true" /> The basics
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField label="Place name">
+                  <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Hidden waterfall" className={inputClass} />
+                </FormField>
+                <FormField label="State" hint="Helps travellers browsing the forum find this">
+                  <input
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    required
+                    placeholder="e.g. Himachal Pradesh"
+                    className={inputClass}
+                  />
+                </FormField>
+              </div>
+              <FormField label="What makes it worth visiting?">
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} required placeholder="A couple of sentences is plenty -- what would make another traveller want to go?" className={inputClass} />
+              </FormField>
+            </section>
 
-          <FormField label="Location">
-            <LocationPickerMap value={location} onChange={setLocation} />
-          </FormField>
+            <div className="h-px bg-paper-dim" />
 
-          <FormField label="State" hint="Helps other travellers browsing the Community Forum find this">
-            <input
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              required
-              placeholder="e.g. Himachal Pradesh"
-              className={inputClass}
-            />
-          </FormField>
+            <section className="space-y-2">
+              <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink/50">
+                <MapPin size={13} aria-hidden="true" /> Pin the location
+              </h2>
+              <LocationPickerMap value={location} onChange={setLocation} />
+            </section>
 
-          <FormField label="What makes it worth visiting?">
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} required className={inputClass} />
-          </FormField>
+            <div className="h-px bg-paper-dim" />
 
-          <FormField label="Photos" optional>
-            <div className="space-y-2">
-              {photoFiles.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {photoFiles.map((p, i) => (
-                    <div key={p.previewUrl} className="relative h-16 w-16 overflow-hidden rounded-lg border border-paper-dim">
-                      <img src={p.previewUrl} alt="" className="h-full w-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(i)}
-                        className="absolute right-0.5 top-0.5 rounded-full bg-ink/70 p-0.5 text-paper"
-                        aria-label="Remove photo"
-                      >
-                        <X size={11} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <label className="flex w-fit cursor-pointer items-center gap-1.5 rounded-lg border border-paper-dim bg-paper px-3 py-2 text-xs font-medium text-ink/70 transition hover:border-ink/40">
-                <Upload size={14} aria-hidden="true" />
-                Upload photos
-                <input type="file" accept="image/*" multiple onChange={handlePhotoSelect} className="hidden" />
-              </label>
-            </div>
-          </FormField>
-
-          {(validationError || communityError) && <Alert tone="error">{validationError || communityError}</Alert>}
-
-          <Button type="submit" variant="primary" fullWidth loading={isBusy}>
-            {isUploadingPhotos ? 'Uploading photos…' : 'Submit suggestion'}
-          </Button>
-        </form>
-      </Card>
-
-      {submission && (
-        <div className="mt-4">
-          <Alert tone="success" action={<Badge tone={submissionStatus(submission.status).tone}>{submissionStatus(submission.status).label}</Badge>}>
-            Submitted. An authority will review it before it appears on the map.
-          </Alert>
-        </div>
-      )}
-
-      {mySubmissions.length > 0 && (
-        <div className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold text-ink">Your submissions</h2>
-          <div className="space-y-2">
-            {mySubmissions.map((s) => {
-              const status = submissionStatus(s.status)
-              return (
-                <Card key={s._id} padding="p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-medium text-ink">{s.name}</p>
-                    <Badge tone={status.tone}>{status.label}</Badge>
+            <section className="space-y-2">
+              <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink/50">
+                <ImagePlus size={13} aria-hidden="true" /> Photos <span className="normal-case tracking-normal text-ash">(optional)</span>
+              </h2>
+              <div className="flex flex-wrap gap-2.5">
+                {photoFiles.map((p, i) => (
+                  <div key={p.previewUrl} className="group relative h-20 w-20 overflow-hidden rounded-xl border border-paper-dim">
+                    <img src={p.previewUrl} alt="" className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(i)}
+                      className="absolute right-1 top-1 rounded-full bg-ink/70 p-0.5 text-paper opacity-0 transition group-hover:opacity-100"
+                      aria-label="Remove photo"
+                    >
+                      <X size={11} />
+                    </button>
                   </div>
-                  <p className="mt-0.5 text-xs text-ash">Submitted {new Date(s.createdAt).toLocaleDateString()}</p>
-                  {s.rejectionReason && <p className="mt-1 text-xs text-pressure">{s.rejectionReason}</p>}
-                </Card>
-              )
-            })}
-          </div>
-        </div>
-      )}
+                ))}
+                <label className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-paper-dim text-ash transition hover:border-ink/40 hover:text-ink/70">
+                  <Upload size={16} aria-hidden="true" />
+                  <span className="text-[10px] font-medium">Add photo</span>
+                  <input type="file" accept="image/*" multiple onChange={handlePhotoSelect} className="hidden" />
+                </label>
+              </div>
+            </section>
+
+            {(validationError || communityError) && <Alert tone="error">{validationError || communityError}</Alert>}
+
+            {submission && (
+              <Alert tone="success" action={<Badge tone={submissionStatus(submission.status).tone}>{submissionStatus(submission.status).label}</Badge>}>
+                Submitted. An authority will review it before it appears on the map.
+              </Alert>
+            )}
+
+            <Button type="submit" variant="primary" fullWidth loading={isBusy}>
+              {isUploadingPhotos ? 'Uploading photos…' : 'Submit suggestion'}
+            </Button>
+          </form>
+        </Card>
+
+        <aside className="space-y-4">
+          <Card padding="p-4" className="bg-paper-dim/30">
+            <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink/50">
+              <ListChecks size={13} aria-hidden="true" /> Your submissions
+            </h2>
+            {mySubmissions.length === 0 ? (
+              <p className="mt-3 text-xs text-ash">Nothing submitted yet -- your suggestions will show up here as authorities review them.</p>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {mySubmissions.map((s) => {
+                  const status = submissionStatus(s.status)
+                  return (
+                    <div key={s._id} className="rounded-lg border border-paper-dim bg-paper p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm font-medium text-ink">{s.name}</p>
+                        <Badge tone={status.tone}>{status.label}</Badge>
+                      </div>
+                      <p className="mt-0.5 text-xs text-ash">Submitted {new Date(s.createdAt).toLocaleDateString()}</p>
+                      {s.rejectionReason && <p className="mt-1 text-xs text-pressure">{s.rejectionReason}</p>}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </Card>
+        </aside>
+      </div>
     </div>
   )
 }

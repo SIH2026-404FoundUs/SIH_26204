@@ -55,7 +55,7 @@ const isPressureDecision = (data) => (
 // first call stops at "awaiting_decision" and nothing plans further until the
 // traveller explicitly accepts or declines.
 export const usePlannerStore = create((set, get) => ({
-  request: null, // camelCase, exactly as sent -- {userId,origin,destId,startDate,endDate,travellers,budgetINR,interests}
+  request: null, // camelCase, exactly as sent -- includes optional selectedHotel and stops
   tripDraftId: null,
   awaitingDecision: false,
   pressure: null,
@@ -82,6 +82,8 @@ export const usePlannerStore = create((set, get) => ({
       travellers: Number(form.travellers) || 1,
       budgetINR: Number(form.budgetInr) || 0,
       interests: form.interests || {},
+      selectedHotel: form.selectedHotel || null,
+      stops: Array.isArray(form.stops) ? form.stops : [],
     }
     try {
       const res = await aiClient.post('/api/plan-trip', request)
@@ -141,11 +143,12 @@ export const usePlannerStore = create((set, get) => ({
         tripDraftId: null,
         pressure: null,
         alternatives: null,
-        plan: {
-          trip: res.data.trip,
-          redistribution: res.data.redistribution,
-          destId: res.data.destId,
-          startDate: res.data.startDate,
+          plan: {
+            trip: res.data.trip,
+            alternatives: res.data.alternatives,
+            redistribution: res.data.redistribution,
+            destId: res.data.destId,
+            startDate: res.data.startDate,
           endDate: res.data.endDate,
         },
       })
@@ -156,5 +159,28 @@ export const usePlannerStore = create((set, get) => ({
     } finally {
       set({ isPlanning: false })
     }
+  },
+
+  // Applies a post-generation swap only after the user has previewed it. The
+  // existing trip is not replaced by the preview; submitTrip regenerates the
+  // complete downstream plan for the chosen destination/date.
+  applySwap: async (swapOffers) => {
+    const request = get().request
+    if (!request || !swapOffers) return false
+    const destinationSwap = swapOffers.destination_swap
+    const dateSwap = swapOffers.date_swap
+    const nextStart = dateSwap?.alternative_dates?.[0] || request.startDate
+    const nextEnd = dateSwap?.alternative_dates?.[1] || request.endDate
+    return get().submitTrip({
+      origin: request.origin,
+      destId: destinationSwap?.alternative_destination || request.destId,
+      startDate: nextStart,
+      endDate: nextEnd,
+      travellers: request.travellers,
+      budgetInr: request.budgetINR,
+      interests: request.interests,
+      selectedHotel: request.selectedHotel,
+      stops: request.stops,
+    })
   },
 }))

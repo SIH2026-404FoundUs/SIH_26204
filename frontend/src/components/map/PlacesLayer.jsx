@@ -80,6 +80,9 @@ export default function PlacesLayer({
 
         const isHotel = place.placeType === 'hotel';
         const color = isHotel ? '#4F46E5' : '#D97706'; // Indigo for hotel, Amber for restaurant
+        const placePhotoUrl = place.photoName
+          ? `${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/places/photo?name=${encodeURIComponent(place.photoName)}`
+          : '';
 
         // Custom SVG pin for Places
         const svgPin = `
@@ -101,6 +104,7 @@ export default function PlacesLayer({
           const badgeBg = isHotel ? '#4F46E5' : '#D97706';
           const contentString = `
             <div style="padding:10px; max-width:230px; font-family:system-ui, -apple-system, sans-serif;">
+              ${placePhotoUrl ? `<img src="${placePhotoUrl}" alt="${place.name || 'Place'}" style="display:block; width:100%; height:104px; object-fit:cover; border-radius:10px; margin-bottom:9px; background:#F1F5F9;" />` : ''}
               <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
                 <span style="font-size:10px; font-weight:700; color:${badgeBg}; background:${badgeBg}18; padding:3px 8px; border-radius:12px; text-transform:uppercase;">
                   ${badgeLabel}
@@ -130,7 +134,7 @@ export default function PlacesLayer({
             if (hotelBtn) {
               hotelBtn.onclick = () => {
                 if (typeof onSelectHotel === 'function') {
-                  onSelectHotel({ name: place.name, placeId: place.placeId, lat, lng, rating: place.rating });
+                  onSelectHotel({ name: place.name, placeId: place.placeId, lat, lng, rating: place.rating, photoUrl: placePhotoUrl });
                 }
                 infoWindowRef.current.close();
               };

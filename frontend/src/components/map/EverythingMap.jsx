@@ -7,13 +7,21 @@ import PressureHeatmapLayer from './PressureHeatmapLayer';
 import CategoryMarkersLayer from './CategoryMarkersLayer';
 import RoutePolylineLayer from './RoutePolylineLayer';
 import RouteDetailsPanel from './RouteDetailsPanel';
-import MapControls from './MapControls';
+import MapControls from './MapControlsPremium';
 import PlacesLayer from './PlacesLayer';
 import StopPickerPanel from './StopPickerPanel';
+import RecommendationOverlay from './RecommendationOverlay';
+import TripSummaryPanel from './TripSummaryPremium';
+import SwapCard from '../swap/SwapCard';
+import LayerControls from './LayerControls';
+import AIAssistantCard from './AIAssistantPremium';
+import CurrentLocationLayer from './CurrentLocationLayer';
+import StopMarkersLayer from './StopMarkersLayer';
 import { useDestinationsStore } from '../../store/useDestinationsStore';
 import { usePlannerStore } from '../../store/usePlannerStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { LogIn, X, Lock } from 'lucide-react';
+import { downloadTravelBrief } from '../../lib/travelBrief';
+import { LogIn, Lock } from 'lucide-react';
 
 function estimateIntercityDistanceKm(origin, destination) {
   const radians = (value) => (value * Math.PI) / 180;
@@ -47,6 +55,10 @@ export default function EverythingMap({
   const [mapsSDK, setMapsSDK] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [useCurrentLocation, setUseCurrentLocation] = useState(true);
+  const [locationTracking, setLocationTracking] = useState(false);
+  const [locationError, setLocationError] = useState(null);
 
   // Search & Selector States
   const [source, setSource] = useState(initialSource);
@@ -60,14 +72,18 @@ export default function EverythingMap({
 
   // Route Polyline & Details Panel States
   const [routeData, setRouteData] = useState(null);
+  const routeRequestIdRef = useRef(0);
+  const [previewRouteData, setPreviewRouteData] = useState(null);
   const [isFetchingRoute, setIsFetchingRoute] = useState(false);
+  const [plannerStage, setPlannerStage] = useState('');
   const [routeError, setRouteError] = useState(null);
   const [authAlert, setAuthAlert] = useState(false);
   const [isSearchingStop, setIsSearchingStop] = useState(false);
 
   const destinations = useDestinationsStore((state) => state.destinations);
   const fetchDestinations = useDestinationsStore((state) => state.fetchDestinations);
-  const { submitTrip, isPlanning } = usePlannerStore();
+  const { submitTrip, applySwap, isPlanning, awaitingDecision, plan, request } = usePlannerStore();
+  const swapOffers = plan?.trip?.alternatives?.swapOffers;
 
   // Google Places Nearby Toggles (Hotels & Restaurants)
   const [visiblePlaces, setVisiblePlaces] = useState({ hotels: false, restaurants: false });
@@ -76,6 +92,20 @@ export default function EverythingMap({
   // Stop Picker & Drawer State
   const [stops, setStops] = useState([]);
   const [showStopsPanel, setShowStopsPanel] = useState(false);
+  const [highlightedDestId, setHighlightedDestId] = useState(null);
+  const [showTripSummary, setShowTripSummary] = useState(true);
+  // Dismissal applies to the plan it was made on, not to the whole session.
+  // Both dismissing the card and applying a swap set this, and nothing used to
+  // clear it -- so after the first swap (or the first dismissal) the card never
+  // appeared again for any later trip, which reads as "the swap UI doesn't
+  // work". Storing WHICH plan was dismissed derives the flag instead of
+  // resetting it from an effect, so a new plan is automatically a new offer.
+  const [dismissedForPlan, setDismissedForPlan] = useState(null);
+  const [previewForPlan, setPreviewForPlan] = useState(null);
+  const swapDismissed = dismissedForPlan === plan;
+  const swapPreviewOpen = previewForPlan === plan;
+  const setSwapDismissed = (value) => setDismissedForPlan(value ? plan : null);
+  const setSwapPreviewOpen = (value) => setPreviewForPlan(value ? plan : null);
 
   // Layer Toggles (OFF by default)
   const [heatmapVisible, setHeatmapVisible] = useState(defaultHeatmap);
@@ -88,10 +118,7 @@ export default function EverythingMap({
   });
 
   const handleToggleCategory = (categoryKey, isVisible) => {
-    setVisibleCategories((prev) => ({
-      ...prev,
-      [categoryKey]: isVisible
-    }));
+    setVisibleCategories((prev) => ({ ...prev, [categoryKey]: isVisible }));
   };
 
   // Zoom in near destination when Hotels or Restaurants toggle is turned ON
@@ -108,7 +135,11 @@ export default function EverythingMap({
   };
 
   const handleAddStop = (stopObj) => {
-    setStops((prev) => [...prev, { id: `stop_${Date.now()}_${prev.length}`, ...stopObj }]);
+    if (!stopObj?.name || !Number.isFinite(Number(stopObj.lat)) || !Number.isFinite(Number(stopObj.lng))) return;
+    setStops((prev) => {
+      const duplicate = prev.some((stop) => Math.abs(Number(stop.lat) - Number(stopObj.lat)) < 0.0001 && Math.abs(Number(stop.lng) - Number(stopObj.lng)) < 0.0001);
+      return duplicate ? prev : [...prev, { id: `stop_${Date.now()}_${prev.length}`, ...stopObj }];
+    });
   };
 
   // Search Place and Add Stop
@@ -117,15 +148,20 @@ export default function EverythingMap({
     setIsSearchingStop(true);
     setRouteError(null);
     try {
-      let lat, lng, formattedAddress;
+      let lat, lng, formattedAddress, placeId, photoName;
       try {
-        const res = await api.get('/geocode', { params: { address: queryStr } });
-        if (res.data?.data?.lat && res.data?.data?.lng) {
-          lat = res.data.data.lat;
-          lng = res.data.data.lng;
-          formattedAddress = res.data.data.formattedAddress || queryStr;
+        const placesResponse = await api.get('/places', { params: { query: queryStr, lat: activeCenter.lat, lng: activeCenter.lng, radiusMeters: 20000 } });
+        const places = placesResponse.data?.data || placesResponse.data || [];
+        const place = Array.isArray(places) ? places.find((item) => Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lng))) : null;
+        if (place) {
+          lat = Number(place.lat); lng = Number(place.lng); formattedAddress = place.name || queryStr; placeId = place.placeId; photoName = place.photoName;
+        } else {
+          const res = await api.get('/geocode', { params: { address: queryStr } });
+          const geocoded = res.data?.data ?? res.data;
+          if (!Number.isFinite(Number(geocoded?.lat)) || !Number.isFinite(Number(geocoded?.lng))) throw new Error(geocoded?.error || `Could not find location for '${queryStr}'`);
+          lat = Number(geocoded.lat); lng = Number(geocoded.lng); formattedAddress = geocoded.formattedAddress || queryStr;
         }
-      } catch (err) {
+      } catch {
         if (mapsSDK?.Geocoder) {
           const geocoder = new mapsSDK.Geocoder();
           const result = await new Promise((resolve) => {
@@ -149,10 +185,10 @@ export default function EverythingMap({
         }
       }
 
-      if (lat && lng) {
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
         setStops((prev) => [
           ...prev,
-          { id: `stop_${Date.now()}`, name: formattedAddress || queryStr, lat, lng, type: 'search' }
+          { id: `stop_${Date.now()}`, name: formattedAddress || queryStr, lat, lng, placeId, photoName, type: 'search' }
         ]);
         if (mapInstance) {
           mapInstance.panTo({ lat, lng });
@@ -161,7 +197,7 @@ export default function EverythingMap({
       } else {
         setRouteError(`Could not find location for '${queryStr}'`);
       }
-    } catch (err) {
+      } catch (err) {
       console.error('[EverythingMap] Search stop error:', err);
       setRouteError(`Failed to search location '${queryStr}'`);
     } finally {
@@ -199,15 +235,29 @@ export default function EverythingMap({
       stops
     };
 
-    const success = await submitTrip(payload);
-    if (success) {
-      const state = usePlannerStore.getState();
-      if (state.awaitingDecision) {
-        navigate('/swap');
+    const stages = ['Checking pressure...', 'Loading route...', 'Loading hotels and places...', 'Analyzing crowding...', 'Preparing itinerary...'];
+    let stageIndex = 0;
+    setPlannerStage(stages[stageIndex]);
+    const stageTimer = window.setInterval(() => {
+      stageIndex = Math.min(stageIndex + 1, stages.length - 1);
+      setPlannerStage(stages[stageIndex]);
+    }, 900);
+    try {
+      const success = await submitTrip(payload);
+      if (success) {
+        const state = usePlannerStore.getState();
+        if (state.awaitingDecision) {
+          // Keep the traveller on the map. RecommendationOverlay owns the
+          // accept/decline handshake and lets the map remain the workspace.
+          setShowTripSummary(false);
+        }
+      } else {
+        const err = usePlannerStore.getState().error;
+        if (err) setRouteError(err);
       }
-    } else {
-      const err = usePlannerStore.getState().error;
-      if (err) setRouteError(err);
+    } finally {
+      window.clearInterval(stageTimer);
+      setPlannerStage('');
     }
   };
 
@@ -243,10 +293,7 @@ export default function EverythingMap({
             if (e.latLng) {
               const lat = e.latLng.lat();
               const lng = e.latLng.lng();
-              setStops((prev) => [
-                ...prev,
-                { id: `stop_${Date.now()}`, name: `Pin Stop (${lat.toFixed(3)}, ${lng.toFixed(3)})`, lat, lng, type: 'map_click' }
-              ]);
+              handleAddStop({ name: `Pin Stop (${lat.toFixed(3)}, ${lng.toFixed(3)})`, lat, lng, type: 'map_click' });
             }
           });
 
@@ -275,6 +322,64 @@ export default function EverythingMap({
   }, []);
 
   useEffect(() => {
+    if (!mapInstance || !navigator.geolocation || (!useCurrentLocation && !locationTracking)) {
+      if (!navigator.geolocation) setLocationError('Location is not supported by this browser.');
+      return undefined;
+    }
+
+    let firstFix = true;
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const nextLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        };
+        setCurrentLocation(nextLocation);
+        setLocationError(null);
+        if (firstFix && useCurrentLocation && mapsSDK?.Geocoder) {
+          const geocoder = new mapsSDK.Geocoder();
+          geocoder.geocode({ location: { lat: nextLocation.lat, lng: nextLocation.lng } }, (results, status) => {
+            if (status === 'OK' && results?.[0]?.formatted_address && useCurrentLocation) {
+              setSource(results[0].formatted_address);
+            }
+          });
+        }
+        if ((firstFix && useCurrentLocation) || locationTracking) {
+          mapInstance.panTo({ lat: nextLocation.lat, lng: nextLocation.lng });
+          if (firstFix) mapInstance.setZoom(Math.max(mapInstance.getZoom() || 5, 13));
+        }
+        firstFix = false;
+      },
+      (geolocationError) => {
+        if (geolocationError.code === geolocationError.PERMISSION_DENIED) {
+          setLocationError('Location permission was denied. Enable it in the browser to track your position.');
+        } else {
+          setLocationError('Unable to read your current location.');
+        }
+      },
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 },
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [mapInstance, mapsSDK, locationTracking, useCurrentLocation]);
+
+  const toggleCurrentLocation = () => {
+    if (useCurrentLocation) {
+      setUseCurrentLocation(false);
+      setLocationTracking(false);
+      setCurrentLocation(null);
+      return;
+    }
+    setUseCurrentLocation(true);
+    setLocationTracking(true);
+    if (currentLocation && mapInstance) {
+      mapInstance.panTo({ lat: currentLocation.lat, lng: currentLocation.lng });
+      mapInstance.setZoom(Math.max(mapInstance.getZoom() || 5, 13));
+    }
+  };
+
+  useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSource(source), 500);
     return () => window.clearTimeout(timer);
   }, [source]);
@@ -294,12 +399,35 @@ export default function EverythingMap({
     }
   }, [selectedDestId, mapInstance, routeData, destinations]);
 
+  useEffect(() => {
+    if (!mapInstance || !highlightedDestId) return;
+    const destination = destinations.find((item) => (item._id || item.id) === highlightedDestId);
+    if (destination?.location?.lat && destination?.location?.lng) {
+      mapInstance.panTo({ lat: destination.location.lat, lng: destination.location.lng });
+      mapInstance.setZoom(10);
+    }
+  }, [highlightedDestId, mapInstance, destinations]);
+
+  useEffect(() => {
+    if (plan) setShowTripSummary(true);
+  }, [plan]);
+
+  useEffect(() => {
+    if (!awaitingDecision) {
+      setPreviewRouteData(null);
+      setHighlightedDestId(null);
+    }
+  }, [awaitingDecision]);
+
   // Active Destination Coordinates
   const currentDestDoc = destinations.find((d) => (d._id || d.id) === selectedDestId);
   const activeCenter = currentDestDoc?.location?.lat ? { lat: currentDestDoc.location.lat, lng: currentDestDoc.location.lng } : center;
 
   // Handle "Get Route" -> Geocode + Multi-stop Directions / POST /routes + GET /api/fare
   const handleFetchRoute = async (sourceOverride = source) => {
+    const requestId = ++routeRequestIdRef.current;
+    const isCurrentRequest = () => requestId === routeRequestIdRef.current;
+
     if (!sourceOverride || !selectedDestId) {
       setRouteData(null);
       return;
@@ -311,11 +439,20 @@ export default function EverythingMap({
     try {
       // 1. Geocode origin address -> { lat, lng }
       let originCoords;
+      if (useCurrentLocation && currentLocation) {
+        originCoords = {
+          lat: currentLocation.lat,
+          lng: currentLocation.lng,
+          formattedAddress: sourceOverride || 'Current location',
+        };
+      }
       try {
-        const geoRes = await api.get('/geocode', { params: { address: sourceOverride } });
-        originCoords = geoRes.data?.data;
-        if (!Number.isFinite(originCoords?.lat) || !Number.isFinite(originCoords?.lng)) {
-          throw new Error(geoRes.data?.message || `Could not find location for '${sourceOverride}'`);
+        if (!originCoords) {
+          const geoRes = await api.get('/geocode', { params: { address: sourceOverride } });
+          originCoords = geoRes.data?.data;
+          if (!Number.isFinite(originCoords?.lat) || !Number.isFinite(originCoords?.lng)) {
+            throw new Error(geoRes.data?.message || `Could not find location for '${sourceOverride}'`);
+          }
         }
       } catch (backendGeocodeError) {
         if (!mapsSDK?.Geocoder) throw backendGeocodeError;
@@ -344,8 +481,13 @@ export default function EverythingMap({
       const destCoords = { lat: dest.location.lat, lng: dest.location.lng };
       const destName = dest.displayName || dest.name || dest._id;
 
-      // 3. Multi-stop route calculation via DirectionsService if SDK and custom stops exist
-      if (mapsSDK?.DirectionsService && stops.length > 0) {
+      // 3. Multi-stop route calculation via DirectionsService. Google Maps
+      // rejects transit requests that contain intermediate waypoints
+      // ("Exactly two waypoints required in transit requests"). Transit and
+      // train routes therefore use the existing backend route flow below;
+      // driving, walking and bike routes retain custom-stop support.
+      const supportsDirectionsWaypoints = ['DRIVE', 'WALK', 'TWO_WHEELER'].includes(travelMode);
+      if (mapsSDK?.DirectionsService && stops.length > 0 && supportsDirectionsWaypoints) {
         const directionsService = new mapsSDK.DirectionsService();
         const modeMap = {
           DRIVE: mapsSDK.TravelMode.DRIVING,
@@ -394,6 +536,7 @@ export default function EverythingMap({
 
           let fareINR = Math.round(distanceKm * 12 + 200);
 
+          if (!isCurrentRequest()) return;
           setRouteData({
             sourceName: originCoords.formattedAddress || sourceOverride,
             destName,
@@ -407,7 +550,7 @@ export default function EverythingMap({
             hasCustomStops: true,
             stopsCount: stops.length
           });
-          setIsFetchingRoute(false);
+          if (isCurrentRequest()) setIsFetchingRoute(false);
           return;
         }
       }
@@ -415,11 +558,13 @@ export default function EverythingMap({
       const fareModeMap = { DRIVE: 'cab', TRANSIT: 'bus', TWO_WHEELER: 'auto' };
 
       if (travelMode === 'TRAIN') {
+        if (!isCurrentRequest()) return;
         setRouteData({ sourceName: originCoords.formattedAddress || sourceOverride, destName, originCoords: { lat: originCoords.lat, lng: originCoords.lng }, destCoords, polyline: null, distanceKm: estimateIntercityDistanceKm(originCoords, destCoords), durationMinutes: null, fareINR: null, travelMode, isEstimated: true, estimateNote: 'Estimated intercity distance only — not an actual rail route.' });
         return;
       }
 
       if (travelMode === 'FLIGHT') {
+        if (!isCurrentRequest()) return;
         setRouteData({ travelMode, isUnavailable: true, estimateNote: 'Flight distance/time not available — no flight data source is currently integrated.' });
         return;
       }
@@ -441,6 +586,7 @@ export default function EverythingMap({
       });
 
       if (routeRes.data?.ok !== true || !routeRes.data?.data) {
+        if (!isCurrentRequest()) return;
         setRouteData({
           sourceName: originCoords.formattedAddress || sourceOverride,
           destName,
@@ -485,6 +631,7 @@ export default function EverythingMap({
         else if (travelMode === 'DRIVE') fareINR = Math.round(distanceKm * 12 + 200);
       }
 
+      if (!isCurrentRequest()) return;
       setRouteData({
         sourceName: originCoords.formattedAddress || sourceOverride,
         destName,
@@ -500,10 +647,11 @@ export default function EverythingMap({
         estimateNote: null
       });
     } catch (err) {
+      if (!isCurrentRequest()) return;
       console.error('[EverythingMap] Failed to fetch route:', err);
       setRouteError(err.message || 'Failed to calculate route');
     } finally {
-      setIsFetchingRoute(false);
+      if (isCurrentRequest()) setIsFetchingRoute(false);
     }
   };
 
@@ -515,7 +663,7 @@ export default function EverythingMap({
       setRouteData(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDestId, travelMode, debouncedSource, destinations, stops]);
+  }, [selectedDestId, travelMode, debouncedSource, destinations, stops, useCurrentLocation]);
 
   // Sync center prop updates
   useEffect(() => {
@@ -524,7 +672,11 @@ export default function EverythingMap({
     }
   }, [center, mapInstance]);
 
-  // Sync zoom prop updates
+  // (A reset effect keyed on plan.trip.summary used to live here. It could not
+  // work reliably: re-planning the same destination produces an identical
+  // summary string, so the dependency never changed and the card stayed
+  // hidden. The dismissal flags are now derived from plan identity above.)
+
   useEffect(() => {
     if (mapInstance && typeof zoom === 'number') {
       mapInstance.setZoom(zoom);
@@ -536,7 +688,8 @@ export default function EverythingMap({
       {/* 2-Row Ultra-Compact Floating Control Overlay */}
       {!loading && !error && (
         <MapControls
-          source={source}
+           source={source}
+          useCurrentLocation={useCurrentLocation}
           onChangeSource={setSource}
           destId={selectedDestId}
           onChangeDestId={setSelectedDestId}
@@ -563,6 +716,9 @@ export default function EverythingMap({
           isSearchingStop={isSearchingStop}
           onDirectPlanTrip={handleDirectPlanTrip}
           isPlanning={isPlanning}
+          plannerStage={plannerStage}
+          locationTracking={locationTracking}
+          onToggleCurrentLocation={toggleCurrentLocation}
         />
       )}
 
@@ -571,12 +727,13 @@ export default function EverythingMap({
 
       {/* 1. Destination Pointers Layer (ALWAYS ACTIVE BY DEFAULT) */}
       {mapInstance && mapsSDK && (
-        <DestinationMarkersLayer
-          map={mapInstance}
-          mapsSDK={mapsSDK}
-          selectedDestId={selectedDestId}
-          onSelectDestination={setSelectedDestId}
-        />
+          <DestinationMarkersLayer
+            map={mapInstance}
+            mapsSDK={mapsSDK}
+            selectedDestId={selectedDestId}
+            highlightedDestId={highlightedDestId}
+            onSelectDestination={setSelectedDestId}
+          />
       )}
 
       {/* 2. Pressure Heatmap Layer */}
@@ -613,9 +770,10 @@ export default function EverythingMap({
 
       {/* 5. Custom Stop Picker Panel */}
       {showStopsPanel && (
-        <StopPickerPanel
-          stops={stops}
-          onAddStop={handleAddStop}
+          <StopPickerPanel
+            stops={stops}
+            onAddStop={handleAddStop}
+            onSearchAddStop={handleSearchAddStop}
           onRemoveStop={handleRemoveStop}
           onClearStops={handleClearStops}
           onClose={() => setShowStopsPanel(false)}
@@ -639,6 +797,71 @@ export default function EverythingMap({
         />
       )}
 
+      {mapInstance && mapsSDK && currentLocation && (
+        <CurrentLocationLayer map={mapInstance} mapsSDK={mapsSDK} location={currentLocation} />
+      )}
+
+      {mapInstance && mapsSDK && <StopMarkersLayer map={mapInstance} mapsSDK={mapsSDK} stops={stops} />}
+
+      {mapInstance && mapsSDK && previewRouteData && (
+        <RoutePolylineLayer
+          map={mapInstance}
+          mapsSDK={mapsSDK}
+          routeData={previewRouteData}
+        />
+      )}
+
+      {mapInstance && mapsSDK && selectedDestId && (
+        <LayerControls
+          visibleCategories={visibleCategories}
+          onToggle={handleToggleCategory}
+          visiblePlaces={visiblePlaces}
+          onTogglePlaces={handleTogglePlaces}
+          heatmapVisible={heatmapVisible}
+          onToggleHeatmap={setHeatmapVisible}
+        />
+      )}
+
+      {awaitingDecision && (
+        <RecommendationOverlay onHighlight={setHighlightedDestId} onPreviewRoute={setPreviewRouteData} />
+      )}
+
+      {swapOffers && !swapDismissed && !swapPreviewOpen && !awaitingDecision && (
+        <div className="absolute left-4 top-24 z-30">
+          <SwapCard
+            data={{ swapOffers }}
+            onPreview={() => setSwapPreviewOpen(true)}
+            onApply={async () => {
+              setSwapDismissed(true);
+              await applySwap(swapOffers);
+            }}
+            onDismiss={() => setSwapDismissed(true)}
+          />
+        </div>
+      )}
+
+      {swapOffers && swapPreviewOpen && !awaitingDecision && (
+        <RecommendationOverlay
+          swapOffers={swapOffers}
+          onHighlight={setHighlightedDestId}
+          onPreviewRoute={setPreviewRouteData}
+          onApplySwap={async (offers) => {
+            setSwapPreviewOpen(false);
+            setSwapDismissed(true);
+            await applySwap(offers);
+          }}
+          onClosePreview={() => setSwapPreviewOpen(false)}
+        />
+      )}
+
+      {plan && showTripSummary && (
+        <TripSummaryPanel plan={plan} onClose={() => setShowTripSummary(false)} />
+      )}
+
+      {plan && !awaitingDecision && (
+        <AIAssistantCard request={request} trip={plan.trip} onDownloadBrief={() => downloadTravelBrief(request, plan.trip)} />
+      )}
+
       {/* Route Error / Notification Toast */}
       {routeError && (
         <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 rounded-xl border border-rose-200 bg-rose-50/95 px-4 py-2 text-xs font-bold text-rose-700 shadow-md backdrop-blur-xs flex items-center gap-2">
@@ -650,6 +873,12 @@ export default function EverythingMap({
           >
             ✕
           </button>
+        </div>
+      )}
+
+      {locationError && (
+        <div className="absolute bottom-4 right-4 z-20 max-w-xs rounded-xl border border-amber-200 bg-amber-50/95 px-3 py-2 text-[11px] font-semibold text-amber-800 shadow-md backdrop-blur-xs">
+          {locationError}
         </div>
       )}
 

@@ -14,11 +14,19 @@ router.get("/", (req, res) => {
       _id: d._id,
       id: d._id,
       displayName: d.displayName,
+      googlePlaceId: d.googlePlaceId || null,
       state: d.state,
       location: d.location || { lat: 20.5937, lng: 78.9629 },
       attrs: d.attrs || {},
       baseline: d.baseline || null,
-      expectedSupply: d.expectedSupply || null
+      expectedSupply: d.expectedSupply || null,
+      // Access context the seed has always carried but this projection used
+      // to drop, so the planner could not tell a traveller how they would
+      // actually reach the place. All seeded, no provider call needed.
+      nearestRailhead: d.nearestRailhead || null,
+      railheadDistanceKm: d.railheadDistanceKm ?? null,
+      nearestAirport: d.nearestAirport || null,
+      roadAccess: d.roadAccess || null
     }));
 
     res.json(ok(destinations, { count: destinations.length }));

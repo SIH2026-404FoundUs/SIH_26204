@@ -18,6 +18,9 @@ export default function ChangePasswordCard() {
   const [touched, setTouched] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [feedback, setFeedback] = useState(null)
+  // One toggle for all three fields (bug fix: each used to manage its own
+  // show/hide independently, so seeing all three took three clicks).
+  const [passwordVisible, setPasswordVisible] = useState(false)
 
   const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
 
@@ -49,14 +52,36 @@ export default function ChangePasswordCard() {
       <h2 className="mb-3 text-sm font-semibold text-ink">Change password</h2>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <FormField label="Current password">
-          <PasswordField value={form.currentPassword} onChange={set('currentPassword')} required />
+          <PasswordField
+            value={form.currentPassword}
+            onChange={set('currentPassword')}
+            placeholder="Enter current password"
+            visible={passwordVisible}
+            onToggleVisible={() => setPasswordVisible((v) => !v)}
+            required
+          />
         </FormField>
         <FormField label="New password">
-          <PasswordField value={form.newPassword} onChange={set('newPassword')} onFocus={() => setTouched(true)} required />
+          <PasswordField
+            value={form.newPassword}
+            onChange={set('newPassword')}
+            onFocus={() => setTouched(true)}
+            placeholder="Enter new password"
+            visible={passwordVisible}
+            onToggleVisible={() => setPasswordVisible((v) => !v)}
+            required
+          />
         </FormField>
         <PasswordStrengthChecklist password={form.newPassword} touched={touched} />
         <FormField label="Confirm new password" error={form.confirmNewPassword && form.newPassword !== form.confirmNewPassword ? 'Passwords do not match' : undefined}>
-          <PasswordField value={form.confirmNewPassword} onChange={set('confirmNewPassword')} required />
+          <PasswordField
+            value={form.confirmNewPassword}
+            onChange={set('confirmNewPassword')}
+            placeholder="Re-enter new password"
+            visible={passwordVisible}
+            onToggleVisible={() => setPasswordVisible((v) => !v)}
+            required
+          />
         </FormField>
 
         {feedback && <Alert tone={feedback.tone}>{feedback.message}</Alert>}

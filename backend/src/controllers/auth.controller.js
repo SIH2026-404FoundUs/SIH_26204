@@ -3,8 +3,11 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { validatePasswordPolicy } from "../lib/passwordPolicy.js";
 import { issueAuthToken, findValidAuthToken, consumeAuthToken } from "../lib/authTokens.js";
-import { sendMail, passwordResetEmail } from "../lib/mailer.js";
+import { sendMail } from "../lib/mailer.js";
+import { passwordResetEmail, welcomeEmail } from "../lib/emailTemplates.js";
 import mongoose from "mongoose";
+import multer from "multer";
+import cloudinary from "../lib/cloudinary.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_FULLNAME_LEN = 200;
@@ -81,11 +84,16 @@ export const signup = async (req, res) => {
     // around and sign in again with the password they just typed.
     generateToken(newUser._id, newUser.tokenVersion, res);
 
+    // Best-effort, never blocks or fails the signup response itself -- same
+    // fire-and-forget convention as every other side-effect email in this file.
+    sendMail({ to: newUser.email, ...welcomeEmail({ fullName: newUser.fullName, role: newUser.role }) }).catch(() => {});
+
     res.status(201).json({
       _id: newUser._id,
       fullName: newUser.fullName,
       email: newUser.email,
       role: newUser.role,
+      profilePhoto: newUser.profilePhoto,
     });
   } catch (error) {
     console.log("Error in signup controller", error.message);
@@ -129,6 +137,7 @@ export const login = async (req, res) => {
       role: user.role,
       phone: user.phone,
       preferredLanguage: user.preferredLanguage,
+      profilePhoto: user.profilePhoto,
     });
   } catch (error) {
     console.log("Error in login controller", error.message);
@@ -324,9 +333,75 @@ export const updateProfile = async (req, res) => {
       role: user.role,
       phone: user.phone,
       preferredLanguage: user.preferredLanguage,
+      profilePhoto: user.profilePhoto,
     });
   } catch (error) {
     console.log("Error in updateProfile controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const MAX_PROFILE_PHOTO_BYTES = 5 * 1024 * 1024; // 5MB
+
+export const uploadProfilePhotoMiddleware = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_PROFILE_PHOTO_BYTES },
+}).single("photo");
+
+// POST /api/auth/profile-photo -- same Cloudinary mechanism as community
+// submission photos (backend/src/lib/cloudinary.js), a different folder.
+// One file, not an array: a profile has exactly one photo, replaced on
+// re-upload rather than accumulated.
+export const uploadProfilePhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "a photo file is required" });
+    }
+
+    const secureUrl = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "sahyatri/profile-photos", resource_type: "image" },
+        (error, result) => (error ? reject(error) : resolve(result.secure_url))
+      );
+      stream.end(req.file.buffer);
+    });
+
+    const user = await User.findByIdAndUpdate(req.user._id, { $set: { profilePhoto: secureUrl } }, { new: true });
+    if (!user) return res.status(404).json({ message: "user not found" });
+
+    res.status(200).json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      preferredLanguage: user.preferredLanguage,
+      profilePhoto: user.profilePhoto,
+    });
+  } catch (error) {
+    console.log("Error in uploadProfilePhoto controller", error.message);
+    res.status(500).json({ message: "Could not upload profile photo" });
+  }
+};
+
+// DELETE /api/auth/profile-photo -- back to the generic avatar, same as
+// never having set one (profilePhoto: null), not a 404/no-op.
+export const removeProfilePhoto = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.user._id, { $set: { profilePhoto: null } }, { new: true });
+    if (!user) return res.status(404).json({ message: "user not found" });
+
+    res.status(200).json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      preferredLanguage: user.preferredLanguage,
+      profilePhoto: user.profilePhoto,
+    });
+  } catch (error) {
+    console.log("Error in removeProfilePhoto controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

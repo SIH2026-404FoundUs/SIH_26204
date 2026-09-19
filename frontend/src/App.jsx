@@ -18,6 +18,7 @@ import HirePeople from './components/operator/HirePeople'
 import OperatorWaitlistOffers from './components/operator/OperatorWaitlistOffers'
 import OperatorAnalytics from './components/operator/OperatorAnalytics'
 import OperatorVerifyVisit from './components/operator/OperatorVerifyVisit'
+import ContentGenerator from './components/operator/ContentGenerator'
 import AuthorityDashboard from './components/authority/AuthorityDashboard'
 import VisitVerify from './components/trust/VisitVerify'
 import CommunitySubmit from './components/trust/CommunitySubmit'
@@ -26,11 +27,13 @@ import CommunityForum from './components/trust/CommunityForum'
 import OffersWaitlist from './components/trust/OffersWaitlist'
 import Alerts from './components/trust/Alerts'
 import Safety from './components/trust/Safety'
+import SharedTripView from './components/trust/SharedTripView'
 import Businesses from './components/trust/Businesses'
 import AvailableServices from './components/trust/AvailableServices'
 import Notifications from './components/trust/Notifications'
 import MapPreview from './pages/MapPreview'
 import LandingPage from './pages/LandingPage'
+import MultimodalTravelAgent from './components/ai/MultimodalTravelAgent'
 
 // Where each role lands after authenticating (auth spec §7/§20) -- mirrors
 // AuthScreen's own ROLE_HOME, used here for the post-refresh/direct-URL
@@ -79,9 +82,13 @@ function App() {
           {/* Public safety advisory read (spec §3.3) -- also reachable from
               the authenticated nav, same page either way. */}
           <Route path="/alerts" element={<Page><Alerts /></Page>} />
+          {/* Public Shareable Trip Record viewer (spec §5) -- no account
+              needed, matching the backend's own GET (no protectRoute). */}
+          <Route path="/trip/share/:token" element={<Page><SharedTripView /></Page>} />
 
           {/* Authenticated experience (§57/§58) */}
-          <Route path="/home" element={<RequireAuth><TripPlanner /></RequireAuth>} />
+          <Route path="/home" element={<RequireAuth wide><TripPlanner /></RequireAuth>} />
+          <Route path="/multimodal-agent" element={<RequireAuth wide><MultimodalTravelAgent /></RequireAuth>} />
           {/* RequireAuthBare, not RequireAuth: the map is a full-bleed canvas
               (near-full-viewport, its own <main>), not the standard
               max-w-6xl centred page shell RequireAuth would force it into. */}
@@ -98,6 +105,7 @@ function App() {
           <Route path="/hire-people" element={<RequireRole role="operator"><HirePeople /></RequireRole>} />
           <Route path="/operator/waitlist" element={<RequireRole role="operator"><OperatorWaitlistOffers /></RequireRole>} />
           <Route path="/operator/analytics" element={<RequireRole role="operator"><OperatorAnalytics /></RequireRole>} />
+          <Route path="/operator/content-generator" element={<RequireRole role="operator"><ContentGenerator /></RequireRole>} />
           {/* Same URL, role-branched (§14-19): travellers get "Suggest a
               Place" (CommunitySubmit), authorities get the "Community
               Review" moderation UI (CommunityReview) -- both nav entries

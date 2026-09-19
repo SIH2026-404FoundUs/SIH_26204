@@ -103,3 +103,55 @@ def save_trip(trip_draft_id: str, trip: Dict[str, Any]) -> None:
     )
     if not isinstance(result, dict) or not result.get("_id"):
         logger.warning("trip %s update may not have persisted: %s", trip_draft_id, result)
+
+
+def save_completed(request: Dict[str, Any], trip: Dict[str, Any]) -> Optional[str]:
+    """Persist a normally generated plan so it appears in My Trips.
+
+    Pressure-gated plans use save_draft/save_trip. Plans that do not require a
+    decision previously skipped persistence entirely; this creates the same
+    TRIPS record and immediately marks it planned.
+    """
+    body = {
+        "userId": request.get("userId"),
+        "origin": request.get("origin"),
+        "requestedDestId": request.get("destId"),
+        "requestedDates": {
+            "startDate": request.get("startDate"),
+            "endDate": request.get("endDate"),
+        },
+        "travellers": request.get("travellers"),
+        "budgetINR": request.get("budgetINR"),
+        "interests": request.get("interests") or {},
+    }
+    created = post("/api/v1/trips", body)
+    trip_id = created.get("_id") if isinstance(created, dict) else None
+    if not trip_id:
+        raise RuntimeError(f"failed to create completed trip: {created}")
+
+    itinerary = trip.get("itinerary") if isinstance(trip.get("itinerary"), dict) else {}
+    saved_stops = [
+        stop
+        for day in itinerary.get("days", [])
+        if isinstance(day, dict)
+        for stop in day.get("stops", [])
+    ]
+
+    patch(
+        f"/api/v1/trips/{trip_id}",
+        {
+            "finalDates": {
+                "startDate": request.get("startDate"),
+                "endDate": request.get("endDate"),
+            },
+            "itinerary": trip.get("itinerary"),
+            "transport": trip.get("route"),
+            "costBreakdown": trip.get("costBreakdown"),
+            "selectedHotel": (trip.get("hotels") or [None])[0],
+            "stops": saved_stops,
+            "alternativesOffered": bool(trip.get("alternatives")),
+            "state": "planned",
+        },
+    )
+    logger.info("completed trip %s persisted (destId=%s)", trip_id, request.get("destId"))
+    return trip_id
