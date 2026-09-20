@@ -4,6 +4,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import compression from "compression";
 import dns from "dns";
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 import { connectDB } from "./lib/db.js";
@@ -52,6 +53,11 @@ const app = express();
 
 const PORT = process.env.PORT || 5000;
 
+// gzip/brotli every response -- the single highest-leverage low-bandwidth
+// change available: shrinks every JSON payload and static asset the same
+// way regardless of which endpoint or screen sent it, before any of the
+// more targeted per-endpoint work below.
+app.use(compression());
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 

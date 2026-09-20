@@ -3,12 +3,13 @@ import {
   Loader2, LogOut, Menu, X, ChevronDown, Compass, MapPinned,
   ShieldCheck, Store, Route, UserRound, Wrench, Landmark,
   Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users, Bot,
-  PanelLeftClose, PanelLeftOpen, CheckCircle2, Megaphone, IndianRupee, Briefcase, ClipboardList,
+  PanelLeftClose, PanelLeftOpen, CheckCircle2, Megaphone, IndianRupee, Briefcase, ClipboardList, ListChecks, ImageOff,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useOperatorStore } from '../../store/useOperatorStore'
 import { useNotificationsStore } from '../../store/useNotificationsStore'
+import { useDataSaverStore } from '../../store/useDataSaverStore'
 import { getDestinationLabel } from '../../lib/destinations'
 import { alertSeverity, alertKindLabel } from '../../lib/labels'
 import { timeAgo } from '../../lib/time'
@@ -83,25 +84,37 @@ const OPERATOR_MORE = [
   { to: '/operator/complaints', label: 'Raise a Complaint', icon: ClipboardList },
   { to: '/multimodal-agent', label: 'Multimodal Agent', icon: Bot },
 ]
-// Authority nav trimmed to exactly two destinations, no More section --
-// Pressure Map and Businesses are removed as separate nav items (pressure
-// data still surfaces inside the Authority Dashboard itself, unchanged).
+// Authority nav split primary/more the same way Operator/Traveller's
+// already is, for the same reason: a flat bar reads as a grab-bag, not a
+// workflow. PRIMARY is "the job" -- the dashboard's own analytics, and
+// Complaints (promoted out of being a dashboard tab now that travellers,
+// operators, AND workers all file into the same moderation queue -- it's a
+// standing workload, not one section among four), then Community Review
+// (place-suggestion moderation, the other queue an authority clears).
+// MORE is the anytime helper, same "closes out the list" placement every
+// other role's nav already gives it.
 const AUTHORITY_PRIMARY = [
   { to: '/authority', label: 'Authority Dashboard', icon: Landmark },
+  { to: '/authority/complaints', label: 'Complaints', icon: ClipboardList },
   { to: '/community', label: 'Community Review', icon: ClipboardCheck },
+]
+const AUTHORITY_MORE = [
   { to: '/multimodal-agent', label: 'Multimodal Agent', icon: Bot },
 ]
-const AUTHORITY_MORE = []
 // Worker role -- the narrowest nav of any role (worker-role-spec.md §01:
 // "no dashboard full of KPIs. Just: be found, get offered work, do it, get
-// rated"). Worker Console holds gigs/jobs/profile as its own internal tabs
-// rather than three separate nav entries, same consolidation OperatorConsole
-// and AuthorityDashboard already use for closely related sub-views.
+// rated"). Worker Console holds gigs/profile as its own internal tabs
+// rather than separate nav entries, same consolidation OperatorConsole and
+// AuthorityDashboard already use for closely related sub-views. My Jobs and
+// Raise a Complaint live under More/the profile dropdown instead -- checked
+// occasionally, not the tab a worker lands on.
 const WORKER_PRIMARY = [
   { to: '/worker', label: 'Worker Console', icon: Briefcase },
+]
+const WORKER_MORE = [
+  { to: '/worker/complaints', label: 'Raise a Complaint', icon: ClipboardList },
   { to: '/multimodal-agent', label: 'Multimodal Agent', icon: Bot },
 ]
-const WORKER_MORE = []
 
 // Shown next to the brand mark once logged in -- the account's own
 // server-side role (never a frontend guess), so a traveller/operator/
@@ -151,6 +164,30 @@ function NavLink({ to, label, icon: Icon, onClick }) {
   )
 }
 
+// Manual override of useDataSaverStore's own connection-based default --
+// skips images below a bandwidth threshold, but the traveller can always
+// turn it on/off themselves (e.g. a good connection right now despite a
+// pilgrimage route that's usually patchy). Lives in the account menu since
+// it's a standing preference, not a per-page setting.
+function DataSaverToggle() {
+  const enabled = useDataSaverStore((s) => s.enabled)
+  const toggle = useDataSaverStore((s) => s.toggle)
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      role="menuitemcheckbox"
+      aria-checked={enabled}
+      className="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-ink/80 transition hover:bg-ink/5"
+    >
+      <span className="flex items-center gap-2"><ImageOff size={16} aria-hidden="true" /> Data saver</span>
+      <span className={`flex h-5 w-9 items-center rounded-full p-0.5 transition ${enabled ? 'bg-ink justify-end' : 'bg-paper-dim justify-start'}`}>
+        <span className="h-4 w-4 rounded-full bg-paper" />
+      </span>
+    </button>
+  )
+}
+
 function ProfileMenu() {
   const authUser = useAuthStore((state) => state.authUser)
   const logout = useAuthStore((state) => state.logout)
@@ -185,12 +222,14 @@ function ProfileMenu() {
           </div>
           <NavLink to="/profile" label="Profile" icon={UserRound} onClick={() => setOpen(false)} />
           {authUser.role === 'traveller' && <NavLink to="/trips" label="My Trips" icon={Route} onClick={() => setOpen(false)} />}
+          {authUser.role === 'worker' && <NavLink to="/worker/jobs" label="My Jobs" icon={ListChecks} onClick={() => setOpen(false)} />}
           {/* Operator: "Register Business" itself drops out of the main nav
               once at least one business is registered (navForRole's
               hasBusinesses flag -- it "did its job"), but an operator with
               more than one property still needs a way back to that form.
               Always present here, unlike the main nav entry. */}
           {authUser.role === 'operator' && <NavLink to="/register-business" label="Register a business" icon={Store} onClick={() => setOpen(false)} />}
+          <DataSaverToggle />
           <button
             type="button"
             onClick={() => { setOpen(false); logout() }}

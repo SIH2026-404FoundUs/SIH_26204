@@ -20,6 +20,12 @@ export const VALID_COMPLAINT_CATEGORIES = [
   "unfair_review",
   "payment_billing_issue",
   "platform_policy_issue",
+  // Worker-facing categories -- see complaint.model.js's own comment on
+  // this same split.
+  "gig_dispute",
+  "nonpayment",
+  "unsafe_work_conditions",
+  "unfair_rating",
   "other",
 ];
 
@@ -118,11 +124,11 @@ export async function getUserComplaints(userId, models = {}) {
  * @param {Object} [models] - Database models (ComplaintModel).
  * @returns {Promise<Array<Object>>} All matching complaints, newest first.
  */
-export async function getAllComplaints({ status } = {}, models = {}) {
+export async function getAllComplaints({ status, limit = 50, skip = 0 } = {}, models = {}) {
   const { ComplaintModel } = models;
   if (!ComplaintModel || typeof ComplaintModel.find !== "function") return [];
   const filter = status ? { status } : {};
-  return ComplaintModel.find(filter).sort({ createdAt: -1 });
+  return ComplaintModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
 }
 
 export const VALID_COMPLAINT_STATUSES = ["logged", "under_review", "resolved"];

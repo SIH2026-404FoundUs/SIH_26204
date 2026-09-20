@@ -144,6 +144,7 @@ export default function OperatorConsole() {
   const [selectedId, setSelectedId] = useState('')
   const [form, setForm] = useState({ date: '', units: '', available: '', pricePerNight: '', discountPct: '0' })
   const [saved, setSaved] = useState(false)
+  const [queued, setQueued] = useState(false)
   const businessId = selectedId || myBusinesses[0]?._id || ''
   const business = myBusinesses.find((item) => item._id === businessId)
 
@@ -151,9 +152,12 @@ export default function OperatorConsole() {
   useEffect(() => { if (businessId) fetchAvailability(businessId) }, [businessId, fetchAvailability])
 
   async function submit(e) {
-    e.preventDefault(); setSaved(false)
-    const ok = await saveAvailability(businessId, { ...form, units: Number(form.units), available: form.available === '' ? Number(form.units) : Number(form.available), pricePerNight: form.pricePerNight === '' ? undefined : Number(form.pricePerNight), discountPct: Number(form.discountPct) || 0 })
-    if (ok) { setSaved(true); setForm({ date: '', units: '', available: '', pricePerNight: '', discountPct: '0' }) }
+    e.preventDefault(); setSaved(false); setQueued(false)
+    const result = await saveAvailability(businessId, { ...form, units: Number(form.units), available: form.available === '' ? Number(form.units) : Number(form.available), pricePerNight: form.pricePerNight === '' ? undefined : Number(form.pricePerNight), discountPct: Number(form.discountPct) || 0 })
+    if (result.ok) {
+      result.queued ? setQueued(true) : setSaved(true)
+      setForm({ date: '', units: '', available: '', pricePerNight: '', discountPct: '0' })
+    }
   }
 
   return <div className="mx-auto max-w-5xl">
@@ -175,6 +179,7 @@ export default function OperatorConsole() {
           </Card>
           {availabilityError && <div className="mb-4"><Alert tone="error">{availabilityError}</Alert></div>}
           {saved && <div className="mb-4"><Alert tone="success">Availability saved. Travellers will see this date when bookable units are available.</Alert></div>}
+          {queued && <div className="mb-4"><Alert tone="warning">No connection right now -- saved on this device and will sync automatically once you're back online.</Alert></div>}
           <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold text-ink">Upcoming availability</h2><Badge tone="info">{availability.length} date{availability.length === 1 ? '' : 's'}</Badge></div>
           {isLoadingAvailability ? <LoadingState label="Loading declared dates..." /> : availability.length === 0 ? <EmptyState icon={CalendarDays} title="No dates declared" description="Add an open date above when you know how many units you can honour." /> : <div className="space-y-2">{availability.map((row) => <Card key={row._id} padding="p-4"><div className="flex items-center justify-between gap-4"><div><p className="font-medium text-ink">{new Date(row.date).toLocaleDateString(undefined, { dateStyle: 'medium' })}</p><p className="mt-1 text-xs text-ash">{row.units.available} of {row.units.total} bookable · {row.pricePerNight ? `INR ${row.pricePerNight}` : 'price on request'}{row.discountPct ? ` · ${row.discountPct}% off` : ''}</p></div><Badge tone={row.isOpen && row.units.available > 0 ? 'success' : 'warning'} icon={row.isOpen && row.units.available > 0 ? Check : undefined}>{row.isOpen && row.units.available > 0 ? 'Open' : 'Closed'}</Badge></div></Card>)}</div>}
         </div>

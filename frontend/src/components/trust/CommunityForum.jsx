@@ -10,6 +10,7 @@ import Button from '../ui/Button'
 import EmptyState from '../ui/EmptyState'
 import LoadingState from '../ui/LoadingState'
 import Alert from '../ui/Alert'
+import SaverImage from '../ui/SaverImage'
 import { inputClass } from '../ui/FormField'
 
 // All 28 Indian states (union territories excluded on purpose -- the ask
@@ -97,7 +98,7 @@ function ForumPost({ post, onReact, onComment, isCommenting }) {
       </div>
 
       {post.photos?.length > 0 && (
-        <img src={post.photos[0]} alt="" className="max-h-96 w-full object-cover" />
+        <SaverImage src={post.photos[0]} className="max-h-96 w-full object-cover" />
       )}
 
       <div className="flex items-center gap-1.5 px-4 pt-3 text-xs text-ash">

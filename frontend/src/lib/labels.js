@@ -91,6 +91,11 @@ export const COMPLAINT_CATEGORY_LABEL = {
   unfair_review: 'Unfair review',
   payment_billing_issue: 'Payment / billing issue',
   platform_policy_issue: 'Platform / policy issue',
+  // Worker-facing -- see complaint.model.js's own comment on this split.
+  gig_dispute: 'Gig dispute',
+  nonpayment: 'Non-payment',
+  unsafe_work_conditions: 'Unsafe work conditions',
+  unfair_rating: 'Unfair rating',
   other: 'Other',
 }
 
@@ -101,6 +106,9 @@ export const TRAVELLER_COMPLAINT_CATEGORIES = [
 ]
 export const OPERATOR_COMPLAINT_CATEGORIES = [
   'traveller_dispute', 'unfair_review', 'payment_billing_issue', 'platform_policy_issue', 'safety_advisory', 'other',
+]
+export const WORKER_COMPLAINT_CATEGORIES = [
+  'gig_dispute', 'nonpayment', 'unsafe_work_conditions', 'unfair_rating', 'platform_policy_issue', 'other',
 ]
 
 export function complaintCategoryLabel(category) {
@@ -155,6 +163,58 @@ export const WORKER_SKILL_LABEL = {
 
 export function workerSkillLabel(skill) {
   return WORKER_SKILL_LABEL[skill] || skill
+}
+
+// WorkerProfile.governmentId.idType -- self-declared, same as the rest of
+// the profile (only verificationTier moving past "self-declared" would mean
+// anyone actually checked it).
+export const GOVERNMENT_ID_TYPE_LABEL = {
+  aadhaar: 'Aadhaar',
+  pan: 'PAN',
+  voter_id: 'Voter ID',
+  driving_license: 'Driving licence',
+  passport: 'Passport',
+}
+
+export function governmentIdTypeLabel(idType) {
+  return GOVERNMENT_ID_TYPE_LABEL[idType] || idType
+}
+
+// Worker badges -- computed from data the profile already carries, never a
+// separate stored achievement collection (nothing here can drift from the
+// numbers backing it). Each test runs against { profile, completedCount };
+// a badge only ever appears when its condition is honestly met, no
+// participation badges.
+const WORKER_BADGE_DEFS = [
+  {
+    key: 'id_verified',
+    label: 'ID on file',
+    tone: 'info',
+    test: (p) => Boolean(p.legalName?.trim() && p.governmentId?.idNumber?.trim()),
+  },
+  {
+    key: 'top_rated',
+    label: 'Top rated',
+    tone: 'success',
+    test: (p) => (p.rating?.avg || 0) >= 4.5 && (p.rating?.count || 0) >= 3,
+  },
+  {
+    key: 'reliable',
+    label: 'Reliable',
+    tone: 'success',
+    test: (p, completedCount) => completedCount >= 5,
+  },
+  {
+    key: 'available_now',
+    label: 'Available now',
+    tone: 'warning',
+    test: (p) => p.availability?.mode === 'now',
+  },
+]
+
+export function getWorkerBadges(profile, completedCount = 0) {
+  if (!profile) return []
+  return WORKER_BADGE_DEFS.filter((b) => b.test(profile, completedCount)).map((b) => ({ key: b.key, label: b.label, tone: b.tone }))
 }
 
 // GigMatch.status -- a worker's own view of one accepted/offered/completed

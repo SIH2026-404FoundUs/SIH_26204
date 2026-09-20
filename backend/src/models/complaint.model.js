@@ -26,6 +26,13 @@ const complaintSchema = new mongoose.Schema(
         "unfair_review",
         "payment_billing_issue",
         "platform_policy_issue",
+        // Worker-facing categories -- a worker reporting something is about
+        // the gig relationship (an operator, a job), never overcharging or
+        // hygiene at a listing. Same collection/queue as every other role.
+        "gig_dispute",
+        "nonpayment",
+        "unsafe_work_conditions",
+        "unfair_rating",
         "other",
       ],
       default: "other",

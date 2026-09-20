@@ -7,7 +7,7 @@ import { sendMail } from "../lib/mailer.js";
 import { passwordResetEmail, welcomeEmail } from "../lib/emailTemplates.js";
 import mongoose from "mongoose";
 import multer from "multer";
-import cloudinary from "../lib/cloudinary.js";
+import cloudinary, { optimizedImageUrl } from "../lib/cloudinary.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_FULLNAME_LEN = 200;
@@ -138,7 +138,7 @@ export const login = async (req, res) => {
       role: user.role,
       phone: user.phone,
       preferredLanguage: user.preferredLanguage,
-      profilePhoto: user.profilePhoto,
+      profilePhoto: optimizedImageUrl(user.profilePhoto, { width: 96 }),
       createdAt: user.createdAt,
     });
   } catch (error) {
@@ -335,7 +335,7 @@ export const updateProfile = async (req, res) => {
       role: user.role,
       phone: user.phone,
       preferredLanguage: user.preferredLanguage,
-      profilePhoto: user.profilePhoto,
+      profilePhoto: optimizedImageUrl(user.profilePhoto, { width: 96 }),
       createdAt: user.createdAt,
     });
   } catch (error) {
@@ -379,7 +379,7 @@ export const uploadProfilePhoto = async (req, res) => {
       role: user.role,
       phone: user.phone,
       preferredLanguage: user.preferredLanguage,
-      profilePhoto: user.profilePhoto,
+      profilePhoto: optimizedImageUrl(user.profilePhoto, { width: 96 }),
       createdAt: user.createdAt,
     });
   } catch (error) {
@@ -402,7 +402,7 @@ export const removeProfilePhoto = async (req, res) => {
       role: user.role,
       phone: user.phone,
       preferredLanguage: user.preferredLanguage,
-      profilePhoto: user.profilePhoto,
+      profilePhoto: optimizedImageUrl(user.profilePhoto, { width: 96 }),
       createdAt: user.createdAt,
     });
   } catch (error) {

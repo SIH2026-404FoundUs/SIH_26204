@@ -114,9 +114,25 @@ export const searchBusinessesController = async (req, res) => {
     const { destId, type } = req.query;
     if (!destId) return res.status(400).json({ message: "destId query param required" });
 
+    // Listings change (an operator edits pricing/availability, a new
+    // business registers) but not from one request to the next -- a short
+    // client-cacheable window still turns most repeat views into a 304
+    // (Express's default ETag) instead of a full payload, without risking
+    // showing genuinely stale pricing for more than a minute.
+    res.set("Cache-Control", "public, max-age=60");
+
     const filter = { destId };
     if (type) filter.type = type;
-    const businesses = await Business.find(filter).lean();
+    // Every card that renders this list (Businesses.jsx, AvailableServices.jsx,
+    // HirePeople.jsx, VisitVerify's picker) only ever reads these fields --
+    // never photos, aiThemes/aiActions, feedbackSummary, rawTranscript, or
+    // any of the registration-assist fields, all of which can be large and
+    // none of which any card shows. ownerPhone stays behind its own
+    // `select: false` (schema default) -- HirePeople's "reveal contact"
+    // flow fetches it separately, on demand, per worker.
+    const businesses = await Business.find(filter)
+      .select("name type destId capacity priceRangeINR languages amenities meals nearestLandmark websiteUrl verificationTier onboardedVia visitCount")
+      .lean();
 
     const pressureRow = await getPressure(destId, today());
     const isInLowPressureDest =

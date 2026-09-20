@@ -12,12 +12,13 @@ import EmptyState from '../ui/EmptyState'
 
 const POLL_MS = 15_000
 
-// Every complaint a traveller ever submits, with real status controls --
-// GET /v1/safety/complaints + PATCH .../:id/status existed with zero
-// frontend consumer before this: complaints were created "logged" and
-// stayed there forever, and no authority could even see them all in one
-// place. Moving a complaint to "under_review"/"resolved" here really
-// emails the submitter (safety.controller.js), not a local-only flag.
+// Every complaint any role submits -- traveller, operator, or worker, same
+// collection, same queue -- with real status controls. GET
+// /v1/safety/complaints + PATCH .../:id/status existed with zero frontend
+// consumer before this: complaints were created "logged" and stayed there
+// forever, and no authority could even see them all in one place. Moving a
+// complaint to "under_review"/"resolved" here really emails the submitter
+// (safety.controller.js), not a local-only flag.
 export default function ComplaintsModeration() {
   const { allComplaints, isLoadingAllComplaints, isUpdatingComplaintStatus, moderationError, fetchAllComplaints, updateComplaintStatus } = useTrustStore()
   const [filter, setFilter] = useState('')

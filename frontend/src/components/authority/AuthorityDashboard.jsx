@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Landmark, RotateCw, Flame, Gauge, ArrowLeftRight, CheckCircle2, ClipboardList } from 'lucide-react'
+import { Landmark, RotateCw, Flame, Gauge, ArrowLeftRight, CheckCircle2 } from 'lucide-react'
 import { useAuthorityDashboardStore } from '../../store/useAuthorityDashboardStore'
 import PageHeader from '../ui/PageHeader'
 import Button from '../ui/Button'
@@ -8,20 +8,19 @@ import PressureSection from './PressureSection'
 import CapacityGapTable from './CapacityGapTable'
 import RedistributionImpact from './RedistributionImpact'
 import AcceptanceRate from './AcceptanceRate'
-import ComplaintsModeration from './ComplaintsModeration'
 
-// The four analytical sections the dashboard spec calls for, plus
-// Complaints (a real moderation view -- GET/PATCH /v1/safety/complaints
-// existed with zero frontend consumer until now) -- all as tabs instead of
-// one long stacked page. The first four still fetch together on load/
+// The four analytical sections the dashboard spec calls for, as tabs
+// instead of one long stacked page. All four fetch together on load/
 // refresh (fetchAll) so switching between them never shows a stale
-// spinner; Complaints polls independently since it isn't date-scoped.
+// spinner. Complaints used to be a fifth tab here -- moved to its own
+// workspace destination (AuthorityComplaints.jsx, /authority/complaints)
+// now that travellers, operators, and workers all file into the same
+// queue; it's a standing moderation workload, not a dashboard section.
 const TABS = [
   { key: 'pressure', label: 'Destination Pressure Heatmap', icon: Flame },
   { key: 'capacity', label: 'Capacity Gap', icon: Gauge },
   { key: 'redistribution', label: 'Redistribution Impact', icon: ArrowLeftRight },
   { key: 'acceptance', label: 'Acceptance Rate', icon: CheckCircle2 },
-  { key: 'complaints', label: 'Complaints', icon: ClipboardList },
 ]
 
 // Authority Dashboard -- exactly four analytical sections (dashboard spec):
@@ -134,7 +133,6 @@ export default function AuthorityDashboard() {
       {activeTab === 'acceptance' && (
         <AcceptanceRate data={acceptance} isLoading={isLoadingAcceptance} error={acceptanceError} />
       )}
-      {activeTab === 'complaints' && <ComplaintsModeration />}
     </div>
   )
 }

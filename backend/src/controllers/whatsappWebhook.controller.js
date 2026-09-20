@@ -55,10 +55,17 @@
 // back to Meta (the response has already gone out by then).
 
 import Business from "../models/business.model.js";
+import User from "../models/user.model.js";
+import WorkerProfile from "../models/workerProfile.model.js";
+import GigMatch from "../models/gigMatch.model.js";
+import GigRequest from "../models/gigRequest.model.js";
 import { fetchWhatsAppMedia } from "../services/onboarding/mediaDownload.js";
 import { processInboundAudio, isDuplicateMessage } from "../services/onboarding/processInboundAudio.js";
 import { processInboundImage } from "../services/onboarding/processInboundImage.js";
 import { processDraftConfirmReply } from "../services/onboarding/draftConfirm.js";
+import { handleWorkerTextCommand } from "../services/onboarding/whatsappWorkerCommands.js";
+
+const workerModels = { UserModel: User, WorkerProfileModel: WorkerProfile, GigMatchModel: GigMatch, GigRequestModel: GigRequest };
 
 /**
  * GET /api/webhook/whatsapp — Meta's one-time verification handshake.
@@ -184,6 +191,17 @@ async function processWebhookMessage(message, { fetchFn, transcribeFn, extractFn
         from,
         messageId,
       });
+      return;
+    }
+
+    // Worker commands checked first (gig accept/decline-by-reply, a Travel
+    // Education fact lookup) -- additive, and a worker's phone is never
+    // also a Business.ownerPhone, so this can't shadow the DRAFT_CONFIRM
+    // path below. handled:false means "not a worker command" and falls
+    // through exactly as before this existed.
+    const workerResult = await handleWorkerTextCommand({ from, text }, workerModels, { sendMessageFn });
+    if (workerResult.handled) {
+      console.log("WhatsApp worker text command processed:", workerResult);
       return;
     }
 

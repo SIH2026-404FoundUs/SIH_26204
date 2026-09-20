@@ -11,8 +11,8 @@ import Card from '../ui/Card'
 import Badge from '../ui/Badge'
 import Button from '../ui/Button'
 import Alert from '../ui/Alert'
-import LoadingState from '../ui/LoadingState'
 import EmptyState from '../ui/EmptyState'
+import { Skeleton, SkeletonList } from '../ui/Skeleton'
 
 function formatMoney(value) {
   return value == null ? null : `₹${Number(value).toLocaleString('en-IN')}`
@@ -120,7 +120,23 @@ export default function MyTrips() {
     <div className="pb-8">
       <PageHeader icon={RouteIcon} title="My trips" description="Your travel history, saved itineraries, and the choices that helped spread demand." />
       {error && <div className="mb-4"><Alert tone="error">{error}</Alert></div>}
-      {isLoading ? <LoadingState label="Loading your trips…" /> : trips.length === 0 ? <EmptyState icon={RouteIcon} title="No trips yet" description="Plan a trip and it'll show up here, including whether it was redirected to relieve crowding." action={<Link to="/home"><Button variant="primary">Plan a trip</Button></Link>} /> : <>
+      {isLoading ? (
+        <>
+          <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} padding="p-4">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
+                <Skeleton className="mt-3 h-6 w-12" />
+                <Skeleton className="mt-2 h-3 w-24" />
+              </Card>
+            ))}
+          </div>
+          <SkeletonList rows={3} />
+        </>
+      ) : trips.length === 0 ? <EmptyState icon={RouteIcon} title="No trips yet" description="Plan a trip and it'll show up here, including whether it was redirected to relieve crowding." action={<Link to="/home"><Button variant="primary">Plan a trip</Button></Link>} /> : <>
         <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             [Compass, 'Total trips', stats.total, 'Your saved planning history', 'bg-ink text-paper'],

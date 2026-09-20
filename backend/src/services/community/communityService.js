@@ -407,12 +407,12 @@ export async function reviewCommunitySubmission(reviewParams, models = {}) {
 /**
  * Get all queued community submissions for admin review.
  */
-export async function getQueuedSubmissions(models = {}) {
+export async function getQueuedSubmissions({ limit = 50, skip = 0 } = {}, models = {}) {
   const { CommunitySubmissionModel } = models;
   if (!CommunitySubmissionModel || typeof CommunitySubmissionModel.find !== "function") {
     return [];
   }
-  return CommunitySubmissionModel.find({ status: "queued" }).sort({ createdAt: 1 });
+  return CommunitySubmissionModel.find({ status: "queued" }).sort({ createdAt: 1 }).skip(skip).limit(limit);
 }
 
 /**

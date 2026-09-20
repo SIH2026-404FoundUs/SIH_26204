@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import {
   Briefcase, MapPin, CalendarDays, Star, ShieldCheck,
-  IndianRupee, Radio, ListChecks, UserRound, Plus, X,
+  IndianRupee, Radio, UserRound, Plus, X, Award, IdCard,
 } from 'lucide-react'
 import { useWorkerStore } from '../../store/useWorkerStore'
-import { workerSkillLabel, gigMatchStatus, WORKER_SKILL_LABEL } from '../../lib/labels'
+import { workerSkillLabel, WORKER_SKILL_LABEL, GOVERNMENT_ID_TYPE_LABEL, getWorkerBadges } from '../../lib/labels'
 import { getDestinationLabel, useDestinationGroups } from '../../lib/destinations'
 import PageHeader from '../ui/PageHeader'
 import Card from '../ui/Card'
@@ -42,7 +42,7 @@ function ChipToggle({ active, onClick, children }) {
 // and "edit later", same as OperatorConsole's own availability form serves
 // both cases.
 function ProfileTab() {
-  const { profile, isSavingProfile, saveProfileError, saveProfile, isSavingAvailability, availabilityError, updateAvailability } = useWorkerStore()
+  const { profile, isSavingProfile, saveProfileError, saveProfile, isSavingAvailability, availabilityError, updateAvailability, myGigs, fetchMyGigs } = useWorkerStore()
   const allDestinations = useDestinationGroups().flatMap((g) => g.destinations)
   const [skills, setSkills] = useState(profile?.skills || [])
   const [areas, setAreas] = useState(profile?.serviceAreaDestIds || [])
@@ -50,11 +50,18 @@ function ProfileTab() {
   const [rateMin, setRateMin] = useState(profile?.rateExpectation?.min ?? '')
   const [rateMax, setRateMax] = useState(profile?.rateExpectation?.max ?? '')
   const [rateUnit, setRateUnit] = useState(profile?.rateExpectation?.unit || 'day')
+  const [legalName, setLegalName] = useState(profile?.legalName || '')
+  const [idType, setIdType] = useState(profile?.governmentId?.idType || 'aadhaar')
+  const [idNumber, setIdNumber] = useState(profile?.governmentId?.idNumber || '')
   const [saved, setSaved] = useState(false)
   const [newWindowDate, setNewWindowDate] = useState('')
 
   const toggleSkill = (s) => setSkills((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]))
   const toggleArea = (id) => setAreas((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  const completedCount = myGigs.filter((row) => row.match.status === 'completed').length
+  const badges = getWorkerBadges(profile, completedCount)
+
+  useEffect(() => { fetchMyGigs({ silent: true }) }, [fetchMyGigs])
 
   async function handleSave(e) {
     e.preventDefault()
@@ -64,6 +71,8 @@ function ProfileTab() {
       serviceAreaDestIds: areas,
       languages: languages.split(',').map((l) => l.trim()).filter(Boolean),
       rateExpectation: { min: Number(rateMin) || undefined, max: Number(rateMax) || undefined, unit: rateUnit },
+      legalName,
+      governmentId: idNumber.trim() ? { idType, idNumber: idNumber.trim() } : undefined,
     })
     if (ok) setSaved(true)
   }
@@ -90,8 +99,21 @@ function ProfileTab() {
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
       <div>
         <Card>
-          <h2 className="mb-4 text-sm font-semibold text-ink">Skills & service area</h2>
+          <h2 className="mb-4 text-sm font-semibold text-ink">Your details</h2>
           <form onSubmit={handleSave} className="space-y-5">
+            <FormField label="Legal name" hint="So an operator knows who they're actually hiring">
+              <input required value={legalName} onChange={(e) => setLegalName(e.target.value)} placeholder="As on your ID" className={inputClass} />
+            </FormField>
+
+            <FormField label="Government ID" hint="Self-declared, not verified -- stored for the operator's reference only">
+              <div className="grid grid-cols-2 gap-2">
+                <select required value={idType} onChange={(e) => setIdType(e.target.value)} className={inputClass}>
+                  {Object.entries(GOVERNMENT_ID_TYPE_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+                <input required value={idNumber} onChange={(e) => setIdNumber(e.target.value)} placeholder="ID number" className={inputClass} />
+              </div>
+            </FormField>
+
             <FormField label="Skills"><div className="flex flex-wrap gap-2">{SKILLS.map((s) => <ChipToggle key={s} active={skills.includes(s)} onClick={() => toggleSkill(s)}>{workerSkillLabel(s)}</ChipToggle>)}</div></FormField>
 
             <FormField label="Service area" hint="Destinations you can realistically reach for a gig">
@@ -161,6 +183,25 @@ function ProfileTab() {
       {profile && (
         <aside className="space-y-4">
           <Card padding="p-4">
+            <div className="mb-3 flex items-center gap-2"><Award size={16} className="text-pressure" aria-hidden="true" /><h2 className="text-sm font-semibold text-ink">Badges</h2></div>
+            {badges.length === 0 ? (
+              <p className="text-xs text-ash">No badges yet -- these are earned automatically from your profile and job history.</p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {badges.map((b) => <Badge key={b.key} tone={b.tone}>{b.label}</Badge>)}
+              </div>
+            )}
+          </Card>
+          {profile.legalName && (
+            <Card padding="p-4">
+              <div className="mb-2 flex items-center gap-2"><IdCard size={16} className="text-ink/60" aria-hidden="true" /><h2 className="text-sm font-semibold text-ink">Registered as</h2></div>
+              <p className="text-sm text-ink">{profile.legalName}</p>
+              {profile.governmentId?.idNumber && (
+                <p className="mt-0.5 text-xs text-ash">{GOVERNMENT_ID_TYPE_LABEL[profile.governmentId.idType]} on file</p>
+              )}
+            </Card>
+          )}
+          <Card padding="p-4">
             <div className="mb-3 flex items-center gap-2"><Star size={16} className="text-pressure" aria-hidden="true" /><h2 className="text-sm font-semibold text-ink">Rating</h2></div>
             {profile.rating?.count > 0 ? (
               <>
@@ -185,6 +226,12 @@ function GigsNearYouTab() {
   const { openGigs, isLoadingGigs, gigsError, fetchOpenGigs, isAccepting, acceptError, acceptGig, profile } = useWorkerStore()
   const [destId, setDestId] = useState(profile?.serviceAreaDestIds?.[0] || '')
   const [skill, setSkill] = useState('')
+  const [queuedGigId, setQueuedGigId] = useState(null)
+
+  async function handleAccept(gigId) {
+    const result = await acceptGig(gigId)
+    setQueuedGigId(result.queued ? gigId : null)
+  }
 
   useEffect(() => {
     fetchOpenGigs({ destId, skill })
@@ -209,6 +256,7 @@ function GigsNearYouTab() {
 
       {gigsError && <div className="mb-4"><Alert tone="error">{gigsError}</Alert></div>}
       {acceptError && <div className="mb-4"><Alert tone="error">{acceptError}</Alert></div>}
+      {queuedGigId && <div className="mb-4"><Alert tone="warning">No connection right now -- your accept is saved on this device and will be sent the moment you're back online. It isn't confirmed until then.</Alert></div>}
 
       {isLoadingGigs ? (
         <LoadingState label="Looking for nearby gigs…" />
@@ -230,7 +278,7 @@ function GigsNearYouTab() {
                 <p className="mt-1 flex items-center gap-1 text-xs text-ink/70"><IndianRupee size={12} aria-hidden="true" /> {g.budget.min ?? '?'}–{g.budget.max ?? '?'}</p>
               )}
               {g.notes && <p className="mt-2 text-xs text-ash">{g.notes}</p>}
-              <Button variant="primary" size="sm" fullWidth className="mt-3" loading={isAccepting === g._id} onClick={() => acceptGig(g._id)}>Accept this gig</Button>
+              <Button variant="primary" size="sm" fullWidth className="mt-3" loading={isAccepting === g._id} onClick={() => handleAccept(g._id)}>Accept this gig</Button>
             </Card>
           ))}
         </div>
@@ -239,70 +287,8 @@ function GigsNearYouTab() {
   )
 }
 
-function RateForm({ gigId, onSubmit, isSubmitting }) {
-  const [score, setScore] = useState(5)
-  const [comment, setComment] = useState('')
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(gigId, { score, comment }) }} className="mt-3 flex flex-wrap items-center gap-2 border-t border-paper-dim pt-3">
-      <div className="flex gap-0.5">
-        {[1, 2, 3, 4, 5].map((n) => (
-          <button key={n} type="button" onClick={() => setScore(n)} aria-label={`${n} stars`} className={n <= score ? 'text-pressure' : 'text-paper-dim'}>
-            <Star size={18} fill="currentColor" />
-          </button>
-        ))}
-      </div>
-      <input value={comment} onChange={(e) => setComment(e.target.value)} placeholder="A short note (optional)" className={`${inputClass} flex-1`} />
-      <Button type="submit" variant="outline" size="sm" loading={isSubmitting}>Rate</Button>
-    </form>
-  )
-}
-
-function MyJobsTab() {
-  const { myGigs, isLoadingMyGigs, myGigsError, fetchMyGigs, isCompleting, completeError, completeGig, isRating, rateGig } = useWorkerStore()
-
-  useEffect(() => {
-    fetchMyGigs()
-    const interval = setInterval(() => fetchMyGigs({ silent: true }), POLL_MS)
-    return () => clearInterval(interval)
-  }, [fetchMyGigs])
-
-  if (isLoadingMyGigs) return <LoadingState label="Loading your jobs…" />
-  if (myGigsError) return <Alert tone="error">{myGigsError}</Alert>
-  if (myGigs.length === 0) return <EmptyState icon={ListChecks} title="No jobs yet" description="Gigs you're offered, accept, or complete will show up here." />
-
-  return (
-    <div className="space-y-3">
-      {completeError && <Alert tone="error">{completeError}</Alert>}
-      {myGigs.map(({ match, gig }) => {
-        const state = gigMatchStatus(match.status)
-        return (
-          <Card key={match._id} padding="p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="font-semibold text-ink">{workerSkillLabel(gig.skillNeeded)} · {getDestinationLabel(gig.destId)}</p>
-                <p className="text-xs text-ash">{dayLabel(gig.startDate)} – {dayLabel(gig.endDate)}</p>
-              </div>
-              <Badge tone={state.tone}>{state.label}</Badge>
-            </div>
-            {match.status === 'accepted' && (
-              <Button variant="primary" size="sm" className="mt-3" loading={isCompleting === String(gig._id)} onClick={() => completeGig(gig._id)}>Mark complete</Button>
-            )}
-            {match.status === 'completed' && !match.ratingByWorker && (
-              <RateForm gigId={gig._id} isSubmitting={isRating === String(gig._id)} onSubmit={rateGig} />
-            )}
-            {match.ratingByWorker && (
-              <p className="mt-2 text-xs text-ash">You rated this operator {match.ratingByWorker.score} ★</p>
-            )}
-          </Card>
-        )
-      })}
-    </div>
-  )
-}
-
 const TABS = [
   { key: 'gigs', label: 'Gigs Near You', icon: Briefcase },
-  { key: 'jobs', label: 'My Jobs', icon: ListChecks },
   { key: 'profile', label: 'Profile', icon: UserRound },
 ]
 
@@ -348,7 +334,6 @@ export default function WorkerConsole() {
             ))}
           </div>
           {activeTab === 'gigs' && <GigsNearYouTab />}
-          {activeTab === 'jobs' && <MyJobsTab />}
           {activeTab === 'profile' && <ProfileTab />}
         </>
       )}

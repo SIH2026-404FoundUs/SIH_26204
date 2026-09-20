@@ -9,6 +9,7 @@ import {
   rateGig,
   getOperatorGigs,
 } from "../services/gigs/gigService.js";
+import { parsePagination } from "../lib/pagination.js";
 
 const models = { WorkerProfileModel: WorkerProfile, GigRequestModel: GigRequest, GigMatchModel: GigMatch };
 
@@ -17,7 +18,8 @@ const models = { WorkerProfileModel: WorkerProfile, GigRequestModel: GigRequest,
 export const listGigsController = async (req, res) => {
   try {
     const { destId, skill } = req.query;
-    const gigs = await listOpenGigs({ destId, skill }, models);
+    const { limit, skip } = parsePagination(req.query);
+    const gigs = await listOpenGigs({ destId, skill, limit, skip }, models);
     res.status(200).json(gigs);
   } catch (error) {
     console.log("Error in listGigs controller", error.message);

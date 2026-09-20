@@ -12,6 +12,8 @@
  * real Mongoose models in production, swappable for tests.
  */
 
+import { GOVERNMENT_ID_TYPES } from "../../models/workerProfile.model.js";
+
 // GigRequest.status transitions: open -> matched (at least one offer sent,
 // none accepted yet) -> filled (headcount met) -> cancelled/expired.
 // "matched" is set right after the push fan-out below, distinct from "open"
@@ -20,9 +22,27 @@
 
 export async function createOrUpdateWorkerProfile(userId, data, models = {}) {
   const { WorkerProfileModel } = models;
-  const { skills, serviceAreaDestIds, rateExpectation, languages, onboardedVia } = data;
+  const { skills, serviceAreaDestIds, rateExpectation, languages, onboardedVia, legalName, governmentId } = data;
 
-  const update = {};
+  // Legal name and a government ID are mandatory -- an operator deciding
+  // whether to accept a gig offer needs to know who they're actually
+  // hiring, not just a skill tag, so this can't be left blank the way rate
+  // expectation or languages can.
+  const cleanLegalName = typeof legalName === "string" ? legalName.trim() : "";
+  const cleanIdType = governmentId?.idType;
+  const cleanIdNumber = typeof governmentId?.idNumber === "string" ? governmentId.idNumber.trim() : "";
+  if (!cleanLegalName || !GOVERNMENT_ID_TYPES.includes(cleanIdType) || !cleanIdNumber) {
+    return {
+      success: false,
+      status: 400,
+      message: "legalName and a valid governmentId (idType + idNumber) are required",
+    };
+  }
+
+  const update = {
+    legalName: cleanLegalName.slice(0, 120),
+    governmentId: { idType: cleanIdType, idNumber: cleanIdNumber.slice(0, 40) },
+  };
   if (Array.isArray(skills)) update.skills = skills;
   if (Array.isArray(serviceAreaDestIds)) update.serviceAreaDestIds = serviceAreaDestIds;
   if (rateExpectation && typeof rateExpectation === "object") update.rateExpectation = rateExpectation;
@@ -38,7 +58,7 @@ export async function createOrUpdateWorkerProfile(userId, data, models = {}) {
     { $set: update, $setOnInsert: { userId } },
     { upsert: true, new: true, setDefaultsOnInsert: true, runValidators: true }
   );
-  return profile;
+  return { success: true, status: 200, profile };
 }
 
 export async function updateWorkerAvailability(userId, { mode, windows }, models = {}) {
@@ -62,12 +82,12 @@ export async function getWorkerProfileByUserId(userId, models = {}) {
 // GET /v1/gigs?destId&skill -- the browse side of push-first-browse-second
 // (spec §04): open gigs a worker who wasn't notified, or is just checking
 // in, can still self-serve.
-export async function listOpenGigs({ destId, skill }, models = {}) {
+export async function listOpenGigs({ destId, skill, limit = 50, skip = 0 }, models = {}) {
   const { GigRequestModel } = models;
   const filter = { status: { $in: ["open", "matched"] } };
   if (destId) filter.destId = destId;
   if (skill) filter.skillNeeded = skill;
-  return GigRequestModel.find(filter).sort({ startDate: 1 }).lean();
+  return GigRequestModel.find(filter).sort({ startDate: 1 }).skip(skip).limit(limit).lean();
 }
 
 // A worker is a real candidate for a gig if their skills/service area match

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import api, { getErrorMessage } from '../lib/api'
+import { sendOrQueue } from '../lib/offlineQueue'
 
 // Everything the operator post-login experience needs: registering a
 // business (POST /v1/businesses), the operator's own businesses
@@ -63,16 +64,21 @@ export const useOperatorStore = create((set, get) => ({
     } finally { set({ isLoadingAvailability: false }) }
   },
 
+  // Offline-tolerant: a genuine connectivity drop (not a server rejection)
+  // queues this write instead of failing it outright -- exactly the
+  // operator-on-a-patchy-signal case this app's low-bandwidth pass targets.
+  // Returns { ok, queued } so the caller can tell "saved" from "will sync
+  // once back online" apart, instead of collapsing both into one boolean.
   saveAvailability: async (businessId, data) => {
     set({ isSavingAvailability: true, availabilityError: null })
-    try {
-      const res = await api.post(`/v1/businesses/${businessId}/availability`, data)
-      set((state) => ({ availability: [...state.availability.filter((row) => row._id !== res.data._id), res.data].sort((a, b) => new Date(a.date) - new Date(b.date)) }))
-      return true
-    } catch (error) {
-      set({ availabilityError: getErrorMessage(error, 'Could not save availability') })
-      return false
-    } finally { set({ isSavingAvailability: false }) }
+    const result = await sendOrQueue({ method: 'post', url: `/v1/businesses/${businessId}/availability`, data, label: 'Update availability' })
+    if (result.ok && !result.queued) {
+      set((state) => ({ availability: [...state.availability.filter((row) => row._id !== result.data._id), result.data].sort((a, b) => new Date(a.date) - new Date(b.date)) }))
+    } else if (!result.ok) {
+      set({ availabilityError: result.message })
+    }
+    set({ isSavingAvailability: false })
+    return { ok: result.ok, queued: result.queued === true }
   },
 
   // -- SmartWaitlist + offers --
