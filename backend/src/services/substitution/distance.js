@@ -310,30 +310,62 @@ function mahalanobis(zA, zB, invCov) {
 }
 
 /**
- * Main distance entry point: Calculates distance between two destination documents,
- * choosing Mahalanobis if attribute correlations > 0.6, otherwise Weighted Euclidean.
+ * Computes Mahalanobis / Euclidean distance context (covariance matrix & weights)
+ * ONCE across all tracked destinations.
  */
-async function calculateDistance(destA, destB, interests) {
+async function computeMahalanobisContext(destinationsOrInterests, optionalInterests) {
   await getStats();
-  const zA = await zScore(destA);
-  const zB = await zScore(destB);
-  const weights = computeWeights(interests);
+  let destinations;
+  let interests;
 
-  const destinations = loadDestinations().filter((d) => d.trackingTier === 'tracked');
+  if (Array.isArray(destinationsOrInterests)) {
+    destinations = destinationsOrInterests;
+    interests = optionalInterests;
+  } else {
+    destinations = loadDestinations().filter((d) => d.trackingTier === 'tracked');
+    interests = destinationsOrInterests;
+  }
+
+  const weights = computeWeights(interests);
   const useMahalanobis = shouldUseMahalanobis(destinations);
 
+  let invCov = null;
   if (useMahalanobis) {
     try {
       const cov = await computeCovarianceMatrix(destinations);
-      const invCov = invertMatrix(cov);
-      return mahalanobis(zA, zB, invCov);
+      invCov = invertMatrix(cov);
     } catch (err) {
       console.warn(`Mahalanobis calculation failed (${err.message}), falling back to weighted Euclidean.`);
-      return weightedEuclidean(zA, zB, weights);
     }
   }
 
-  return weightedEuclidean(zA, zB, weights);
+  return {
+    weights,
+    useMahalanobis: useMahalanobis && invCov !== null,
+    invCov
+  };
+}
+
+/**
+ * Calculates distance using precomputed context.
+ */
+async function calculateDistanceWithContext(destA, destB, context) {
+  const zA = await zScore(destA);
+  const zB = await zScore(destB);
+
+  if (context && context.useMahalanobis && context.invCov) {
+    return mahalanobis(zA, zB, context.invCov);
+  }
+
+  return weightedEuclidean(zA, zB, context ? context.weights : computeWeights());
+}
+
+/**
+ * Backward-compatibility wrapper for calculateDistance.
+ */
+async function calculateDistance(destA, destB, interests) {
+  const context = await computeMahalanobisContext(interests);
+  return calculateDistanceWithContext(destA, destB, context);
 }
 
 export {
@@ -344,6 +376,8 @@ export {
   computeCovarianceMatrix,
   invertMatrix,
   mahalanobis,
+  computeMahalanobisContext,
+  calculateDistanceWithContext,
   calculateDistance,
   matrixMultiply,
   arrayToMatrix,

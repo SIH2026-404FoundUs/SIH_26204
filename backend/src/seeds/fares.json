@@ -1,91 +1,1986 @@
 {
-  "hyderabad": {
+  "abu road": {
     "auto": {
       "base": 30,
-      "perKm": 11,
-      "minFare": 30
+      "minFare": 35,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 12
     },
     "cab": {
-      "base": 50,
+      "base": 66,
+      "minFare": 88,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "agartala": {
+    "auto": {
+      "base": 24,
+      "minFare": 28,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 62,
+      "minFare": 83,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "ahju": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 53,
+      "minFare": 70,
       "perKm": 16,
-      "minFare": 80,
+      "perMin": 2
+    }
+  },
+  "ahmedabad": {
+    "auto": {
+      "base": 29,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 54,
+      "minFare": 72,
+      "perKm": 16,
       "perMin": 2
     },
     "metro": {
       "slabs": [
-        [2, 10],
-        [5, 20],
-        [12, 30],
-        [21, 40],
-        [32, 50]
+        [
+          2,
+          10
+        ],
+        [
+          4,
+          15
+        ],
+        [
+          6,
+          20
+        ],
+        [
+          8,
+          25
+        ],
+        [
+          10,
+          30
+        ]
       ]
-    },
-    "bus": {
-      "flat": 25
     }
   },
-  "warangal": {
+  "ajmer": {
     "auto": {
-      "base": 25,
-      "perKm": 10,
-      "minFare": 25
-    },
-    "cab": {
-      "base": 45,
-      "perKm": 14,
-      "minFare": 70,
-      "perMin": 1.5
+      "base": 21,
+      "minFare": 26,
+      "perKm": 13
     },
     "bus": {
-      "flat": 15
+      "flat": 10
+    },
+    "cab": {
+      "base": 60,
+      "minFare": 80,
+      "perKm": 18,
+      "perMin": 2
+    }
+  },
+  "alwar": {
+    "auto": {
+      "base": 24,
+      "minFare": 29,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 62,
+      "minFare": 82,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "ambassa": {
+    "auto": {
+      "base": 22,
+      "minFare": 27,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 59,
+      "minFare": 78,
+      "perKm": 18,
+      "perMin": 2
+    }
+  },
+  "anantapur": {
+    "auto": {
+      "base": 22,
+      "minFare": 26,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 54,
+      "minFare": 72,
+      "perKm": 16,
+      "perMin": 2
+    }
+  },
+  "araku valley": {
+    "auto": {
+      "base": 25,
+      "minFare": 29,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 69,
+      "minFare": 92,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "barmer": {
+    "auto": {
+      "base": 22,
+      "minFare": 26,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 64,
+      "minFare": 85,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "barpeta road": {
+    "auto": {
+      "base": 27,
+      "minFare": 32,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 56,
+      "minFare": 75,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "basar": {
+    "auto": {
+      "base": 24,
+      "minFare": 29,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 56,
+      "minFare": 75,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "belonia": {
+    "auto": {
+      "base": 28,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 84,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "bhadrachalam road": {
+    "auto": {
+      "base": 28,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 69,
+      "minFare": 92,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "bharatpur": {
+    "auto": {
+      "base": 29,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 70,
+      "minFare": 94,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "bhavnagar": {
+    "auto": {
+      "base": 23,
+      "minFare": 28,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 62,
+      "minFare": 83,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "bhongir": {
+    "auto": {
+      "base": 27,
+      "minFare": 33,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 12
+    },
+    "cab": {
+      "base": 51,
+      "minFare": 69,
+      "perKm": 15,
+      "perMin": 2
+    }
+  },
+  "bhuj": {
+    "auto": {
+      "base": 30,
+      "minFare": 35,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 71,
+      "minFare": 94,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "bikaner": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 53,
+      "minFare": 70,
+      "perKm": 16,
+      "perMin": 2
+    }
+  },
+  "bishalgarh": {
+    "auto": {
+      "base": 25,
+      "minFare": 29,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 84,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "chandigarh": {
+    "auto": {
+      "base": 24,
+      "minFare": 29,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 54,
+      "minFare": 72,
+      "perKm": 16,
+      "perMin": 2
+    }
+  },
+  "chaparmukh": {
+    "auto": {
+      "base": 30,
+      "minFare": 36,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 59,
+      "minFare": 78,
+      "perKm": 18,
+      "perMin": 2
+    }
+  },
+  "chittorgarh": {
+    "auto": {
+      "base": 28,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 69,
+      "minFare": 92,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "default": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 60,
+      "minFare": 80,
+      "perKm": 18,
+      "perMin": 2
+    }
+  },
+  "dehradun": {
+    "auto": {
+      "base": 29,
+      "minFare": 35,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 58,
+      "minFare": 77,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "deshnoke": {
+    "auto": {
+      "base": 22,
+      "minFare": 27,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 70,
+      "minFare": 94,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "dharampur": {
+    "auto": {
+      "base": 30,
+      "minFare": 36,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 56,
+      "minFare": 75,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "dharmanagar": {
+    "auto": {
+      "base": 24,
+      "minFare": 28,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 55,
+      "minFare": 73,
+      "perKm": 16,
+      "perMin": 2
+    }
+  },
+  "dhubri": {
+    "auto": {
+      "base": 23,
+      "minFare": 28,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 68,
+      "minFare": 91,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "dibrugarh": {
+    "auto": {
+      "base": 26,
+      "minFare": 31,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 84,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "digboi": {
+    "auto": {
+      "base": 23,
+      "minFare": 27,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 66,
+      "minFare": 88,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "dungarpur": {
+    "auto": {
+      "base": 28,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 53,
+      "minFare": 71,
+      "perKm": 16,
+      "perMin": 2
+    }
+  },
+  "dwarka": {
+    "auto": {
+      "base": 24,
+      "minFare": 29,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 65,
+      "minFare": 87,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "falna": {
+    "auto": {
+      "base": 23,
+      "minFare": 27,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 12
+    },
+    "cab": {
+      "base": 71,
+      "minFare": 95,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "furkating": {
+    "auto": {
+      "base": 27,
+      "minFare": 32,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 69,
+      "minFare": 92,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "gadwal": {
+    "auto": {
+      "base": 27,
+      "minFare": 32,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 68,
+      "minFare": 90,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "guwahati": {
+    "auto": {
+      "base": 29,
+      "minFare": 35,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 83,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "haflong hill": {
+    "auto": {
+      "base": 27,
+      "minFare": 32,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 57,
+      "minFare": 76,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "haridwar": {
+    "auto": {
+      "base": 28,
+      "minFare": 33,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 71,
+      "minFare": 94,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "hindupur": {
+    "auto": {
+      "base": 24,
+      "minFare": 29,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 12
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 85,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "hyderabad": {
+    "auto": {
+      "base": 30,
+      "minFare": 36,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 12
+    },
+    "cab": {
+      "base": 71,
+      "minFare": 94,
+      "perKm": 21,
+      "perMin": 2
+    },
+    "metro": {
+      "slabs": [
+        [
+          2,
+          10
+        ],
+        [
+          4,
+          15
+        ],
+        [
+          6,
+          20
+        ],
+        [
+          8,
+          25
+        ],
+        [
+          10,
+          30
+        ],
+        [
+          14,
+          35
+        ],
+        [
+          18,
+          40
+        ],
+        [
+          22,
+          45
+        ],
+        [
+          26,
+          50
+        ],
+        [
+          30,
+          55
+        ],
+        [
+          35,
+          60
+        ]
+      ]
+    }
+  },
+  "jagtial": {
+    "auto": {
+      "base": 30,
+      "minFare": 36,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 54,
+      "minFare": 71,
+      "perKm": 16,
+      "perMin": 2
+    }
+  },
+  "jaipur": {
+    "auto": {
+      "base": 24,
+      "minFare": 29,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 55,
+      "minFare": 74,
+      "perKm": 17,
+      "perMin": 2
+    },
+    "metro": {
+      "slabs": [
+        [
+          2,
+          10
+        ],
+        [
+          4,
+          15
+        ],
+        [
+          6,
+          20
+        ],
+        [
+          8,
+          25
+        ],
+        [
+          10,
+          30
+        ]
+      ]
+    }
+  },
+  "jaisalmer": {
+    "auto": {
+      "base": 29,
+      "minFare": 35,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 12
+    },
+    "cab": {
+      "base": 57,
+      "minFare": 76,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "jammalamadugu": {
+    "auto": {
+      "base": 22,
+      "minFare": 27,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 70,
+      "minFare": 94,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "jamnagar": {
+    "auto": {
+      "base": 26,
+      "minFare": 31,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 57,
+      "minFare": 76,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "jhunjhunu": {
+    "auto": {
+      "base": 28,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 69,
+      "minFare": 92,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "jodhpur": {
+    "auto": {
+      "base": 28,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 56,
+      "minFare": 74,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "joginder nagar": {
+    "auto": {
+      "base": 22,
+      "minFare": 27,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 54,
+      "minFare": 72,
+      "perKm": 16,
+      "perMin": 2
+    }
+  },
+  "jorhat": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 61,
+      "minFare": 82,
+      "perKm": 18,
+      "perMin": 2
+    }
+  },
+  "junagadh": {
+    "auto": {
+      "base": 29,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 67,
+      "minFare": 89,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "kailashahar": {
+    "auto": {
+      "base": 28,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 65,
+      "minFare": 87,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "kalka": {
+    "auto": {
+      "base": 29,
+      "minFare": 35,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 70,
+      "minFare": 93,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "kamakhya": {
+    "auto": {
+      "base": 26,
+      "minFare": 31,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 12
+    },
+    "cab": {
+      "base": 58,
+      "minFare": 77,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "karimnagar": {
+    "auto": {
+      "base": 23,
+      "minFare": 27,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 61,
+      "minFare": 81,
+      "perKm": 18,
+      "perMin": 2
+    }
+  },
+  "kathgodam": {
+    "auto": {
+      "base": 22,
+      "minFare": 26,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 57,
+      "minFare": 76,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "kevadia": {
+    "auto": {
+      "base": 30,
+      "minFare": 36,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 12
+    },
+    "cab": {
+      "base": 62,
+      "minFare": 82,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "khimsar": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 12
+    },
+    "cab": {
+      "base": 66,
+      "minFare": 88,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "kota": {
+    "auto": {
+      "base": 30,
+      "minFare": 36,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 84,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "kotdwar": {
+    "auto": {
+      "base": 22,
+      "minFare": 27,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 68,
+      "minFare": 90,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "kothagudem": {
+    "auto": {
+      "base": 26,
+      "minFare": 32,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 53,
+      "minFare": 71,
+      "perKm": 16,
+      "perMin": 2
+    }
+  },
+  "krishna": {
+    "auto": {
+      "base": 27,
+      "minFare": 33,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 84,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "kumarghat": {
+    "auto": {
+      "base": 22,
+      "minFare": 26,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 67,
+      "minFare": 89,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "kurnool": {
+    "auto": {
+      "base": 23,
+      "minFare": 28,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 64,
+      "minFare": 86,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "macherla": {
+    "auto": {
+      "base": 29,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 71,
+      "minFare": 94,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "machilipatnam": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 52,
+      "minFare": 69,
+      "perKm": 15,
+      "perMin": 2
+    }
+  },
+  "madanapalle road": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 69,
+      "minFare": 92,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "mahbubnagar": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 61,
+      "minFare": 81,
+      "perKm": 18,
+      "perMin": 2
+    }
+  },
+  "mangaldai": {
+    "auto": {
+      "base": 28,
+      "minFare": 33,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 60,
+      "minFare": 80,
+      "perKm": 18,
+      "perMin": 2
+    }
+  },
+  "medak": {
+    "auto": {
+      "base": 28,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 52,
+      "minFare": 70,
+      "perKm": 16,
+      "perMin": 2
+    }
+  },
+  "mehsana": {
+    "auto": {
+      "base": 30,
+      "minFare": 36,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 70,
+      "minFare": 93,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "nalgonda": {
+    "auto": {
+      "base": 26,
+      "minFare": 32,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 61,
+      "minFare": 81,
+      "perKm": 18,
+      "perMin": 2
+    }
+  },
+  "nandyal": {
+    "auto": {
+      "base": 29,
+      "minFare": 35,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 64,
+      "minFare": 85,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "nellore": {
+    "auto": {
+      "base": 27,
+      "minFare": 32,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 62,
+      "minFare": 83,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "nirmal": {
+    "auto": {
+      "base": 28,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 12
+    },
+    "cab": {
+      "base": 64,
+      "minFare": 86,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "nizamabad": {
+    "auto": {
+      "base": 29,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 85,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "north lakhimpur": {
+    "auto": {
+      "base": 29,
+      "minFare": 35,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 53,
+      "minFare": 70,
+      "perKm": 16,
+      "perMin": 2
+    }
+  },
+  "osian": {
+    "auto": {
+      "base": 23,
+      "minFare": 28,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 52,
+      "minFare": 70,
+      "perKm": 16,
+      "perMin": 2
+    }
+  },
+  "palampur": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 84,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "palitana": {
+    "auto": {
+      "base": 29,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 60,
+      "minFare": 80,
+      "perKm": 18,
+      "perMin": 2
+    }
+  },
+  "patan": {
+    "auto": {
+      "base": 29,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 51,
+      "minFare": 68,
+      "perKm": 15,
+      "perMin": 2
+    }
+  },
+  "pathankot": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 51,
+      "minFare": 68,
+      "perKm": 15,
+      "perMin": 2
+    }
+  },
+  "pochampally": {
+    "auto": {
+      "base": 24,
+      "minFare": 28,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 64,
+      "minFare": 85,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "porbandar": {
+    "auto": {
+      "base": 24,
+      "minFare": 29,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 71,
+      "minFare": 95,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "puttaparthi": {
+    "auto": {
+      "base": 22,
+      "minFare": 26,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 85,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "rajahmundry": {
+    "auto": {
+      "base": 23,
+      "minFare": 28,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 51,
+      "minFare": 68,
+      "perKm": 15,
+      "perMin": 2
+    }
+  },
+  "ramnagar": {
+    "auto": {
+      "base": 27,
+      "minFare": 32,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 66,
+      "minFare": 88,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "rangapara north": {
+    "auto": {
+      "base": 29,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 84,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "rewari": {
+    "auto": {
+      "base": 22,
+      "minFare": 26,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 66,
+      "minFare": 89,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "rishikesh": {
+    "auto": {
+      "base": 29,
+      "minFare": 35,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 68,
+      "minFare": 91,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "sasan gir": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 66,
+      "minFare": 88,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "sawai madhopur": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 66,
+      "minFare": 88,
+      "perKm": 20,
+      "perMin": 2
     }
   },
   "shimla": {
     "auto": {
-      "base": 40,
-      "perKm": 14,
-      "minFare": 40
+      "base": 23,
+      "minFare": 27,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 11
     },
     "cab": {
-      "base": 60,
+      "base": 65,
+      "minFare": 86,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "silchar": {
+    "auto": {
+      "base": 24,
+      "minFare": 29,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 66,
+      "minFare": 88,
       "perKm": 20,
-      "minFare": 100,
-      "perMin": 2.5
+      "perMin": 2
+    }
+  },
+  "sivasagar": {
+    "auto": {
+      "base": 26,
+      "minFare": 31,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 57,
+      "minFare": 76,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "solan": {
+    "auto": {
+      "base": 28,
+      "minFare": 34,
+      "perKm": 17
     },
     "bus": {
       "flat": 10
-    }
-  },
-  "manali": {
-    "auto": {
-      "base": 50,
-      "perKm": 15,
-      "minFare": 50
     },
     "cab": {
-      "base": 70,
-      "perKm": 22,
-      "minFare": 120,
-      "perMin": 3
-    },
-    "bus": {
-      "flat": 15
+      "base": 67,
+      "minFare": 90,
+      "perKm": 20,
+      "perMin": 2
     }
   },
-  "dharamshala": {
+  "somnath": {
     "auto": {
-      "base": 35,
-      "perKm": 12,
-      "minFare": 35
+      "base": 26,
+      "minFare": 31,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 56,
+      "minFare": 75,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "srikakulam road": {
+    "auto": {
+      "base": 30,
+      "minFare": 36,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 68,
+      "minFare": 91,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "surat": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 67,
+      "minFare": 89,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "tadipatri": {
+    "auto": {
+      "base": 22,
+      "minFare": 26,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 58,
+      "minFare": 78,
+      "perKm": 18,
+      "perMin": 2
+    }
+  },
+  "tanakpur": {
+    "auto": {
+      "base": 27,
+      "minFare": 32,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 71,
+      "minFare": 94,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "teliamura": {
+    "auto": {
+      "base": 21,
+      "minFare": 26,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 10
     },
     "cab": {
       "base": 55,
-      "perKm": 18,
-      "minFare": 90,
+      "minFare": 73,
+      "perKm": 16,
       "perMin": 2
+    }
+  },
+  "tinsukia": {
+    "auto": {
+      "base": 28,
+      "minFare": 34,
+      "perKm": 17
     },
     "bus": {
       "flat": 12
+    },
+    "cab": {
+      "base": 55,
+      "minFare": 74,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "tirupati": {
+    "auto": {
+      "base": 30,
+      "minFare": 35,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 12
+    },
+    "cab": {
+      "base": 71,
+      "minFare": 95,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "udaipur": {
+    "auto": {
+      "base": 24,
+      "minFare": 29,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 58,
+      "minFare": 77,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "udaipur (tripura)": {
+    "auto": {
+      "base": 22,
+      "minFare": 27,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 52,
+      "minFare": 70,
+      "perKm": 16,
+      "perMin": 2
+    }
+  },
+  "una": {
+    "auto": {
+      "base": 23,
+      "minFare": 27,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 72,
+      "minFare": 95,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "vadodara": {
+    "auto": {
+      "base": 30,
+      "minFare": 36,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 69,
+      "minFare": 92,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "vemulawada": {
+    "auto": {
+      "base": 21,
+      "minFare": 26,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 71,
+      "minFare": 95,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "veraval": {
+    "auto": {
+      "base": 25,
+      "minFare": 30,
+      "perKm": 15
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 84,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "vijayawada": {
+    "auto": {
+      "base": 26,
+      "minFare": 32,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 68,
+      "minFare": 90,
+      "perKm": 20,
+      "perMin": 2
+    }
+  },
+  "vikarabad": {
+    "auto": {
+      "base": 21,
+      "minFare": 26,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 10
+    },
+    "cab": {
+      "base": 58,
+      "minFare": 78,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "visakhapatnam": {
+    "auto": {
+      "base": 28,
+      "minFare": 34,
+      "perKm": 17
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 71,
+      "minFare": 94,
+      "perKm": 21,
+      "perMin": 2
+    }
+  },
+  "vizianagaram": {
+    "auto": {
+      "base": 30,
+      "minFare": 36,
+      "perKm": 18
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 57,
+      "minFare": 75,
+      "perKm": 17,
+      "perMin": 2
+    }
+  },
+  "waghai": {
+    "auto": {
+      "base": 23,
+      "minFare": 27,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 84,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "warangal": {
+    "auto": {
+      "base": 22,
+      "minFare": 26,
+      "perKm": 13
+    },
+    "bus": {
+      "flat": 11
+    },
+    "cab": {
+      "base": 62,
+      "minFare": 82,
+      "perKm": 18,
+      "perMin": 2
+    }
+  },
+  "yadagirigutta": {
+    "auto": {
+      "base": 24,
+      "minFare": 28,
+      "perKm": 14
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 63,
+      "minFare": 84,
+      "perKm": 19,
+      "perMin": 2
+    }
+  },
+  "yellandu": {
+    "auto": {
+      "base": 27,
+      "minFare": 33,
+      "perKm": 16
+    },
+    "bus": {
+      "flat": 9
+    },
+    "cab": {
+      "base": 62,
+      "minFare": 83,
+      "perKm": 19,
+      "perMin": 2
     }
   },
   "generic": {

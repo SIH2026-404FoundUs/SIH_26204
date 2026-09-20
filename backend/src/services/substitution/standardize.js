@@ -88,7 +88,6 @@ async function zScore(destination) {
   for (const attr of stats.attrList) {
     const val = attrs[attr];
     if (val === undefined || val === null) {
-      console.warn(`Attribute '${attr}' is missing or null for destination '${destination?._id || destination?.displayName || 'unknown'}'. Skipping z-score calculation.`);
       continue;
     }
 
