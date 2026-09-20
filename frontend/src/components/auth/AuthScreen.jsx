@@ -1,27 +1,29 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Mail, UserRound } from 'lucide-react'
+import { Mail, UserRound } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
 import { isPasswordValid } from '../../lib/passwordPolicy'
 import Alert from '../ui/Alert'
+import Button from '../ui/Button'
 import FormField, { inputClass } from '../ui/FormField'
 import PasswordField from './PasswordField'
 import PasswordStrengthChecklist from './PasswordStrengthChecklist'
 
 // Where each role lands right after authenticating (auth spec §7/§20).
-const ROLE_HOME = { traveller: '/home', operator: '/operator', authority: '/authority' }
+const ROLE_HOME = { traveller: '/home', operator: '/operator', authority: '/authority', worker: '/worker' }
 
 // Signup lets someone pick their account type up front. This is a UX
 // convenience only: the backend independently whitelists this value against
-// the same three-item enum before it ever reaches the database, so nothing
+// the same four-item enum before it ever reaches the database, so nothing
 // typed or replayed here can grant a role beyond what the server allows.
-// Every route that actually matters for an operator/authority account still
-// checks req.user.role on the server -- this selector controls nothing by
-// itself.
+// Every route that actually matters for an operator/authority/worker
+// account still checks req.user.role on the server -- this selector
+// controls nothing by itself.
 const ROLE_OPTIONS = [
   { value: 'traveller', label: 'Traveller' },
   { value: 'operator', label: 'Operator' },
   { value: 'authority', label: 'Authority' },
+  { value: 'worker', label: 'Worker' },
 ]
 
 /**
@@ -111,7 +113,7 @@ export default function AuthScreen({ mode }) {
 
             {!isLogin && (
               <FormField label="I am a...">
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   {ROLE_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
@@ -173,14 +175,9 @@ export default function AuthScreen({ mode }) {
               </Alert>
             )}
 
-            <button
-              type="submit"
-              disabled={isPending}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-ink px-4 py-3 text-sm font-semibold text-paper transition hover:bg-ink-soft disabled:opacity-60"
-            >
-              {isPending && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
+            <Button type="submit" fullWidth loading={isPending}>
               {isLogin ? 'Sign in' : 'Create account'}
-            </button>
+            </Button>
           </form>
           <p className="mt-6 text-center text-sm text-ink/60">
             {isLogin ? "New here?" : 'Already have an account?'}{' '}

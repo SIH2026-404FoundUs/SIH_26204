@@ -63,6 +63,11 @@ export default function MyTrips() {
   const [downloadingId, setDownloadingId] = useState(null)
   const [filter, setFilter] = useState('all')
   const [sortNewest, setSortNewest] = useState(true)
+  // Date-range scope, separate from the state filter above -- 'all' shows
+  // every trip regardless of how long ago it was created (any number of
+  // days), '60d' narrows to recent activity only. Defaults to 'all' so
+  // nothing that showed up here before this control existed disappears.
+  const [range, setRange] = useState('all')
 
   useEffect(() => {
     if (authUser) fetchMyTrips()
@@ -77,10 +82,16 @@ export default function MyTrips() {
 
   const visibleTrips = useMemo(() => {
     const needle = query.trim().toLowerCase()
+    // "60 days ago" is necessarily evaluated relative to now; re-running this
+    // memo when trips/filters change (its actual deps) is exactly the
+    // granularity this needs.
+    // eslint-disable-next-line react-hooks/purity
+    const sixtyDaysAgo = Date.now() - 60 * 24 * 60 * 60 * 1000
     const filtered = trips.filter((trip) => {
       if (filter === 'redirected' && (!trip.redistribution?.kind || trip.redistribution.kind === 'none')) return false
       if (filter === 'planned' && !['planned', 'confirmed'].includes(trip.state)) return false
       if (filter === 'draft' && trip.state !== 'draft') return false
+      if (range === '60d' && new Date(trip.createdAt || 0).getTime() < sixtyDaysAgo) return false
       const destination = getDestinationLabel(trip.redirectedToDestId || trip.requestedDestId)
       return !needle || `${destination} ${trip.origin || ''}`.toLowerCase().includes(needle)
     })
@@ -89,7 +100,7 @@ export default function MyTrips() {
       const rightDate = new Date(right.createdAt || 0).getTime()
       return sortNewest ? rightDate - leftDate : leftDate - rightDate
     })
-  }, [trips, query, filter, sortNewest])
+  }, [trips, query, filter, range, sortNewest])
 
   const handleDownload = async (trip) => {
     setDownloadingId(trip._id)
@@ -117,24 +128,25 @@ export default function MyTrips() {
             [CircleDollarSign, 'Savings', formatMoney(stats.savings) || '₹0', 'From pressure-aware swaps', 'bg-relief/15 text-relief'],
             [RouteIcon, 'Redistributed', stats.redirected, 'Trips that eased pressure', 'bg-pressure/15 text-pressure'],
           ].map(([Icon, label, value, helper, chip]) => (
-            <div key={label} className="rounded-2xl border border-paper-dim bg-white p-4 shadow-sm">
+            <Card key={label} padding="p-4">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-ash">{label}</span>
                 <span className={`flex h-8 w-8 items-center justify-center rounded-full ${chip}`}><Icon size={16} /></span>
               </div>
               <p className="mt-2 font-display text-2xl text-ink">{value}</p>
               <p className="mt-1 text-xs text-ash">{helper}</p>
-            </div>
+            </Card>
           ))}
         </div>
-        <div className="mb-4 rounded-2xl border border-paper-dim bg-white p-3 shadow-sm">
+        <Card className="mb-4" padding="p-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <label className="relative min-w-0 flex-1"><Search size={16} className="absolute left-3 top-3.5 text-ash" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search destination or starting point" aria-label="Search trips" className="w-full rounded-xl border border-paper-dim bg-paper py-3 pl-9 pr-3 text-sm text-ink outline-none focus:border-pressure focus:ring-4 focus:ring-pressure/10" /></label>
             <div className="flex items-center gap-2 overflow-x-auto"><SlidersHorizontal size={15} className="shrink-0 text-ash" />{[['all', 'All'], ['planned', 'Planned'], ['redirected', 'Redistributed'], ['draft', 'Drafts']].map(([value, label]) => <button key={value} type="button" onClick={() => setFilter(value)} className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-bold transition ${filter === value ? 'bg-ink text-paper' : 'bg-paper text-ash hover:bg-paper-dim'}`}>{label}</button>)}</div>
+            <div className="flex items-center gap-2 overflow-x-auto"><CalendarDays size={15} className="shrink-0 text-ash" />{[['60d', 'Last 60 days'], ['all', 'All time']].map(([value, label]) => <button key={value} type="button" onClick={() => setRange(value)} className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-bold transition ${range === value ? 'bg-ink text-paper' : 'bg-paper text-ash hover:bg-paper-dim'}`}>{label}</button>)}</div>
             <button type="button" onClick={() => setSortNewest((value) => !value)} className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-paper-dim px-3 py-2 text-xs font-bold text-ink hover:bg-paper"><ArrowUpDown size={14} /> {sortNewest ? 'Newest first' : 'Oldest first'}</button>
           </div>
           <p className="mt-2 text-[11px] text-ash">Showing {visibleTrips.length} of {trips.length} trips</p>
-        </div>
+        </Card>
         {visibleTrips.length === 0 ? <EmptyState icon={RouteIcon} title="No matching trips" description="Try a different filter, destination, or starting point." /> : <div className="space-y-3">{visibleTrips.map((trip) => {
           const redist = redistributionKindLabel(trip.redistribution?.kind)
           const state = tripStateLabel(trip.state)

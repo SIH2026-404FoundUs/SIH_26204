@@ -19,6 +19,9 @@ import OperatorWaitlistOffers from './components/operator/OperatorWaitlistOffers
 import OperatorAnalytics from './components/operator/OperatorAnalytics'
 import OperatorVerifyVisit from './components/operator/OperatorVerifyVisit'
 import ContentGenerator from './components/operator/ContentGenerator'
+import RevenueDashboard from './components/operator/RevenueDashboard'
+import OperatorComplaints from './components/operator/OperatorComplaints'
+import WorkerConsole from './components/worker/WorkerConsole'
 import AuthorityDashboard from './components/authority/AuthorityDashboard'
 import VisitVerify from './components/trust/VisitVerify'
 import CommunitySubmit from './components/trust/CommunitySubmit'
@@ -38,7 +41,7 @@ import MultimodalTravelAgent from './components/ai/MultimodalTravelAgent'
 // Where each role lands after authenticating (auth spec §7/§20) -- mirrors
 // AuthScreen's own ROLE_HOME, used here for the post-refresh/direct-URL
 // case (AuthScreen only handles the moment of submitting the login form).
-const ROLE_HOME = { traveller: '/home', operator: '/operator', authority: '/authority' }
+const ROLE_HOME = { traveller: '/home', operator: '/operator', authority: '/authority', worker: '/worker' }
 const roleHome = (authUser) => ROLE_HOME[authUser?.role] || '/home'
 
 // Sahyatri's application shell (§53-58 of the frontend spec): a public
@@ -106,6 +109,13 @@ function App() {
           <Route path="/operator/waitlist" element={<RequireRole role="operator"><OperatorWaitlistOffers /></RequireRole>} />
           <Route path="/operator/analytics" element={<RequireRole role="operator"><OperatorAnalytics /></RequireRole>} />
           <Route path="/operator/content-generator" element={<RequireRole role="operator"><ContentGenerator /></RequireRole>} />
+          <Route path="/operator/revenue" element={<RequireRole role="operator" wide><RevenueDashboard /></RequireRole>} />
+          <Route path="/operator/complaints" element={<RequireRole role="operator"><OperatorComplaints /></RequireRole>} />
+          {/* Back-compat: Post a Gig used to be its own route -- now a tab
+              inside Hire People (HirePeople.jsx), same URL a stale
+              bookmark/link would have. */}
+          <Route path="/operator/post-gig" element={<Navigate to="/hire-people" replace />} />
+          <Route path="/worker" element={<RequireRole role="worker" wide><WorkerConsole /></RequireRole>} />
           {/* Same URL, role-branched (§14-19): travellers get "Suggest a
               Place" (CommunitySubmit), authorities get the "Community
               Review" moderation UI (CommunityReview) -- both nav entries
@@ -113,7 +123,7 @@ function App() {
               real authorization boundary (review/queue endpoints already
               403 anyone whose server-side role isn't "authority"), so this
               branch is a UI convenience, not a security control. */}
-          <Route path="/community" element={<RequireAuth>{authUser?.role === 'authority' ? <CommunityReview /> : <CommunitySubmit />}</RequireAuth>} />
+          <Route path="/community" element={<RequireAuth wide>{authUser?.role === 'authority' ? <CommunityReview /> : <CommunitySubmit />}</RequireAuth>} />
           <Route path="/forum" element={<RequireAuth><CommunityForum /></RequireAuth>} />
           <Route path="/services" element={<RequireAuth><AvailableServices /></RequireAuth>} />
           <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
@@ -122,7 +132,7 @@ function App() {
           <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
 
           {/* Role-specific (§56) */}
-          <Route path="/operator" element={<RequireRole role="operator"><OperatorConsole /></RequireRole>} />
+          <Route path="/operator" element={<RequireRole role="operator" wide><OperatorConsole /></RequireRole>} />
           <Route path="/authority" element={<RequireRole role="authority" wide><AuthorityDashboard /></RequireRole>} />
 
           {/* Back-compat redirects for pre-rebuild URLs */}

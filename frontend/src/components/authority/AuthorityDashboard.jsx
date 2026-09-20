@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Landmark, RotateCw, Flame, Gauge, ArrowLeftRight, CheckCircle2, ClipboardList } from 'lucide-react'
 import { useAuthorityDashboardStore } from '../../store/useAuthorityDashboardStore'
 import PageHeader from '../ui/PageHeader'
+import Button from '../ui/Button'
 import { inputClass } from '../ui/FormField'
 import PressureSection from './PressureSection'
 import CapacityGapTable from './CapacityGapTable'
@@ -90,15 +91,16 @@ export default function AuthorityDashboard() {
           className={`${inputClass} w-auto`}
         />
         <span className="text-xs text-ash">Applies to the pressure heatmap and capacity gap below -- redistribution and acceptance reflect all trips regardless of date.</span>
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={RotateCw}
           onClick={handleManualRefresh}
-          className="ml-auto flex items-center gap-1.5 rounded-lg border border-paper-dim bg-white px-3 py-2 text-xs font-medium text-ink/70 transition hover:border-ink/40"
+          className="ml-auto"
           title="Refresh all sections"
         >
-          <RotateCw size={14} aria-hidden="true" />
           Refresh
-        </button>
+        </Button>
       </div>
       {lastSyncedAt && (
         <p className="-mt-4 mb-6 text-xs text-ash">Live -- updates automatically every 15s. Last synced {lastSyncedAt.toLocaleTimeString()}.</p>

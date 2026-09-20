@@ -92,6 +92,12 @@ const businessSchema = new mongoose.Schema({
   nearestLandmark: {
     type: String,
   },
+  // Operator-supplied promotional link (own website, Instagram page, etc.)
+  // -- purely informational, never validated as reachable, just displayed
+  // wherever a business's own details already show.
+  websiteUrl: {
+    type: String,
+  },
   photos: {
     type: [String],
     default: [],

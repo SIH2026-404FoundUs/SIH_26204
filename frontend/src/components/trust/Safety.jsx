@@ -2,17 +2,15 @@ import { useEffect, useState } from 'react'
 import { Phone, Search, Share2, Copy, Check, X, ClipboardList, ShieldCheck } from 'lucide-react'
 import { useTrustStore } from '../../store/useTrustStore'
 import { useTripsStore } from '../../store/useTripsStore'
-import { complaintCategoryLabel, COMPLAINT_CATEGORY_LABEL, complaintStatus } from '../../lib/labels'
 import { getDestinationLabel } from '../../lib/destinations'
 import PageHeader from '../ui/PageHeader'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
-import Badge from '../ui/Badge'
 import Alert from '../ui/Alert'
 import EmptyState from '../ui/EmptyState'
-import LoadingState from '../ui/LoadingState'
 import FormField, { inputClass } from '../ui/FormField'
 import DestinationSelect from '../ui/DestinationSelect'
+import ReportTab from './ComplaintReport'
 
 const CONTACT_LABELS = {
   police: 'Police', ambulance: 'Ambulance', disasterHelpline: 'Disaster helpline',
@@ -150,86 +148,6 @@ function ShareTripTab() {
       )}
       {activeShare && <p className="mt-2 text-xs text-ash">Expires {new Date(activeShare.expiresAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}, or sooner if you revoke it.</p>}
     </Card>
-  )
-}
-
-// "Your complaints" -- real status progression (logged/under_review/
-// resolved), no auto-resolution. Kept on the same tab as the submit form
-// since seeing where your last report stands is the natural next thing to
-// check right after filing one.
-function ReportTab() {
-  const {
-    submitComplaint, isSubmittingComplaint, complaintResult, safetyError,
-    myComplaints, isLoadingComplaints, fetchMyComplaints,
-  } = useTrustStore()
-  const [complaint, setComplaint] = useState({ destId: 'manali', category: 'other', text: '' })
-
-  useEffect(() => { fetchMyComplaints() }, [fetchMyComplaints])
-
-  async function handleComplaint(e) {
-    e.preventDefault()
-    const ok = await submitComplaint(complaint)
-    if (ok) setComplaint((p) => ({ ...p, text: '' }))
-  }
-
-  return (
-    <div className="space-y-6">
-      <Card>
-        <div className="mb-4 flex items-center gap-2">
-          <ClipboardList size={17} className="text-pressure" aria-hidden="true" />
-          <div>
-            <h2 className="text-sm font-semibold text-ink">Report a problem</h2>
-            <p className="text-xs text-ash">Overcharging, safety concerns, or anything else that needs flagging. Logged for platform review -- not sent to any government authority.</p>
-          </div>
-        </div>
-        <form onSubmit={handleComplaint} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label="Destination"><DestinationSelect value={complaint.destId} onChange={(v) => setComplaint((p) => ({ ...p, destId: v }))} /></FormField>
-            <FormField label="Category">
-              <select value={complaint.category} onChange={(e) => setComplaint((p) => ({ ...p, category: e.target.value }))} className={inputClass}>
-                {Object.keys(COMPLAINT_CATEGORY_LABEL).map((c) => <option key={c} value={c}>{complaintCategoryLabel(c)}</option>)}
-              </select>
-            </FormField>
-          </div>
-          <FormField label="What happened?">
-            <textarea required rows={3} value={complaint.text} onChange={(e) => setComplaint((p) => ({ ...p, text: e.target.value }))} className={inputClass} />
-          </FormField>
-          <Button type="submit" variant="primary" fullWidth loading={isSubmittingComplaint}>Submit</Button>
-        </form>
-        {safetyError && <div className="mt-4"><Alert tone="error">{safetyError}</Alert></div>}
-        {complaintResult?.success && <div className="mt-4"><Alert tone="success">Report submitted. {complaintResult.disclaimer}</Alert></div>}
-      </Card>
-
-      <div>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-ink">Your complaints</h2>
-          {myComplaints.length > 0 && <Badge tone="neutral">{myComplaints.length}</Badge>}
-        </div>
-        {isLoadingComplaints ? (
-          <LoadingState label="Loading your complaints…" />
-        ) : myComplaints.length === 0 ? (
-          <EmptyState icon={ClipboardList} title="Nothing reported yet" description="Reports you submit above will show up here so you can track their status." />
-        ) : (
-          <div className="space-y-2">
-            {myComplaints.map((c) => {
-              const status = complaintStatus(c.status)
-              return (
-                <Card key={c._id} padding="p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-medium text-ink">{complaintCategoryLabel(c.category)} · {getDestinationLabel(c.destId)}</p>
-                      <p className="mt-1 text-xs text-ink/60">{c.text}</p>
-                    </div>
-                    <Badge tone={status.tone}>{status.label}</Badge>
-                  </div>
-                  <p className="mt-2 text-[11px] text-ash">{new Date(c.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}</p>
-                </Card>
-              )
-            })}
-          </div>
-        )}
-      </div>
-    </div>
   )
 }
 

@@ -68,8 +68,15 @@ export const useTrustStore = create((set, get) => ({
     try {
       const formData = new FormData()
       for (const file of files) formData.append('photos', file)
+      // Content-Type: undefined, not 'multipart/form-data' -- see the
+      // matching comment in useAuthStore.js's uploadProfilePhoto. The
+      // literal string (no boundary) makes busboy throw "Boundary not
+      // found" and crash this endpoint with an unhandled 500 on every
+      // upload; `undefined` clears `api`'s default 'application/json' so
+      // the browser computes the real multipart boundary itself -- both
+      // confirmed live against the running backend.
       const res = await api.post('/community/photos', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': undefined },
       })
       return res.data.urls
     } catch (error) {
@@ -308,10 +315,10 @@ export const useTrustStore = create((set, get) => ({
   isSubmittingComplaint: false,
   complaintResult: null,
 
-  submitComplaint: async ({ destId, category, text }) => {
+  submitComplaint: async ({ destId, category, text, businessId }) => {
     set({ isSubmittingComplaint: true, safetyError: null, complaintResult: null })
     try {
-      const res = await api.post('/v1/safety/complaints', { destId, category, text })
+      const res = await api.post('/v1/safety/complaints', { destId, category, text, businessId: businessId || undefined })
       set({ complaintResult: res.data })
       if (res.data?.success) get().fetchMyComplaints() // land in "Your complaints" immediately, not waiting on a manual refresh
       return true

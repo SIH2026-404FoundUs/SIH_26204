@@ -16,7 +16,7 @@ import api, { getErrorMessage } from '../lib/api'
 // per its own docstring: "never present this as the feature", so the UI
 // is honest that this is a fallback for a real WhatsApp number that isn't
 // provisioned in this environment, not a separate hiring system).
-export const useOperatorStore = create((set) => ({
+export const useOperatorStore = create((set, get) => ({
   myBusinesses: [],
   isLoadingBusinesses: false,
   businessesError: null,
@@ -202,8 +202,15 @@ export const useOperatorStore = create((set) => ({
       formData.append('audio', audioFile)
       formData.append('destId', destId)
       formData.append('ownerPhone', ownerPhone)
+      // Content-Type: undefined, not 'multipart/form-data' -- see the
+      // matching comment in useAuthStore.js's uploadProfilePhoto. The
+      // literal string (no boundary) makes busboy throw "Boundary not
+      // found" and crash this endpoint with an unhandled 500 on every
+      // upload; `undefined` clears `api`'s default 'application/json' so
+      // the browser computes the real multipart boundary itself -- both
+      // confirmed live against the running backend.
       const res = await api.post('/internal/onboarding/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': undefined },
       })
       set({ hireResult: res.data })
       return true
@@ -286,6 +293,80 @@ export const useOperatorStore = create((set) => ({
       set({ analyticsError: getErrorMessage(error, 'Could not load analytics') })
     } finally {
       set({ isLoadingAnalytics: false })
+    }
+  },
+
+  // -- Worker role: "Post a Gig" (GET/POST /v1/operators/me/gigs, /v1/gigs) --
+  // an operator's own posted GigRequests, plus posting a new one. Separate
+  // from useWorkerStore.js (that one is the worker side of the same
+  // marketplace: browsing/accepting/completing gigs).
+  postedGigs: [],
+  isLoadingPostedGigs: false,
+  postedGigsError: null,
+
+  fetchPostedGigs: async ({ silent = false } = {}) => {
+    if (!silent) set({ isLoadingPostedGigs: true })
+    set({ postedGigsError: null })
+    try {
+      const res = await api.get('/v1/operators/me/gigs')
+      set({ postedGigs: res.data })
+    } catch (error) {
+      set({ postedGigsError: getErrorMessage(error, 'Could not load your posted gigs') })
+    } finally {
+      if (!silent) set({ isLoadingPostedGigs: false })
+    }
+  },
+
+  isPostingGig: false,
+  postGigError: null,
+  lastPostedGigNotifiedCount: null,
+
+  postGig: async (data) => {
+    set({ isPostingGig: true, postGigError: null, lastPostedGigNotifiedCount: null })
+    try {
+      // POST /v1/gigs responds {gigRequest, notified} -- same nested shape
+      // as POST /v1/offers.
+      const res = await api.post('/v1/gigs', data)
+      set((state) => ({ postedGigs: [res.data.gigRequest, ...state.postedGigs], lastPostedGigNotifiedCount: res.data.notified ?? 0 }))
+      return res.data
+    } catch (error) {
+      set({ postGigError: getErrorMessage(error, 'Could not post this gig') })
+      return null
+    } finally {
+      set({ isPostingGig: false })
+    }
+  },
+
+  isCompletingGig: false,
+  completeGigError: null,
+
+  completeGig: async (gigId) => {
+    set({ isCompletingGig: true, completeGigError: null })
+    try {
+      await api.post(`/v1/gigs/${gigId}/complete`)
+      await get().fetchPostedGigs({ silent: true })
+      return true
+    } catch (error) {
+      set({ completeGigError: getErrorMessage(error, 'Could not mark this gig complete') })
+      return false
+    } finally {
+      set({ isCompletingGig: false })
+    }
+  },
+
+  isRatingGig: false,
+  rateGigError: null,
+
+  rateGig: async (gigId, { score, comment }) => {
+    set({ isRatingGig: true, rateGigError: null })
+    try {
+      await api.post(`/v1/gigs/${gigId}/rate`, { score, comment })
+      return true
+    } catch (error) {
+      set({ rateGigError: getErrorMessage(error, 'Could not submit this rating') })
+      return false
+    } finally {
+      set({ isRatingGig: false })
     }
   },
 }))

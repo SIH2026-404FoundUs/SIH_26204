@@ -51,6 +51,7 @@ const ROLE_INTRO = {
   traveller: "Plan a trip against real crowding data, discover verified local businesses, and get notified the moment a flash offer opens up.",
   operator: "Declare your availability, run flash offers, and see real feedback and growth insights for your business.",
   authority: "Track destination pressure, review community submissions, and manage tourist complaints from your dashboard.",
+  worker: "Set up your worker profile, get matched to nearby gigs the moment they're posted, and get rated for the work you complete.",
 };
 
 export function welcomeEmail({ fullName, role }) {

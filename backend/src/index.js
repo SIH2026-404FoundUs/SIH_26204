@@ -35,6 +35,10 @@ import bookingsRoutes from "./routes/bookings.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
 import contentRoutes from "./routes/content.route.js";
 import feedbackRoutes from "./routes/feedback.route.js";
+import revenueRoutes from "./routes/revenue.route.js";
+import workersRoutes from "./routes/workers.route.js";
+import gigsRoutes from "./routes/gigs.route.js";
+import operatorsRoutes from "./routes/operators.route.js";
 import { startAlertPolling } from "./jobs/scheduler.js";
 
 // dotenv.config() with no path loads .env from process.cwd(), which silently
@@ -104,6 +108,10 @@ app.use("/api/v1/trips", tripsRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
 app.use("/api/v1/content", contentRoutes); // Tourism Publicity Generator -- operator-only
 app.use("/api/v1/feedback", feedbackRoutes); // AI Tourist Feedback Intelligence
+app.use("/api/v1/revenue", revenueRoutes); // Operator Revenue Management System, operator-only
+app.use("/api/v1/workers", workersRoutes); // Worker role -- worker-only
+app.use("/api/v1/gigs", gigsRoutes); // Worker role -- gig post/browse/accept/complete/rate
+app.use("/api/v1/operators", operatorsRoutes); // Worker role -- operator's own posted-gig tracking
 
 app.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);

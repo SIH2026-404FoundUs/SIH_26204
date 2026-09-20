@@ -17,7 +17,11 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["traveller", "operator", "authority"],
+      // "worker" added for the Worker role (gig-matching layer for drivers/
+      // guides/cooks/cleaners, split out of the Operator/Business shape --
+      // see worker-role-spec.md/models/workerProfile.model.js). Every other
+      // role's behavior is unchanged by this addition.
+      enum: ["traveller", "operator", "authority", "worker"],
       default: "traveller",
     },
     phone: {

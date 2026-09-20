@@ -14,6 +14,12 @@ export const VALID_COMPLAINT_CATEGORIES = [
   "hygiene_cleanliness",
   "service_misrepresentation",
   "transport_issue",
+  // Operator-facing categories -- see complaint.model.js's own comment on
+  // this same split.
+  "traveller_dispute",
+  "unfair_review",
+  "payment_billing_issue",
+  "platform_policy_issue",
   "other",
 ];
 

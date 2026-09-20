@@ -78,13 +78,30 @@ export function alertKindLabel(kind) {
 }
 
 export const COMPLAINT_CATEGORY_LABEL = {
+  // Traveller-facing
   safety_advisory: 'Safety concern',
   overcharging_pricing: 'Overcharging',
   hygiene_cleanliness: 'Hygiene / cleanliness',
   service_misrepresentation: 'Service not as described',
   transport_issue: 'Transport issue',
+  // Operator-facing -- an operator reporting something is never
+  // complaining about being overcharged the way a traveller would; see
+  // complaint.model.js's own comment on this split.
+  traveller_dispute: 'Traveller dispute',
+  unfair_review: 'Unfair review',
+  payment_billing_issue: 'Payment / billing issue',
+  platform_policy_issue: 'Platform / policy issue',
   other: 'Other',
 }
+
+// Which categories each role's report form actually offers -- same shared
+// enum/collection, different vocabulary per who's filing it.
+export const TRAVELLER_COMPLAINT_CATEGORIES = [
+  'safety_advisory', 'overcharging_pricing', 'hygiene_cleanliness', 'service_misrepresentation', 'transport_issue', 'other',
+]
+export const OPERATOR_COMPLAINT_CATEGORIES = [
+  'traveller_dispute', 'unfair_review', 'payment_billing_issue', 'platform_policy_issue', 'safety_advisory', 'other',
+]
 
 export function complaintCategoryLabel(category) {
   return COMPLAINT_CATEGORY_LABEL[category] || category
@@ -123,4 +140,47 @@ export const TRIP_STATE_LABEL = {
 
 export function tripStateLabel(state) {
   return TRIP_STATE_LABEL[state] || { label: state || 'Unknown', tone: 'neutral' }
+}
+
+// Worker role -- WorkerProfile.skills / GigRequest.skillNeeded's shared enum
+// (worker-role-spec.md §02).
+export const WORKER_SKILL_LABEL = {
+  guide: 'Guide',
+  driver: 'Driver',
+  cook: 'Cook',
+  cleaner: 'Cleaner',
+  porter: 'Porter',
+  other: 'Other',
+}
+
+export function workerSkillLabel(skill) {
+  return WORKER_SKILL_LABEL[skill] || skill
+}
+
+// GigMatch.status -- a worker's own view of one accepted/offered/completed
+// job (My Jobs screen).
+export const GIG_MATCH_STATUS = {
+  offered: { label: 'Offered to you', tone: 'info' },
+  accepted: { label: 'Accepted', tone: 'success' },
+  declined: { label: 'Declined', tone: 'neutral' },
+  completed: { label: 'Completed', tone: 'success' },
+  no_show: { label: 'No-show', tone: 'danger' },
+  cancelled: { label: 'Cancelled', tone: 'neutral' },
+}
+
+export function gigMatchStatus(status) {
+  return GIG_MATCH_STATUS[status] || { label: status, tone: 'neutral' }
+}
+
+// GigRequest.status -- an operator's own view of a posted gig's fill state.
+export const GIG_REQUEST_STATUS = {
+  open: { label: 'Open — no offers sent yet', tone: 'neutral' },
+  matched: { label: 'Matched — awaiting a worker to accept', tone: 'info' },
+  filled: { label: 'Filled', tone: 'success' },
+  cancelled: { label: 'Cancelled', tone: 'neutral' },
+  expired: { label: 'Expired', tone: 'warning' },
+}
+
+export function gigRequestStatus(status) {
+  return GIG_REQUEST_STATUS[status] || { label: status, tone: 'neutral' }
 }

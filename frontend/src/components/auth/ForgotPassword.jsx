@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, Mail } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import { useAuthStore } from '../../store/useAuthStore'
+import Button from '../ui/Button'
 import FormField, { inputClass } from '../ui/FormField'
 
 // /forgot-password -- the confirmation is always the same generic sentence
@@ -39,14 +40,9 @@ export default function ForgotPassword() {
                 <input required type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className={`${inputClass} pl-10`} />
               </div>
             </FormField>
-            <button
-              type="submit"
-              disabled={isSending}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-ink px-4 py-3 text-sm font-semibold text-paper transition hover:bg-ink-soft disabled:opacity-60"
-            >
-              {isSending && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
+            <Button type="submit" fullWidth loading={isSending}>
               Send reset link
-            </button>
+            </Button>
           </form>
         )}
 

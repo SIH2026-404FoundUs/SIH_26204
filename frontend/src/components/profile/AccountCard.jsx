@@ -125,6 +125,9 @@ export default function AccountCard({ authUser, onLogout }) {
         <div className="flex items-center gap-2">
           <Badge tone="info" icon={ShieldCheck}>{authUser.role}</Badge>
           {authUser.phone && <span className="text-xs text-ash">{authUser.phone}</span>}
+          {authUser.createdAt && (
+            <span className="text-xs text-ash">Member since {new Date(authUser.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}</span>
+          )}
         </div>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm" icon={Pencil} onClick={() => setEditing(true)}>Edit</Button>
