@@ -5,26 +5,28 @@
 // Fetching lives in collectors.js (calls Nishith's provider adapters).
 // Nothing here does I/O, so the maths is testable standalone (engine.selfcheck.mjs).
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { linearRegression } from "./stats.js";
 
-// --- Locked weights (§2). Do not change without telling the team — Madhuri's
-// calibration and the back-test both assume these exact numbers.
-export const WEIGHTS = {
-  access: 0.45, // DATE-VARYING (becomes STATIC when road is degraded, §5)
-  stay: 0.25, // DATE-VARYING
-  calendar: 0.1, // DATE-VARYING
-  weather: 0.1, // DATE-VARYING
-  capacity: 0.1, // STATIC by definition
-};
+const CONFIG_PATH = join(dirname(fileURLToPath(import.meta.url)), "../../config/runtime_config.json");
+const runtimeConfig = JSON.parse(readFileSync(CONFIG_PATH, "utf8"));
 
-// Bumped only if WEIGHTS (or the renormalize/degraded-road rules) ever
-// change. A stored row's formulaVersion lets isFresh() (service.js) tell
-// "just old" apart from "computed under different weights" — a row on an
-// earlier version is always treated as stale, however recent its
-// computedAt is, so it can never silently masquerade as a current result.
-export const FORMULA_VERSION = 2;
+// --- Locked weights (§2) loaded dynamically from runtime_config.json
+export const WEIGHTS = runtimeConfig.weights;
+
+// Bumped only if WEIGHTS (or the renormalize/degraded-road rules) ever change.
+export const FORMULA_VERSION = runtimeConfig.formula_version;
 const STATIC_KEYS = new Set(["capacity"]);
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
+
+export function mlDemandPressure(predictedVisitors, baselineVisitors) {
+  const { k, midpoint } = runtimeConfig.sigmoid;
+  const ratio = predictedVisitors / baselineVisitors;
+  return 1 / (1 + Math.exp(-k * (ratio - midpoint)));
+}
+
 
 // --- Per-component normalisation to [0,1] against dest.baseline (§3).
 // Each takes provider data + the dest row, returns { value, ...meta } or null
@@ -121,6 +123,9 @@ export function assembleRow(values, { degradedRoad = false } = {}) {
   const dropped = [];
 
   for (const key of Object.keys(WEIGHTS)) {
+    if (key === "demand" && runtimeConfig.formula_version < 3) {
+      continue;
+    }
     const v = values[key];
     if (v && v.value != null) {
       const c = { ...v, weight: WEIGHTS[key] };
@@ -130,6 +135,7 @@ export function assembleRow(values, { degradedRoad = false } = {}) {
       dropped.push(key);
     }
   }
+
 
   const comp = composite(present.map(({ value, weight }) => ({ value, weight })));
   if (!comp) {

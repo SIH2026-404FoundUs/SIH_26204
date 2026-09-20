@@ -7,6 +7,7 @@ import Badge from '../ui/Badge'
 const pct = (v) => (v == null ? '—' : `${Math.round(v * 100)}%`)
 
 const COMPONENT_LABELS = {
+  demand: 'Demand (ML)',
   access: 'Getting there (trains & roads)',
   stay: 'Room availability',
   calendar: 'Holidays & weekends',

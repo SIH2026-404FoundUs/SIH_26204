@@ -35,3 +35,5 @@ docs/
 build/
 .gcp/
 ai-service/tmp/
+backend/src/seeds/pressure_history.json
+

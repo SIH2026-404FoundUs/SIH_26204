@@ -113,7 +113,19 @@ async function getPlacePhoto(photoName, maxWidthPx = 800) {
   throw new Error(lastError);
 }
 
+const ROUTE_TTL_MS = 60 * 60 * 1000; // 1 hour TTL
+const routeCache = createTtlCache({ ttlMs: ROUTE_TTL_MS, maxEntries: 1000 });
+
+function routeCacheKey(originLat, originLng, destLat, destLng, mode) {
+  const round = (val) => (Number.isFinite(val) ? val.toFixed(3) : String(val));
+  return `${round(originLat)}|${round(originLng)}|${round(destLat)}|${round(destLng)}|${mode}`;
+}
+
 async function calculateRoute(originLat, originLng, destLat, destLng, mode = 'DRIVE') {
+  const cacheKey = routeCacheKey(originLat, originLng, destLat, destLng, mode);
+  const cached = routeCache.get(cacheKey);
+  if (cached) return cached;
+
   const keys = getApiKeys(true); // Key 2 primary for Routes, Key 1 fallback
   let lastError = 'No API keys configured';
 
@@ -137,12 +149,13 @@ async function calculateRoute(originLat, originLng, destLat, destLng, mode = 'DR
 
       const route = response.data.routes?.[0];
       if (!route) {
-        return fail('No route found between these points', { source: 'googlemaps' });
+        const failRes = fail('No route found between these points', { source: 'googlemaps' });
+        return routeCache.set(cacheKey, failRes);
       }
 
       const durationSeconds = parseInt(route.duration.replace('s', ''), 10);
 
-      return ok(
+      const okRes = ok(
         {
           distanceKm: route.distanceMeters / 1000,
           durationMinutes: Math.round(durationSeconds / 60),
@@ -150,13 +163,14 @@ async function calculateRoute(originLat, originLng, destLat, destLng, mode = 'DR
         },
         { source: 'googlemaps', confidence: 'high' }
       );
+      return routeCache.set(cacheKey, okRes);
     } catch (error) {
       lastError = error.response?.data?.error?.message || error.message;
     }
   }
 
-  return fail(lastError, { source: 'googlemaps' });
+  const failRes = fail(lastError, { source: 'googlemaps' });
+  return routeCache.set(cacheKey, failRes);
 }
 
 export { searchPlaces, getPlacePhoto, calculateRoute };
-

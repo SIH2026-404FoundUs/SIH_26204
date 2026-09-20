@@ -1,46 +1,31 @@
 {
   "_id": "mandi",
-  "name": "Mandi",
   "displayName": "Mandi, Himachal Pradesh",
   "state": "HP",
-  "district": "Mandi",
-  "googlePlaceId": "ChIJ334455667788DzkR88990011",
-  "location": {
-    "lat": 31.7084,
-    "lng": 76.932,
-    "type": "Point",
-    "coordinates": [
-      76.932,
-      31.7084
-    ]
-  },
-  "trackingTier": "tracked",
-  "attrs": {
-    "snow": 0.2,
-    "trek": 0.5,
-    "riverside": 0.8,
-    "heritage": 0.8,
-    "nightlife": 0.3,
-    "food": 0.6,
-    "wildlife": 0.4,
-    "spiritual": 0.9
-  },
-  "railheadDistanceKm": 110,
-  "nearestRailhead": "Kiratpur Sahib",
-  "railSignalConfidence": 0.35,
-  "roadAccess": {
-    "operators": [
-      "HRTC"
-    ],
-    "corridor": "Chandigarh-Mandi",
-    "boardingPoint": "Mandi ISBT"
-  },
-  "nearestAirport": "KUU",
+  "lat": 31.7087153,
+  "lng": 76.9320104,
+  "googlePlaceId": "ChIJkaSOyDjiBDkR_mL7BDp05oc",
+  "attr_snow": 0.15,
+  "attr_trek": 0.25,
+  "attr_riverside": 0.6,
+  "attr_heritage": 0.5,
+  "attr_nightlife": 0.15,
+  "attr_food": 0.3,
+  "attr_wildlife": 0.2,
+  "attr_spiritual": 0.8,
+  "nearestRailhead": "Joginder Nagar",
+  "railheadDistanceKm": 55,
+  "railSignalConfidence": 0.5,
   "capacityPrior": 0.35,
-  "baseline": {
-    "railWL": 20,
-    "roadSeatsAvail": 70,
-    "hotelMedianINR": 1800
-  },
-  "seededAt": "2026-09-05T16:16:25.121046Z"
+  "nearestAirport": "KUU",
+  "road_operators": "HRTC|HPTDC",
+  "road_corridor": "Chandigarh-Manali Highway (NH-3)",
+  "road_boardingPoint": "Mandi ISBT",
+  "baseline_railWL": 10,
+  "baseline_roadSeatsAvail": 0.4,
+  "baseline_hotelMedianINR": 1900,
+  "baselineDailyVisitors": 2600,
+  "trackingTier": "tracked",
+  "seededAt": "2026-09-17T00:00:00.000Z",
+  "provenanceNotes": "estimated"
 }

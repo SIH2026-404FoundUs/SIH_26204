@@ -1,13 +1,67 @@
-import { calculateDistance } from './distance.js';
+import { calculateDistance, computeMahalanobisContext, calculateDistanceWithContext } from './distance.js';
 import { getStats } from './standardize.js';
+import DestinationPressure from '../../models/destinationPressure.model.js';
+
+async function mapWithConcurrency(items, limit, fn) {
+  if (!Array.isArray(items) || items.length === 0) return [];
+  const results = new Array(items.length);
+  let idx = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const i = idx++;
+      if (i >= items.length) return;
+      results[i] = await fn(items[i], i);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
+/**
+ * Prefetches pressure for candidates and requested destination in parallel.
+ * Performs a single batch Mongo query (destId $in) for ultra-fast in-memory lookups.
+ */
+async function prefetchCandidatePressures(candidates, requestedDest, date, pressureFn) {
+  const map = new Map();
+  const reqId = requestedDest?._id || requestedDest?.id;
+  const candIds = Array.isArray(candidates) ? candidates.map((c) => c?._id || c?.id).filter(Boolean) : [];
+  const uniqueIds = Array.from(new Set([reqId, ...candIds].filter(Boolean)));
+
+  try {
+    const docs = await DestinationPressure.find({
+      destId: { $in: uniqueIds },
+      date
+    }).lean();
+
+    if (docs && docs.length > 0) {
+      for (const doc of docs) {
+        map.set(String(doc.destId), doc);
+      }
+    }
+  } catch (e) {
+    // fallback
+  }
+
+  // Fallback for any missing IDs using pressureFn
+  const missing = uniqueIds.filter((id) => !map.has(String(id)));
+  if (missing.length > 0 && typeof pressureFn === 'function') {
+    const fallbackResults = await mapWithConcurrency(missing, 10, (id) => pressureFn(id, date));
+    missing.forEach((id, i) => {
+      map.set(String(id), fallbackResults[i]);
+    });
+  }
+
+  return map;
+}
 
 /**
  * Filters candidate destinations by attribute similarity distance.
  * Keeps candidates where dist <= dStar and attaches the distance score.
  */
-async function filterSimilarity(candidates, requestedDest, dStar, interests) {
+async function filterSimilarity(candidates, requestedDest, dStar, interests, distanceContext = null) {
   if (!Array.isArray(candidates)) return [];
 
+  const context = distanceContext || (await computeMahalanobisContext(interests));
   const filtered = [];
   const reqId = requestedDest?._id || requestedDest?.id;
 
@@ -18,7 +72,7 @@ async function filterSimilarity(candidates, requestedDest, dStar, interests) {
       continue;
     }
 
-    const dist = await calculateDistance(requestedDest, candidate, interests);
+    const dist = await calculateDistanceWithContext(requestedDest, candidate, context);
     if (dist <= dStar) {
       const candObj = typeof candidate.toObject === 'function' ? candidate.toObject() : candidate;
       candObj.distance = dist;
@@ -40,10 +94,16 @@ async function filterReachability(candidates, origin, requestedDest, travelTimeF
   const requestedId = requestedDest._id || requestedDest.id || requestedDest;
   const requestedTime = await travelTimeFn(origin, requestedId);
   const hasValidReqTime = typeof requestedTime === 'number' && requestedTime > 0;
-  const filtered = [];
 
-  for (const candidate of candidates) {
-    const candidateTime = await travelTimeFn(origin, candidate._id || candidate.id);
+  const candidateTimes = await mapWithConcurrency(candidates, 5, async (candidate) => {
+    const candId = candidate._id || candidate.id;
+    return travelTimeFn(origin, candId);
+  });
+
+  const filtered = [];
+  for (let i = 0; i < candidates.length; i++) {
+    const candidate = candidates[i];
+    const candidateTime = candidateTimes[i];
     const hasValidCandTime = typeof candidateTime === 'number' && candidateTime > 0;
     const candObj = typeof candidate.toObject === 'function' ? candidate.toObject() : candidate;
 
@@ -75,18 +135,22 @@ async function filterReachability(candidates, origin, requestedDest, travelTimeF
  * Threshold is 0.30 by default (-0.30 relief), or 0.20 if relaxed (-0.20 relief).
  * Attaches pressure to kept candidates.
  */
-async function filterRelief(candidates, requestedDest, date, pressureFn, relaxed = false) {
+async function filterRelief(candidates, requestedDest, date, pressureFn, relaxed = false, precomputedPressures = null) {
   if (!Array.isArray(candidates) || typeof pressureFn !== 'function') return [];
 
   const reqId = requestedDest?._id || requestedDest?.id;
-  const reqRes = await pressureFn(reqId, date);
+  const reqRes = precomputedPressures && precomputedPressures.has(String(reqId))
+    ? precomputedPressures.get(String(reqId))
+    : await pressureFn(reqId, date);
   const requestedPressure = typeof reqRes === 'number' ? reqRes : (reqRes?.score ?? 0.5);
   const threshold = relaxed ? 0.20 : 0.30;
   const filtered = [];
 
   for (const candidate of candidates) {
     const candId = candidate?._id || candidate?.id;
-    const candRes = await pressureFn(candId, date);
+    const candRes = precomputedPressures && precomputedPressures.has(String(candId))
+      ? precomputedPressures.get(String(candId))
+      : await pressureFn(candId, date);
     const candidatePressure = typeof candRes === 'number' ? candRes : (candRes?.score ?? 0.5);
 
     if (candidatePressure <= requestedPressure - threshold) {
@@ -115,18 +179,24 @@ async function applyAllFilters(
 ) {
   const allCandidates = Array.isArray(candidates) ? candidates : [];
 
-  // Step 1: Similarity filter
-  const similarityFiltered = await filterSimilarity(allCandidates, requestedDest, dStar, interests);
+  // Step 1: Precompute Mahalanobis distance context ONCE for all candidates
+  const distanceContext = await computeMahalanobisContext(interests);
 
-  // Step 2: Reachability filter
+  // Step 2: Similarity filter
+  const similarityFiltered = await filterSimilarity(allCandidates, requestedDest, dStar, interests, distanceContext);
+
+  // Step 3: Reachability filter
   const reachabilityFiltered = await filterReachability(similarityFiltered, origin, requestedDest, travelTimeFn);
 
-  // Step 3: Relief filter (with fallback for relaxed threshold)
-  let reliefFiltered = await filterRelief(reachabilityFiltered, requestedDest, date, pressureFn, false);
+  // Step 4: Prefetch pressure scores for candidates ONCE in parallel
+  const precomputedPressures = await prefetchCandidatePressures(reachabilityFiltered, requestedDest, date, pressureFn);
+
+  // Step 5: Relief filter (with fallback for relaxed threshold)
+  let reliefFiltered = await filterRelief(reachabilityFiltered, requestedDest, date, pressureFn, false, precomputedPressures);
   let relaxedRelief = false;
 
   if (reliefFiltered.length === 0 && reachabilityFiltered.length > 0) {
-    reliefFiltered = await filterRelief(reachabilityFiltered, requestedDest, date, pressureFn, true);
+    reliefFiltered = await filterRelief(reachabilityFiltered, requestedDest, date, pressureFn, true, precomputedPressures);
     relaxedRelief = true;
   }
 

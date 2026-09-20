@@ -1,10 +1,12 @@
+import DestinationPressure from '../../models/destinationPressure.model.js';
+
 /**
  * Scans 14 adjacent dates (-7 to +7 days, excluding requested date 0)
  * and retrieves predicted pressure score for each date.
  */
 async function scanDates(destId, requestedDate, pressureFn) {
   const baseDate = new Date(requestedDate + (requestedDate.includes('T') ? '' : 'T00:00:00.000Z'));
-  const dates = [];
+  const targetDateStrings = [];
 
   for (let i = -7; i <= 7; i++) {
     if (i === 0) continue;
@@ -15,19 +17,40 @@ async function scanDates(destId, requestedDate, pressureFn) {
     const yyyy = targetDate.getUTCFullYear();
     const mm = String(targetDate.getUTCMonth() + 1).padStart(2, '0');
     const dd = String(targetDate.getUTCDate()).padStart(2, '0');
-    const dateString = `${yyyy}-${mm}-${dd}`;
-
-    let pressure = 0;
-    if (typeof pressureFn === 'function') {
-      const res = await pressureFn(destId, dateString);
-      pressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
-    }
-
-    dates.push({ date: dateString, pressure });
+    targetDateStrings.push(`${yyyy}-${mm}-${dd}`);
   }
 
-  dates.sort((a, b) => a.date.localeCompare(b.date));
-  return dates;
+  const rowsMap = new Map();
+  try {
+    const docs = await DestinationPressure.find({
+      destId,
+      date: { $in: targetDateStrings }
+    }).lean();
+    if (docs && docs.length > 0) {
+      for (const doc of docs) {
+        rowsMap.set(doc.date, doc);
+      }
+    }
+  } catch (e) {
+    // fallback
+  }
+
+  const results = await Promise.all(
+    targetDateStrings.map(async (dateString) => {
+      let pressure = 0;
+      if (rowsMap.has(dateString)) {
+        const res = rowsMap.get(dateString);
+        pressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
+      } else if (typeof pressureFn === 'function') {
+        const res = await pressureFn(destId, dateString);
+        pressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
+      }
+      return { date: dateString, pressure };
+    })
+  );
+
+  results.sort((a, b) => a.date.localeCompare(b.date));
+  return results;
 }
 
 /**

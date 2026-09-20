@@ -1,47 +1,31 @@
 {
   "_id": "kasol",
-  "name": "Kasol",
   "displayName": "Kasol, Himachal Pradesh",
   "state": "HP",
-  "district": "Kullu",
-  "googlePlaceId": "ChIJbU3aX1m1DzkR0sE25N076c8",
-  "location": {
-    "lat": 32.01,
-    "lng": 77.315,
-    "type": "Point",
-    "coordinates": [
-      77.315,
-      32.01
-    ]
-  },
-  "trackingTier": "tracked",
-  "attrs": {
-    "snow": 0.6,
-    "trek": 0.9,
-    "riverside": 1,
-    "heritage": 0.2,
-    "nightlife": 0.7,
-    "food": 0.8,
-    "wildlife": 0.5,
-    "spiritual": 0.4
-  },
-  "nearestRailhead": "JUC",
+  "lat": 32.009998599999996,
+  "lng": 77.3149625,
+  "googlePlaceId": "ChIJ6TGqdERcBDkRnZRHK-PSEvE",
+  "attr_snow": 0.2,
+  "attr_trek": 0.75,
+  "attr_riverside": 0.85,
+  "attr_heritage": 0.1,
+  "attr_nightlife": 0.55,
+  "attr_food": 0.7,
+  "attr_wildlife": 0.15,
+  "attr_spiritual": 0.15,
+  "nearestRailhead": "Chandigarh",
   "railheadDistanceKm": 195,
   "railSignalConfidence": 0.15,
-  "roadAccess": {
-    "operators": [
-      "HRTC"
-    ],
-    "corridor": "Delhi-Bhuntar-Kasol",
-    "boardingPoint": "Bhuntar"
-  },
+  "capacityPrior": 0.85,
   "nearestAirport": "KUU",
-  "capacityPrior": 0.8,
-  "baseline": {
-    "railWL": 15,
-    "roadSeatsAvail": 40,
-    "hotelMedianINR": 1800
-  },
-  "seededAt": "2026-09-05T16:16:25.121046Z",
-  "demoCorridor": true
+  "road_operators": "HRTC",
+  "road_corridor": "Kullu-Parvati Valley Road",
+  "road_boardingPoint": "Kasol Bus Stand",
+  "baseline_railWL": 50,
+  "baseline_roadSeatsAvail": 0.22,
+  "baseline_hotelMedianINR": 1600,
+  "baselineDailyVisitors": 2800,
+  "trackingTier": "tracked",
+  "seededAt": "2026-09-17T00:00:00.000Z",
+  "provenanceNotes": "estimated"
 }

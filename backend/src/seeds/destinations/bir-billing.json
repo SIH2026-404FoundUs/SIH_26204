@@ -1,46 +1,31 @@
 {
   "_id": "bir-billing",
-  "name": "Bir Billing",
-  "displayName": "Bir Billing, Himachal Pradesh",
+  "displayName": "Bir-Billing, Himachal Pradesh",
   "state": "HP",
-  "district": "Kangra",
-  "googlePlaceId": "ChIJ998877665544DzkR11223344",
-  "location": {
-    "lat": 32.0469,
-    "lng": 76.7164,
-    "type": "Point",
-    "coordinates": [
-      76.7164,
-      32.0469
-    ]
-  },
-  "trackingTier": "tracked",
-  "attrs": {
-    "snow": 0.4,
-    "trek": 0.9,
-    "riverside": 0.5,
-    "heritage": 0.3,
-    "nightlife": 0.5,
-    "food": 0.7,
-    "wildlife": 0.5,
-    "spiritual": 0.8
-  },
-  "nearestRailhead": "AHH",
-  "railheadDistanceKm": 50,
-  "railSignalConfidence": 0.6,
-  "roadAccess": {
-    "operators": [
-      "HRTC"
-    ],
-    "corridor": "Baijnath-Bir",
-    "boardingPoint": "Baijnath"
-  },
-  "nearestAirport": "DHM",
+  "lat": 32.0456253,
+  "lng": 76.7235513,
+  "googlePlaceId": "ChIJI6hcLM-4BDkR2mo1eAUb_BM",
+  "attr_snow": 0.2,
+  "attr_trek": 0.55,
+  "attr_riverside": 0.15,
+  "attr_heritage": 0.35,
+  "attr_nightlife": 0.15,
+  "attr_food": 0.35,
+  "attr_wildlife": 0.15,
+  "attr_spiritual": 0.45,
+  "nearestRailhead": "Ahju",
+  "railheadDistanceKm": 3,
+  "railSignalConfidence": 0.65,
   "capacityPrior": 0.65,
-  "baseline": {
-    "railWL": 18,
-    "roadSeatsAvail": 35,
-    "hotelMedianINR": 2100
-  },
-  "seededAt": "2026-09-05T16:16:25.121046Z"
+  "nearestAirport": "KUU",
+  "road_operators": "HRTC",
+  "road_corridor": "Pathankot-Mandi Highway (NH-154)",
+  "road_boardingPoint": "Bir Bus Stand",
+  "baseline_railWL": 8,
+  "baseline_roadSeatsAvail": 0.4,
+  "baseline_hotelMedianINR": 1900,
+  "baselineDailyVisitors": 900,
+  "trackingTier": "tracked",
+  "seededAt": "2026-09-17T00:00:00.000Z",
+  "provenanceNotes": "estimated"
 }

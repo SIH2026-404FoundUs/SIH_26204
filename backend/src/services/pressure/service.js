@@ -10,30 +10,41 @@ import { realProviders } from "./realProviders.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const LIVE_TIMEOUT_MS = 4000; // spec §7: short budget, never sit on the demo path
+const CONCURRENCY_LIMIT = parseInt(process.env.PRESSURE_MAP_CONCURRENCY || "10", 10);
 
 const providers = realProviders;
 const seed = { calendarRow };
 
-// A row is fresh only if it's both recent AND computed under the current
-// locked formula. A row on an older formulaVersion (e.g. Ananya's seed
-// history, computed before the weights were locked) fails this regardless of
-// how recent its computedAt is -- it must never be reported as current. This
-// also fixes getPressureMap(), which never recomputes live (by design, so the
-// demo path never blocks on a five-provider fetch) but must not silently
-// serve pre-lock-weight rows as if they were fine.
 const isFresh = (row) =>
   Date.now() - new Date(row.computedAt).getTime() < DAY_MS &&
   row.formulaVersion === FORMULA_VERSION;
+
 const withTimeout = (p, ms) =>
   Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error("timeout")), ms))]);
+
+async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length);
+  let idx = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const i = idx++;
+      if (i >= items.length) return;
+      results[i] = await fn(items[i], i);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
 
 // compute one row from live provider readings and upsert it (spec §6 shape)
 export async function computeAndStore(dest, date) {
   const { values, degradedRoad } = await collect(dest, date, { providers, seed });
   const row = assembleRow(values, { degradedRoad });
-  const doc = { destId: dest._id, date, ...row, stale: false, computedAt: new Date() };
+  const destId = dest._id || dest.id;
+  const _id = `${destId}_${date}`;
+  const doc = { _id, destId, date, ...row, stale: false, computedAt: new Date() };
   await DestinationPressure.updateOne(
-    { destId: dest._id, date },
+    { _id },
     { $set: doc },
     { upsert: true }
   );
@@ -70,44 +81,56 @@ export async function getPressureMap(date) {
   const existingRows = await DestinationPressure.find({ date }).lean();
   const existingMap = new Map(existingRows.map((r) => [r.destId, r]));
 
-  if (existingMap.size >= allDests.length) {
-    return allDests.map((d) => {
-      const r = existingMap.get(d._id);
-      return { ...r, stale: !isFresh(r) };
-    });
-  }
+  const cachedCount = allDests.filter((d) => {
+    const r = existingMap.get(d._id || d.id);
+    return r && isFresh(r);
+  }).length;
+  const liveComputeCount = allDests.length - cachedCount;
 
-  const fullRows = await Promise.all(
-    allDests.map(async (d) => {
-      if (existingMap.has(d._id)) {
-        const r = existingMap.get(d._id);
-        return { ...r, stale: !isFresh(r) };
-      }
-      try {
-        const row = await getPressure(d._id, date);
-        if (row) return row;
-      } catch (e) {
-        console.error(`Failed to get pressure for ${d._id} on ${date}:`, e);
-      }
-      const newest = await DestinationPressure.findOne({ destId: d._id }).sort({ date: -1 }).lean();
-      return newest ? { ...newest, date, stale: true } : null;
-    })
+  console.log(
+    `[getPressureMap] date=${date} total=${allDests.length} live_compute=${liveComputeCount} cached=${cachedCount}`
   );
 
-  return fullRows.filter(Boolean);
-  const rows = await DestinationPressure.find({ date }).lean();
-  // Enrich with lat/lng from the seed file (never stored on the Mongo row
-  // itself -- destination_pressures only ever held the computed score, not
-  // the destination's static facts). Additive only: every field the map
-  // response already had is untouched, so no existing consumer's parsing
-  // of this shape can break. Powers the India-outline map on the frontend.
-  return rows.map((r) => {
-    const dest = getDestination(r.destId);
-    return {
-      ...r,
-      stale: !isFresh(r),
-      lat: dest?.location?.lat ?? null,
-      lng: dest?.location?.lng ?? null,
-    };
+  const fullRows = await mapWithConcurrency(allDests, CONCURRENCY_LIMIT, async (d) => {
+    const dId = d._id || d.id;
+    if (existingMap.has(dId)) {
+      const r = existingMap.get(dId);
+      if (isFresh(r)) {
+        return {
+          ...r,
+          stale: false,
+          lat: d.lat ?? d.location?.lat ?? null,
+          lng: d.lng ?? d.location?.lng ?? null,
+        };
+      }
+    }
+    try {
+      const row = await getPressure(dId, date);
+      if (row) {
+        return {
+          ...row,
+          lat: d.lat ?? d.location?.lat ?? null,
+          lng: d.lng ?? d.location?.lng ?? null,
+        };
+      }
+    } catch (e) {
+      console.error(`[getPressureMap] Failed live compute for ${dId} on ${date}:`, e);
+    }
+
+    const newest =
+      existingMap.get(dId) ||
+      (await DestinationPressure.findOne({ destId: dId }).sort({ date: -1 }).lean());
+
+    return newest
+      ? {
+          ...newest,
+          date,
+          stale: true,
+          lat: d.lat ?? d.location?.lat ?? null,
+          lng: d.lng ?? d.location?.lng ?? null,
+        }
+      : null;
   });
+
+  return fullRows.filter(Boolean);
 }
