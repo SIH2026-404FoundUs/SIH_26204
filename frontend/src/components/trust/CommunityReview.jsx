@@ -9,6 +9,7 @@ import Button from '../ui/Button'
 import Alert from '../ui/Alert'
 import EmptyState from '../ui/EmptyState'
 import LoadingState from '../ui/LoadingState'
+import SaverImage from '../ui/SaverImage'
 
 const POLL_MS = 15_000 // matches Suggest a Place's own poll -- a new submission shows up here without a manual reload
 
@@ -79,7 +80,7 @@ export default function CommunityReview() {
                 {s.photos?.length > 0 && (
                   <div className="mb-3 flex flex-wrap gap-2">
                     {s.photos.map((url) => (
-                      <img key={url} src={url} alt="" className="h-20 w-20 rounded-lg object-cover" />
+                      <SaverImage key={url} src={url} className="h-20 w-20 rounded-lg object-cover" />
                     ))}
                   </div>
                 )}

@@ -16,8 +16,8 @@ const models = { WorkerProfileModel: WorkerProfile, GigRequestModel: GigRequest,
 // only, never a spread of req.body.
 export const upsertWorkerProfileController = async (req, res) => {
   try {
-    const profile = await createOrUpdateWorkerProfile(req.user._id, req.body, models);
-    res.status(200).json(profile);
+    const result = await createOrUpdateWorkerProfile(req.user._id, req.body, models);
+    res.status(result.status).json(result.success ? result.profile : { message: result.message });
   } catch (error) {
     console.log("Error in upsertWorkerProfile controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });

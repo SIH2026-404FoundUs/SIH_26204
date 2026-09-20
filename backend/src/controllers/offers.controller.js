@@ -7,6 +7,7 @@ import Business from "../models/business.model.js";
 import User from "../models/user.model.js";
 import { sendMail } from "../lib/mailer.js";
 import { flashOfferEmail, waitlistFulfilledEmail } from "../lib/emailTemplates.js";
+import { parsePagination } from "../lib/pagination.js";
 
 const models = { OfferModel: Offer, WaitlistModel: Waitlist, AuditLogModel: AuditLog };
 const APP_URL = (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0].trim();
@@ -62,11 +63,12 @@ export const listOffersController = async (req, res) => {
   try {
     const { destId } = req.query;
     if (!destId) return res.status(400).json({ message: "destId query param required" });
+    const { limit, skip } = parsePagination(req.query, { defaultLimit: 50 });
     const offers = await Offer.find({
       destId,
       status: "open",
       expiresAt: { $gt: new Date() },
-    }).sort({ expiresAt: 1 });
+    }).sort({ expiresAt: 1 }).skip(skip).limit(limit);
     res.status(200).json(offers);
   } catch (error) {
     console.log("Error in listOffers controller", error.message);

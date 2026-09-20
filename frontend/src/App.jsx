@@ -1,42 +1,55 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuthStore } from './store/useAuthStore'
 import Header, { FullPageLoader } from './components/shell/Header'
 import { Page, RequireAuth, RequireAuthBare, RequireRole } from './components/shell/Guards'
-import AuthScreen from './components/auth/AuthScreen'
-import ForgotPassword from './components/auth/ForgotPassword'
-import ResetPassword from './components/auth/ResetPassword'
-import PressureHeatmap from './components/pressure/PressureHeatmap'
-import { SwapPage, TripConfirmation } from './components/swap'
-import TripPlanner from './components/planner/TripPlanner'
-import DestinationDetail from './components/destinations/DestinationDetail'
-import MyTrips from './components/trips/MyTrips'
-import Profile from './components/profile/Profile'
-import OperatorConsole from './components/operator/OperatorConsole'
-import RegisterBusiness from './components/operator/RegisterBusiness'
-import HirePeople from './components/operator/HirePeople'
-import OperatorWaitlistOffers from './components/operator/OperatorWaitlistOffers'
-import OperatorAnalytics from './components/operator/OperatorAnalytics'
-import OperatorVerifyVisit from './components/operator/OperatorVerifyVisit'
-import ContentGenerator from './components/operator/ContentGenerator'
-import RevenueDashboard from './components/operator/RevenueDashboard'
-import OperatorComplaints from './components/operator/OperatorComplaints'
-import WorkerConsole from './components/worker/WorkerConsole'
-import AuthorityDashboard from './components/authority/AuthorityDashboard'
-import VisitVerify from './components/trust/VisitVerify'
-import CommunitySubmit from './components/trust/CommunitySubmit'
-import CommunityReview from './components/trust/CommunityReview'
-import CommunityForum from './components/trust/CommunityForum'
-import OffersWaitlist from './components/trust/OffersWaitlist'
-import Alerts from './components/trust/Alerts'
-import Safety from './components/trust/Safety'
-import SharedTripView from './components/trust/SharedTripView'
-import Businesses from './components/trust/Businesses'
-import AvailableServices from './components/trust/AvailableServices'
-import Notifications from './components/trust/Notifications'
-import MapPreview from './pages/MapPreview'
-import LandingPage from './pages/LandingPage'
-import MultimodalTravelAgent from './components/ai/MultimodalTravelAgent'
+
+// Route-level code splitting: every screen below is its own chunk, fetched
+// only when its route actually renders, instead of one bundle shipping
+// every role's screens (worker console, authority dashboard, operator
+// revenue tools, ...) to every visitor regardless of which one they'll
+// ever use. AuthScreen/LandingPage are lazy too -- the one shared
+// <Suspense> below covers the brief fetch with a real loading state
+// instead of a blank screen, and it's a small one-time cost against
+// shipping the entire app's code on first paint.
+const AuthScreen = lazy(() => import('./components/auth/AuthScreen'))
+const ForgotPassword = lazy(() => import('./components/auth/ForgotPassword'))
+const ResetPassword = lazy(() => import('./components/auth/ResetPassword'))
+const PressureHeatmap = lazy(() => import('./components/pressure/PressureHeatmap'))
+const SwapPage = lazy(() => import('./components/swap').then((m) => ({ default: m.SwapPage })))
+const TripConfirmation = lazy(() => import('./components/swap').then((m) => ({ default: m.TripConfirmation })))
+const TripPlanner = lazy(() => import('./components/planner/TripPlanner'))
+const DestinationDetail = lazy(() => import('./components/destinations/DestinationDetail'))
+const MyTrips = lazy(() => import('./components/trips/MyTrips'))
+const Profile = lazy(() => import('./components/profile/Profile'))
+const OperatorConsole = lazy(() => import('./components/operator/OperatorConsole'))
+const RegisterBusiness = lazy(() => import('./components/operator/RegisterBusiness'))
+const HirePeople = lazy(() => import('./components/operator/HirePeople'))
+const OperatorWaitlistOffers = lazy(() => import('./components/operator/OperatorWaitlistOffers'))
+const OperatorAnalytics = lazy(() => import('./components/operator/OperatorAnalytics'))
+const OperatorVerifyVisit = lazy(() => import('./components/operator/OperatorVerifyVisit'))
+const ContentGenerator = lazy(() => import('./components/operator/ContentGenerator'))
+const RevenueDashboard = lazy(() => import('./components/operator/RevenueDashboard'))
+const OperatorComplaints = lazy(() => import('./components/operator/OperatorComplaints'))
+const WorkerConsole = lazy(() => import('./components/worker/WorkerConsole'))
+const WorkerMyJobs = lazy(() => import('./components/worker/WorkerMyJobs'))
+const WorkerComplaints = lazy(() => import('./components/worker/WorkerComplaints'))
+const AuthorityDashboard = lazy(() => import('./components/authority/AuthorityDashboard'))
+const AuthorityComplaints = lazy(() => import('./components/authority/AuthorityComplaints'))
+const VisitVerify = lazy(() => import('./components/trust/VisitVerify'))
+const CommunitySubmit = lazy(() => import('./components/trust/CommunitySubmit'))
+const CommunityReview = lazy(() => import('./components/trust/CommunityReview'))
+const CommunityForum = lazy(() => import('./components/trust/CommunityForum'))
+const OffersWaitlist = lazy(() => import('./components/trust/OffersWaitlist'))
+const Alerts = lazy(() => import('./components/trust/Alerts'))
+const Safety = lazy(() => import('./components/trust/Safety'))
+const SharedTripView = lazy(() => import('./components/trust/SharedTripView'))
+const Businesses = lazy(() => import('./components/trust/Businesses'))
+const AvailableServices = lazy(() => import('./components/trust/AvailableServices'))
+const Notifications = lazy(() => import('./components/trust/Notifications'))
+const MapPreview = lazy(() => import('./pages/MapPreview'))
+const LandingPage = lazy(() => import('./pages/LandingPage'))
+const MultimodalTravelAgent = lazy(() => import('./components/ai/MultimodalTravelAgent'))
 
 // Where each role lands after authenticating (auth spec §7/§20) -- mirrors
 // AuthScreen's own ROLE_HOME, used here for the post-refresh/direct-URL
@@ -66,6 +79,7 @@ function App() {
     <BrowserRouter>
       <div className="flex min-h-screen flex-col bg-paper">
         <Header />
+        <Suspense fallback={<FullPageLoader />}>
         <Routes>
           {/* Public experience (§53). "/" is now a proper landing page
               describing the product -- sign-in stays its own screen at
@@ -116,6 +130,8 @@ function App() {
               bookmark/link would have. */}
           <Route path="/operator/post-gig" element={<Navigate to="/hire-people" replace />} />
           <Route path="/worker" element={<RequireRole role="worker" wide><WorkerConsole /></RequireRole>} />
+          <Route path="/worker/jobs" element={<RequireRole role="worker"><WorkerMyJobs /></RequireRole>} />
+          <Route path="/worker/complaints" element={<RequireRole role="worker"><WorkerComplaints /></RequireRole>} />
           {/* Same URL, role-branched (§14-19): travellers get "Suggest a
               Place" (CommunitySubmit), authorities get the "Community
               Review" moderation UI (CommunityReview) -- both nav entries
@@ -134,6 +150,7 @@ function App() {
           {/* Role-specific (§56) */}
           <Route path="/operator" element={<RequireRole role="operator" wide><OperatorConsole /></RequireRole>} />
           <Route path="/authority" element={<RequireRole role="authority" wide><AuthorityDashboard /></RequireRole>} />
+          <Route path="/authority/complaints" element={<RequireRole role="authority"><AuthorityComplaints /></RequireRole>} />
 
           {/* Back-compat redirects for pre-rebuild URLs */}
           <Route path="/login" element={<Navigate to="/signin" replace />} />
@@ -146,6 +163,7 @@ function App() {
 
           <Route path="*" element={<Navigate to={authUser ? roleHome(authUser) : '/'} replace />} />
         </Routes>
+        </Suspense>
       </div>
     </BrowserRouter>
   )

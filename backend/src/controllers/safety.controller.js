@@ -13,6 +13,7 @@ import Trip from "../models/trip.model.js";
 import User from "../models/user.model.js";
 import { sendMail } from "../lib/mailer.js";
 import { complaintStatusEmail } from "../lib/emailTemplates.js";
+import { parsePagination } from "../lib/pagination.js";
 
 const APP_URL = (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0].trim();
 
@@ -97,7 +98,8 @@ export const getAllComplaintsController = async (req, res) => {
   try {
     if (req.user.role !== "authority") return res.status(403).json({ message: "authority role required" });
     const { status } = req.query;
-    res.status(200).json(await getAllComplaints({ status }, { ComplaintModel: Complaint }));
+    const { limit, skip } = parsePagination(req.query);
+    res.status(200).json(await getAllComplaints({ status, limit, skip }, { ComplaintModel: Complaint }));
   } catch (error) {
     console.log("Error in getAllComplaints controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });

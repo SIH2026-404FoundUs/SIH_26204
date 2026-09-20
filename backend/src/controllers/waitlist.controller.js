@@ -8,6 +8,7 @@ import {
 import Waitlist from "../models/waitlist.model.js";
 import Business from "../models/business.model.js";
 import Offer from "../models/offer.model.js";
+import { parsePagination } from "../lib/pagination.js";
 
 const models = { WaitlistModel: Waitlist };
 
@@ -52,9 +53,12 @@ export const getBusinessWaitlistController = async (req, res) => {
       return res.status(403).json({ message: "business owner role required" });
     }
 
+    const { limit, skip } = parsePagination(req.query, { defaultLimit: 100 });
     const entries = await Waitlist.find({ destId: business.destId, state: "waiting" })
       .select("-userId")
       .sort({ createdAt: 1 })
+      .skip(skip)
+      .limit(limit)
       .lean();
     res.status(200).json(entries);
   } catch (error) {

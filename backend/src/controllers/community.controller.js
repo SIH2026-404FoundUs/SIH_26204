@@ -13,7 +13,18 @@ import { getDestination } from "../services/pressure/seed.js";
 import Visit from "../models/visit.model.js";
 import CommunitySubmission from "../models/communitySubmission.model.js";
 import AuditLog from "../models/auditLog.model.js";
-import cloudinary from "../lib/cloudinary.js";
+import cloudinary, { optimizedImageUrl } from "../lib/cloudinary.js";
+import { parsePagination } from "../lib/pagination.js";
+
+// Every submission card in Community Forum/Community Review shows photos at
+// thumbnail size, never full resolution -- q_auto/f_auto/width on the way
+// out, same helper for every list this controller serves.
+function withOptimizedPhotos(docs, width = 600) {
+  return docs.map((doc) => {
+    const obj = typeof doc.toObject === "function" ? doc.toObject() : doc;
+    return { ...obj, photos: (obj.photos || []).map((url) => optimizedImageUrl(url, { width })) };
+  });
+}
 
 // DestinationModel intentionally omitted: there is no unified Mongo destinations
 // collection in this repo yet. Ananya's destinations are file-seeded JSON read
@@ -86,7 +97,8 @@ export const getQueuedSubmissionsController = async (req, res) => {
     if (req.user.role !== "authority") {
       return res.status(403).json({ message: "authority role required" });
     }
-    res.status(200).json(await getQueuedSubmissions(models));
+    const { limit, skip } = parsePagination(req.query);
+    res.status(200).json(withOptimizedPhotos(await getQueuedSubmissions({ limit, skip }, models)));
   } catch (error) {
     console.log("Error in getQueuedSubmissions controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
@@ -99,7 +111,7 @@ export const getQueuedSubmissionsController = async (req, res) => {
 // loop instead of the submission vanishing into the queue silently.
 export const getMySubmissionsController = async (req, res) => {
   try {
-    res.status(200).json(await getUserSubmissions(String(req.user._id), models));
+    res.status(200).json(withOptimizedPhotos(await getUserSubmissions(String(req.user._id), models)));
   } catch (error) {
     console.log("Error in getMySubmissions controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
@@ -133,12 +145,13 @@ export const reviewSubmissionController = async (req, res) => {
 // logged-in viewer's own like/dislike still comes back on each post.
 export const getApprovedSubmissionsController = async (req, res) => {
   try {
-    const { state, limit } = req.query;
+    const { state } = req.query;
+    const { limit } = parsePagination(req.query, { defaultLimit: 30 });
     const submissions = await getApprovedSubmissions(
       { state, limit, viewerUserId: req.user ? String(req.user._id) : null },
       models
     );
-    res.status(200).json(submissions);
+    res.status(200).json(withOptimizedPhotos(submissions));
   } catch (error) {
     console.log("Error in getApprovedSubmissions controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });

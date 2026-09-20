@@ -11,6 +11,7 @@ import mongoose from "mongoose";
 // "driver"/"guide"/"cook" -- this collection is additive, not a migration.
 export const WORKER_SKILLS = ["guide", "driver", "cook", "cleaner", "porter", "other"];
 export const WORKER_VERIFICATION_TIERS = ["self-declared", "visit-verified", "registered"];
+export const GOVERNMENT_ID_TYPES = ["aadhaar", "pan", "voter_id", "driving_license", "passport"];
 
 const workerProfileSchema = new mongoose.Schema(
   {
@@ -20,6 +21,17 @@ const workerProfileSchema = new mongoose.Schema(
       required: true,
       unique: true, // one profile per worker account
       index: true,
+    },
+    // Self-declared, same as everything else on this profile (verified only
+    // if verificationTier ever moves past "self-declared") -- an operator
+    // deciding whether to accept a gig offer wants to know who they're
+    // actually hiring, not just a skill tag. Mandatory: gigService's own
+    // validation refuses the upsert without both, and these `required`
+    // flags are the same guarantee enforced again at the DB layer.
+    legalName: { type: String, trim: true, required: true },
+    governmentId: {
+      idType: { type: String, enum: GOVERNMENT_ID_TYPES, required: true },
+      idNumber: { type: String, trim: true, required: true },
     },
     skills: {
       type: [String],

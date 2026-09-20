@@ -92,6 +92,62 @@ export const getDashboardAcceptanceController = async (req, res) => {
   }
 };
 
+// GET /api/v1/dashboard/summary?date=YYYY-MM-DD -- one round trip for the
+// whole Authority Dashboard instead of the four separate requests
+// (pressure/capacity/redistribution/acceptance) the frontend used to fire
+// on every mount and every 15s poll. computeTripsAnalytics() is also only
+// called ONCE here and reused for both redistribution and acceptance,
+// instead of the redundant second computation the two separate endpoints
+// used to each trigger independently.
+//
+// Each section is settled independently (Promise.allSettled, not
+// Promise.all) and always responds 200 with per-section data-or-error --
+// preserves the dashboard spec's "one section failing never blocks the
+// other three" requirement (see useAuthorityDashboardStore.js's own header
+// comment) even though it's now one HTTP request instead of four; a single
+// rejected Promise.all would otherwise have taken every section down
+// together, a real behavior regression this endpoint must not introduce.
+async function settle(promise) {
+  try {
+    return { ok: true, value: await promise };
+  } catch (error) {
+    return { ok: false, message: error.message || "Failed to load" };
+  }
+}
+
+export const getDashboardSummaryController = async (req, res) => {
+  const date = requireDateParam(req, res);
+  if (!date) return;
+
+  const [pressure, capacity, analytics] = await Promise.all([
+    settle(getPressureMap(date)),
+    settle(computeCapacityGapForDate(date)),
+    settle(computeTripsAnalytics()),
+  ]);
+
+  res.status(200).json({
+    date,
+    pressure: pressure.ok ? { date, destinations: pressure.value } : { error: pressure.message },
+    capacity: capacity.ok ? { date, destinations: capacity.value } : { error: capacity.message },
+    redistribution: analytics.ok
+      ? {
+          redirectedTrips: analytics.value.redirectedTrips,
+          totalBudgetMovedINR: analytics.value.totalBudgetMovedINR,
+          averagePressureRelief: analytics.value.averagePressureRelief,
+          byDestination: analytics.value.byDestination,
+        }
+      : { error: analytics.message },
+    acceptance: analytics.ok
+      ? {
+          acceptanceRate: analytics.value.acceptanceRate,
+          accepted: analytics.value.accepted,
+          alternativesOffered: analytics.value.alternativesOffered,
+          totalTrips: analytics.value.totalTrips,
+        }
+      : { error: analytics.message },
+  });
+};
+
 // GET /api/v1/dashboard/labor?date=YYYY-MM-DD -- Worker role design spec
 // §08: laborDemandGap(destId, date) fed to every tracked destination, the
 // same read-only-signal treatment the pressure/capacity endpoints above

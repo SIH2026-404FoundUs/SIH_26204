@@ -88,6 +88,7 @@ function toGroups(items) {
 
 let cachedGroups = null
 let cachedLookup = FALLBACK_LOOKUP
+let cachedItemsById = new Map()
 let fetchPromise = null
 
 function loadDestinations() {
@@ -96,6 +97,7 @@ function loadDestinations() {
       const items = res.data?.data || []
       cachedGroups = toGroups(items)
       cachedLookup = new Map(items.map((d) => [d.id, d.displayName]))
+      cachedItemsById = new Map(items.map((d) => [d.id, d]))
       return cachedGroups
     }).catch(() => {
       fetchPromise = null // allow a retry on the next call/render
@@ -112,7 +114,7 @@ loadDestinations() // kick off on first import so labels resolve ASAP app-wide
 export function useDestinationGroups() {
   const [groups, setGroups] = useState(cachedGroups || FALLBACK_DESTINATION_GROUPS)
   useEffect(() => {
-    if (cachedGroups) { setGroups(cachedGroups); return }
+    if (cachedGroups) return // already reflected in useState's own initializer above
     let alive = true
     loadDestinations().then((g) => { if (alive && g) setGroups(g) })
     return () => { alive = false }
@@ -123,4 +125,46 @@ export function useDestinationGroups() {
 export function getDestinationLabel(destId) {
   if (!destId) return 'Unknown destination'
   return cachedLookup.get(destId) || FALLBACK_LOOKUP.get(destId) || humanizeSlug(destId)
+}
+
+// Travel Education packs (offline destination facts): the structured
+// fields the seed already carries -- attrs, baseline visitor/price/rail
+// data, nearest airport/railhead, road access -- never invented prose.
+// Downloaded once, stored as plain JSON in localStorage, readable with no
+// network at all afterward. Deliberately not the live pressure score
+// (that's a live signal, caching it would be dishonest the moment it goes
+// stale) -- just the facts about the place that don't change day to day.
+const PACK_PREFIX = 'sahyatri:edu-pack:'
+
+export async function getDestinationFacts(destId) {
+  if (!cachedItemsById.has(destId)) await loadDestinations()
+  return cachedItemsById.get(destId) || null
+}
+
+export async function downloadEducationPack(destId) {
+  const facts = await getDestinationFacts(destId)
+  if (!facts) return false
+  try {
+    localStorage.setItem(PACK_PREFIX + destId, JSON.stringify({ ...facts, downloadedAt: new Date().toISOString() }))
+    return true
+  } catch {
+    return false // full/blocked localStorage -- nothing to do but report it didn't save
+  }
+}
+
+export function readEducationPack(destId) {
+  try {
+    const raw = localStorage.getItem(PACK_PREFIX + destId)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+export function hasEducationPack(destId) {
+  try {
+    return localStorage.getItem(PACK_PREFIX + destId) !== null
+  } catch {
+    return false
+  }
 }

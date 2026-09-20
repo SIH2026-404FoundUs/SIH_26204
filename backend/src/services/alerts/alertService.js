@@ -193,7 +193,7 @@ export async function getVerifiedAlerts(query = {}, models = {}, now = new Date(
 
   let activeAlerts = [];
   if (AlertModel && typeof AlertModel.find === "function") {
-    const q = AlertModel.find(filter);
+    const q = AlertModel.find(filter).limit(100);
     activeAlerts = q && typeof q.sort === "function" ? await q.sort({ validTo: 1 }) : await q;
   }
 

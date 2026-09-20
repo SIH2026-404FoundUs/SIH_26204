@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import api, { getErrorMessage } from '../lib/api'
+import { sendOrQueue } from '../lib/offlineQueue'
 
 // Worker role -- the gig-matching layer split out of Operator/Business
 // (worker-role-spec.md). Everything a worker's own screens need: their
@@ -85,19 +86,21 @@ export const useWorkerStore = create((set, get) => ({
   isAccepting: null, // gigId currently being accepted, so only that card shows a spinner
   acceptError: null,
 
+  // Offline-tolerant, but honestly so: accepting is a first-claim-wins race
+  // (acceptGig service, backend), so a queued accept can't be shown as a
+  // real success -- it's only ever removed from the open-gigs list once the
+  // server actually confirms it, never speculatively on queue.
   acceptGig: async (gigId) => {
     set({ isAccepting: gigId, acceptError: null })
-    try {
-      await api.post(`/v1/gigs/${gigId}/accept`)
+    const result = await sendOrQueue({ method: 'post', url: `/v1/gigs/${gigId}/accept`, label: 'Accept gig' })
+    if (result.ok && !result.queued) {
       set((state) => ({ openGigs: state.openGigs.filter((g) => g._id !== gigId) }))
       get().fetchMyGigs({ silent: true })
-      return true
-    } catch (error) {
-      set({ acceptError: getErrorMessage(error, 'Could not accept this gig -- it may already be filled') })
-      return false
-    } finally {
-      set({ isAccepting: null })
+    } else if (!result.ok) {
+      set({ acceptError: getErrorMessage(result.error, 'Could not accept this gig -- it may already be filled') })
     }
+    set({ isAccepting: null })
+    return { ok: result.ok, queued: result.queued === true }
   },
 
   // -- My Jobs (accepted, upcoming, history) --
@@ -121,18 +124,19 @@ export const useWorkerStore = create((set, get) => ({
   isCompleting: null,
   completeError: null,
 
+  // Offline-tolerant: marking a job complete out in the field (patchy
+  // signal is the norm, not the exception, for this action) queues and
+  // syncs automatically instead of forcing a retry once back in range.
   completeGig: async (gigId) => {
     set({ isCompleting: gigId, completeError: null })
-    try {
-      await api.post(`/v1/gigs/${gigId}/complete`)
+    const result = await sendOrQueue({ method: 'post', url: `/v1/gigs/${gigId}/complete`, label: 'Complete gig' })
+    if (result.ok && !result.queued) {
       await get().fetchMyGigs({ silent: true })
-      return true
-    } catch (error) {
-      set({ completeError: getErrorMessage(error, 'Could not mark this job complete') })
-      return false
-    } finally {
-      set({ isCompleting: null })
+    } else if (!result.ok) {
+      set({ completeError: getErrorMessage(result.error, 'Could not mark this job complete') })
     }
+    set({ isCompleting: null })
+    return { ok: result.ok, queued: result.queued === true }
   },
 
   isRating: null,
