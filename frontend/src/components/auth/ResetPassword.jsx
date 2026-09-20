@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
 import { useAuthStore } from '../../store/useAuthStore'
 import { isPasswordValid } from '../../lib/passwordPolicy'
 import Alert from '../ui/Alert'
+import Button from '../ui/Button'
 import FormField from '../ui/FormField'
 import PasswordField from './PasswordField'
 import PasswordStrengthChecklist from './PasswordStrengthChecklist'
@@ -88,14 +88,9 @@ export default function ResetPassword() {
 
           {error && <Alert tone="error">{error}</Alert>}
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-ink px-4 py-3 text-sm font-semibold text-paper transition hover:bg-ink-soft disabled:opacity-60"
-          >
-            {isSubmitting && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
+          <Button type="submit" fullWidth loading={isSubmitting}>
             Reset password
-          </button>
+          </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-ink/60">

@@ -4,6 +4,7 @@ import {
   getDashboardCapacityController,
   getDashboardRedistributionController,
   getDashboardAcceptanceController,
+  getDashboardLaborController,
 } from "../controllers/dashboard.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { requireRole } from "../middleware/requireRole.js";
@@ -19,5 +20,6 @@ router.get("/pressure", getDashboardPressureController);
 router.get("/capacity", getDashboardCapacityController);
 router.get("/redistribution", getDashboardRedistributionController);
 router.get("/acceptance", getDashboardAcceptanceController);
+router.get("/labor", getDashboardLaborController);
 
 export default router;

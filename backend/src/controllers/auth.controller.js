@@ -12,7 +12,7 @@ import cloudinary from "../lib/cloudinary.js";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_FULLNAME_LEN = 200;
 const MAX_EMAIL_LEN = 254; // RFC 5321
-const SIGNUP_ROLES = ["traveller", "operator", "authority"];
+const SIGNUP_ROLES = ["traveller", "operator", "authority", "worker"];
 
 // The user-facing app's own URL, for links embedded in emails -- distinct
 // from CLIENT_URL's role as a CORS allowlist (which may be comma-separated
@@ -94,6 +94,7 @@ export const signup = async (req, res) => {
       email: newUser.email,
       role: newUser.role,
       profilePhoto: newUser.profilePhoto,
+      createdAt: newUser.createdAt,
     });
   } catch (error) {
     console.log("Error in signup controller", error.message);
@@ -138,6 +139,7 @@ export const login = async (req, res) => {
       phone: user.phone,
       preferredLanguage: user.preferredLanguage,
       profilePhoto: user.profilePhoto,
+      createdAt: user.createdAt,
     });
   } catch (error) {
     console.log("Error in login controller", error.message);
@@ -334,6 +336,7 @@ export const updateProfile = async (req, res) => {
       phone: user.phone,
       preferredLanguage: user.preferredLanguage,
       profilePhoto: user.profilePhoto,
+      createdAt: user.createdAt,
     });
   } catch (error) {
     console.log("Error in updateProfile controller", error.message);
@@ -377,6 +380,7 @@ export const uploadProfilePhoto = async (req, res) => {
       phone: user.phone,
       preferredLanguage: user.preferredLanguage,
       profilePhoto: user.profilePhoto,
+      createdAt: user.createdAt,
     });
   } catch (error) {
     console.log("Error in uploadProfilePhoto controller", error.message);
@@ -399,6 +403,7 @@ export const removeProfilePhoto = async (req, res) => {
       phone: user.phone,
       preferredLanguage: user.preferredLanguage,
       profilePhoto: user.profilePhoto,
+      createdAt: user.createdAt,
     });
   } catch (error) {
     console.log("Error in removeProfilePhoto controller", error.message);

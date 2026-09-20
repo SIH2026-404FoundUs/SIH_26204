@@ -162,12 +162,12 @@ export default function PreferencesCard({ userId }) {
               {languages.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {languages.map((lang) => (
-                    <span key={lang} className="inline-flex items-center gap-1 rounded-full bg-paper-dim px-2.5 py-0.5 text-xs font-medium text-ink/70">
+                    <Badge key={lang}>
                       {lang}
                       <button type="button" onClick={() => removeLanguage(lang)} aria-label={`Remove ${lang}`} className="text-ink/50 hover:text-ink">
                         <X size={11} />
                       </button>
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               )}
@@ -189,12 +189,12 @@ export default function PreferencesCard({ userId }) {
               {Object.keys(interests).length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {Object.entries(interests).map(([key, value]) => (
-                    <span key={key} className="inline-flex items-center gap-1 rounded-full bg-paper-dim px-2.5 py-0.5 text-xs font-medium text-ink/70">
+                    <Badge key={key}>
                       {key} &middot; {typeof value === 'number' ? value.toFixed(2) : String(value)}
                       <button type="button" onClick={() => removeInterest(key)} aria-label={`Remove ${key}`} className="text-ink/50 hover:text-ink">
                         <X size={11} />
                       </button>
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               )}

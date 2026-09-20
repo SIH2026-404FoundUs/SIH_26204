@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Store, Check, Mic, MessageCircle } from 'lucide-react'
+import { Store, Check, Mic, MessageCircle, Globe } from 'lucide-react'
 import { useOperatorStore } from '../../store/useOperatorStore'
 import PageHeader from '../ui/PageHeader'
 import Card from '../ui/Card'
@@ -28,7 +28,7 @@ const BUSINESS_TYPES = [
 
 const EMPTY_FORM = {
   name: '', type: 'hotel', destId: '', capacity: '', ownerPhone: '',
-  minPriceINR: '', maxPriceINR: '', languages: '', amenities: '', meals: '', nearestLandmark: '',
+  minPriceINR: '', maxPriceINR: '', languages: '', amenities: '', meals: '', nearestLandmark: '', websiteUrl: '',
 }
 
 // Registers a business directly (POST /v1/businesses) -- an alternative
@@ -66,6 +66,7 @@ export default function RegisterBusiness() {
       amenities: form.amenities.split(',').map((a) => a.trim()).filter(Boolean),
       meals: form.meals.split(',').map((m) => m.trim()).filter(Boolean),
       nearestLandmark: form.nearestLandmark.trim() || undefined,
+      websiteUrl: form.websiteUrl.trim() || undefined,
     }
     if (form.minPriceINR || form.maxPriceINR) {
       payload.priceRangeINR = {
@@ -95,7 +96,7 @@ export default function RegisterBusiness() {
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-relief/15 text-relief">
               <Mic size={18} aria-hidden="true" />
             </span>
-            <h2 className="text-base font-semibold text-ink">Register via WhatsApp Voice</h2>
+            <h2 className="text-sm font-semibold text-ink">Register via WhatsApp Voice</h2>
           </div>
           <p className="text-sm text-ash">
             Skip filling out the form manually. Tourism providers can register their business simply by sending a voice message on WhatsApp in their preferred language. Our AI assistant will automatically extract your business details, capacity, pricing, and amenities.
@@ -156,6 +157,9 @@ export default function RegisterBusiness() {
           <FormField label="Nearest landmark" optional>
             <input value={form.nearestLandmark} onChange={set('nearestLandmark')} className={inputClass} />
           </FormField>
+          <FormField label="Website or Instagram link" optional hint="Shown to help promote your business">
+            <input value={form.websiteUrl} onChange={set('websiteUrl')} placeholder="e.g. myhotel.com" className={inputClass} />
+          </FormField>
           <FormField label="Languages spoken" optional hint="Comma-separated, e.g. en, hi">
             <input value={form.languages} onChange={set('languages')} className={inputClass} />
           </FormField>
@@ -207,6 +211,11 @@ export default function RegisterBusiness() {
                 <div>
                   <p className="font-medium text-ink">{b.name}</p>
                   <p className="text-xs text-ash">{b.destId} · capacity {b.capacity ?? '—'}</p>
+                  {b.websiteUrl && (
+                    <a href={b.websiteUrl} target="_blank" rel="noopener noreferrer" className="mt-1 flex items-center gap-1 text-xs font-medium text-relief hover:underline">
+                      <Globe size={11} aria-hidden="true" /> {b.websiteUrl.replace(/^https?:\/\//, '')}
+                    </a>
+                  )}
                 </div>
                 <Badge tone="success" icon={Check}>{b.type}</Badge>
               </div>

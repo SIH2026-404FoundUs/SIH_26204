@@ -83,8 +83,20 @@ export const useAuthStore = create((set) => ({
     try {
       const formData = new FormData()
       formData.append('photo', file)
+      // Content-Type: undefined (not omitted) -- `api`'s instance default is
+      // 'application/json', so simply leaving this option out still leaves
+      // that default in place for axios's own transformRequest step, which
+      // would then JSON.stringify the FormData instead of sending it. And
+      // setting it to the literal string 'multipart/form-data' (no boundary)
+      // makes the browser send that exact header verbatim instead of
+      // generating one with a real boundary, so busboy (multer's parser)
+      // throws "Boundary not found" and crashes this endpoint with an
+      // unhandled 500 on every upload -- both confirmed live against the
+      // running backend. `undefined` clears the default so axios's FormData
+      // handling takes over and the browser computes the correct
+      // multipart/form-data; boundary=... header itself.
       const res = await api.post('/auth/profile-photo', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': undefined },
       })
       set({ authUser: res.data })
       return true

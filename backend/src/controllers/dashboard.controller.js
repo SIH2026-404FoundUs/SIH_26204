@@ -10,6 +10,8 @@
 import { getPressureMap } from "../services/pressure/service.js";
 import { computeCapacityGapForDate } from "../services/dashboard/capacityGap.js";
 import { computeTripsAnalytics } from "../services/dashboard/tripsAnalytics.js";
+import { laborDemandGap } from "../services/incentive/laborDemandGap.js";
+import { loadDestinations } from "../services/pressure/seed.js";
 import { isValidCalendarDate } from "../lib/dateValidation.js";
 
 function requireDateParam(req, res) {
@@ -86,6 +88,34 @@ export const getDashboardAcceptanceController = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in getDashboardAcceptance controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// GET /api/v1/dashboard/labor?date=YYYY-MM-DD -- Worker role design spec
+// §08: laborDemandGap(destId, date) fed to every tracked destination, the
+// same read-only-signal treatment the pressure/capacity endpoints above
+// already get. Purely additive -- nothing above this function changes.
+export const getDashboardLaborController = async (req, res) => {
+  try {
+    const date = requireDateParam(req, res);
+    if (!date) return;
+    const destinations = loadDestinations();
+    const rows = await Promise.all(
+      destinations.map(async (dest) => {
+        const { openGigsHeadcount, availableWorkers, laborDemandGap: gap } = await laborDemandGap(dest._id, date);
+        return {
+          destId: dest._id,
+          displayName: dest.displayName ?? dest.name ?? dest._id,
+          openGigsHeadcount,
+          availableWorkers,
+          laborDemandGap: gap,
+        };
+      })
+    );
+    res.status(200).json({ date, destinations: rows });
+  } catch (error) {
+    console.log("Error in getDashboardLabor controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

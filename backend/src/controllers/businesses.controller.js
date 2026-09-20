@@ -147,7 +147,7 @@ export const registerBusinessController = async (req, res) => {
 
     const {
       name, type, destId, capacity, ownerPhone,
-      languages, priceRangeINR, amenities, meals, nearestLandmark,
+      languages, priceRangeINR, amenities, meals, nearestLandmark, websiteUrl,
     } = req.body;
 
     if (!name || typeof name !== "string" || !name.trim()) {
@@ -164,6 +164,18 @@ export const registerBusinessController = async (req, res) => {
     }
     if (!ownerPhone || typeof ownerPhone !== "string" || !ownerPhone.trim()) {
       return res.status(400).json({ message: "ownerPhone is required" });
+    }
+    let cleanWebsiteUrl;
+    if (websiteUrl && typeof websiteUrl === "string" && websiteUrl.trim()) {
+      // Accept a bare domain (no scheme) the way a non-technical operator
+      // would type one -- "myhotel.com" is just as valid an input as
+      // "https://myhotel.com", not caller error.
+      const candidate = /^https?:\/\//i.test(websiteUrl.trim()) ? websiteUrl.trim() : `https://${websiteUrl.trim()}`;
+      try {
+        cleanWebsiteUrl = new URL(candidate).toString();
+      } catch {
+        return res.status(400).json({ message: "websiteUrl is not a valid URL" });
+      }
     }
 
     const update = {
@@ -187,6 +199,7 @@ export const registerBusinessController = async (req, res) => {
     if (Array.isArray(amenities)) update.amenities = amenities.filter((a) => typeof a === "string");
     if (Array.isArray(meals)) update.meals = meals.filter((m) => typeof m === "string");
     if (nearestLandmark && typeof nearestLandmark === "string") update.nearestLandmark = nearestLandmark.trim();
+    if (cleanWebsiteUrl) update.websiteUrl = cleanWebsiteUrl;
 
     const business = await Business.create(update);
 

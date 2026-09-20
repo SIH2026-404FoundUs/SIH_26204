@@ -1,9 +1,13 @@
-// Single source of truth for turning a destId slug into something a person
-// reads, and for populating destination pickers. There's no reliable public
-// "list destinations" endpoint yet (the backend serves them from seed files,
-// not a queryable collection), so this mirrors that seed data here rather
-// than guessing at display names per-page.
-export const DESTINATION_GROUPS = [
+import { useEffect, useState } from 'react'
+import api from './api'
+
+// GET /api/destinations now serves the full seeded set (200 places across 8
+// states) -- this used to be a static mirror of just Himachal Pradesh/
+// Telangana because no list endpoint existed yet. Fetched once per page
+// load and cached; FALLBACK_DESTINATION_GROUPS below only covers the case
+// where that request hasn't resolved yet (or fails), so a picker never
+// renders empty.
+const FALLBACK_DESTINATION_GROUPS = [
   {
     state: 'Himachal Pradesh',
     destinations: [
@@ -52,8 +56,8 @@ export const DESTINATION_GROUPS = [
   },
 ]
 
-const LOOKUP = new Map(
-  DESTINATION_GROUPS.flatMap((g) => g.destinations.map((d) => [d.id, d.label]))
+const FALLBACK_LOOKUP = new Map(
+  FALLBACK_DESTINATION_GROUPS.flatMap((g) => g.destinations.map((d) => [d.id, d.label]))
 )
 
 // "tirthan-valley" -> "Tirthan Valley" as a last resort for anything not in
@@ -67,7 +71,56 @@ function humanizeSlug(id) {
     .join(' ')
 }
 
+function toGroups(items) {
+  const byState = new Map()
+  for (const d of items) {
+    const key = d.state || 'Other'
+    if (!byState.has(key)) byState.set(key, [])
+    byState.get(key).push({ id: d.id, label: d.displayName })
+  }
+  return [...byState.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([state, destinations]) => ({
+      state,
+      destinations: destinations.sort((a, b) => a.label.localeCompare(b.label)),
+    }))
+}
+
+let cachedGroups = null
+let cachedLookup = FALLBACK_LOOKUP
+let fetchPromise = null
+
+function loadDestinations() {
+  if (!fetchPromise) {
+    fetchPromise = api.get('/destinations').then((res) => {
+      const items = res.data?.data || []
+      cachedGroups = toGroups(items)
+      cachedLookup = new Map(items.map((d) => [d.id, d.displayName]))
+      return cachedGroups
+    }).catch(() => {
+      fetchPromise = null // allow a retry on the next call/render
+      return null
+    })
+  }
+  return fetchPromise
+}
+
+loadDestinations() // kick off on first import so labels resolve ASAP app-wide
+
+// The full grouped list for pickers -- starts as the fallback and swaps to
+// the real 200-destination list once the fetch resolves.
+export function useDestinationGroups() {
+  const [groups, setGroups] = useState(cachedGroups || FALLBACK_DESTINATION_GROUPS)
+  useEffect(() => {
+    if (cachedGroups) { setGroups(cachedGroups); return }
+    let alive = true
+    loadDestinations().then((g) => { if (alive && g) setGroups(g) })
+    return () => { alive = false }
+  }, [])
+  return groups
+}
+
 export function getDestinationLabel(destId) {
   if (!destId) return 'Unknown destination'
-  return LOOKUP.get(destId) || humanizeSlug(destId)
+  return cachedLookup.get(destId) || FALLBACK_LOOKUP.get(destId) || humanizeSlug(destId)
 }

@@ -95,6 +95,12 @@ export default function OffersWaitlist() {
     [businesses]
   )
 
+  // "Your waitlist entries" is meant to show what's actually still waiting --
+  // a cancelled entry the traveller dismissed, or one already fulfilled (and
+  // surfaced instead via the waitlist-fulfilled notification/email), has
+  // nothing left to act on here and was cluttering the list.
+  const activeWaitlists = useMemo(() => waitlists.filter((w) => w.state === 'waiting'), [waitlists])
+
   const loadOffers = (e) => { e?.preventDefault(); fetchOffers(destId) }
   const handleJoin = async (e) => {
     e.preventDefault()
@@ -122,7 +128,7 @@ export default function OffersWaitlist() {
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 text-sm font-semibold transition ${tab === 'waitlist' ? 'bg-white text-ink shadow-sm' : 'text-ink/60'}`}
         >
           <ListPlus size={15} aria-hidden="true" /> Join waitlist
-          {waitlists.length > 0 && <Badge tone="info">{waitlists.length}</Badge>}
+          {activeWaitlists.length > 0 && <Badge tone="info">{activeWaitlists.length}</Badge>}
         </button>
       </div>
 
@@ -173,15 +179,15 @@ export default function OffersWaitlist() {
           <div>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-ink">Your waitlist entries</h2>
-              {waitlists.length > 0 && <Badge tone="info">{waitlists.length} {waitlists.length === 1 ? 'entry' : 'entries'}</Badge>}
+              {activeWaitlists.length > 0 && <Badge tone="info">{activeWaitlists.length} {activeWaitlists.length === 1 ? 'entry' : 'entries'}</Badge>}
             </div>
             {isLoadingWaitlists ? (
               <LoadingState label="Loading your waitlist entries…" />
-            ) : waitlists.length === 0 ? (
+            ) : activeWaitlists.length === 0 ? (
               <EmptyState icon={ListPlus} title="You haven't joined any waitlists" description="Join one above to get notified when a discount opens up." />
             ) : (
               <div className="space-y-2">
-                {waitlists.map((w) => {
+                {activeWaitlists.map((w) => {
                   const state = waitlistState(w.state)
                   return (
                     <Card key={w._id} padding="p-4" className="flex items-center justify-between">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Users, Store, Mic, Upload, Phone, Languages } from 'lucide-react'
+import { Users, Store, Mic, Upload, Phone, Languages, Briefcase } from 'lucide-react'
 import { useOperatorStore } from '../../store/useOperatorStore'
+import PostGig from './PostGig'
 import PageHeader from '../ui/PageHeader'
 import Card from '../ui/Card'
 import Badge from '../ui/Badge'
@@ -14,6 +15,7 @@ import DestinationSelect from '../ui/DestinationSelect'
 const PAGE_TABS = [
   { key: 'businesses', label: 'Local Businesses', icon: Store },
   { key: 'onboarding', label: 'Onboarding', icon: Mic },
+  { key: 'post-gig', label: 'Post a Gig', icon: Briefcase },
 ]
 
 const WORKER_TABS = [
@@ -183,11 +185,11 @@ export default function HirePeople() {
   useEffect(() => { fetchMyBusinesses() }, [fetchMyBusinesses])
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
       <PageHeader
         icon={Users}
         title="Hire people"
-        description="Workers, cooks, drivers, and guides get listed the same way a business does -- browse who's already onboarded, or onboard someone new."
+        description="Browse workers already onboarded, onboard someone new, or post a short-term gig that notifies matching workers immediately."
       />
 
       {isLoadingBusinesses ? (
@@ -212,7 +214,9 @@ export default function HirePeople() {
             ))}
           </div>
 
-          {activeTab === 'businesses' ? <LocalBusinessesTab /> : <OnboardingTab />}
+          {activeTab === 'businesses' && <LocalBusinessesTab />}
+          {activeTab === 'onboarding' && <OnboardingTab />}
+          {activeTab === 'post-gig' && <PostGig />}
         </>
       )}
     </div>

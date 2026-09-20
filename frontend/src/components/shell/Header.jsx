@@ -3,7 +3,7 @@ import {
   Loader2, LogOut, Menu, X, ChevronDown, Compass, MapPinned,
   ShieldCheck, Store, Route, UserRound, Wrench, Landmark,
   Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users, Bot,
-  PanelLeftClose, PanelLeftOpen, CheckCircle2, Megaphone,
+  PanelLeftClose, PanelLeftOpen, CheckCircle2, Megaphone, IndianRupee, Briefcase, ClipboardList,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -51,40 +51,38 @@ const TRAVELLER_MORE = [
   { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
   { to: '/safety', label: 'Safety', icon: ShieldCheck },
 ]
-// Operator primary bar trimmed down to just the post-login features, no
-// More section (same pattern as Authority below), no Profile (reachable via
-// the account menu like every other role) -- Home, Operator console,
-// Businesses, Explore, Map, and Alerts are no longer operator nav items.
-// All of it stays reachable as a route (App.jsx) and still works for any
-// other role that links to it; only navigation was trimmed, per §56 UI-only
-// role gating. "Register Business" itself drops out of this list once the
-// operator has registered at least one (navForRole's hasBusinesses flag,
-// backed by the same useOperatorStore.myBusinesses RegisterBusiness.jsx
-// already populates) -- it did its job, no need for it to keep taking a
-// nav slot every time this operator logs back in. Analytics is real
-// aggregate data over Bookings/Visits/Waitlist/Offers for this operator's
-// own businesses (GET /v1/analytics/operator) -- never per-traveller
-// identity, only counts. Content Generator is the Tourism Publicity
-// Generator (text/voice in, Groq-primary/Mistral-fallback marketing copy
-// out, backend/src/services/content/contentGeneratorService.js) --
-// operator-only both here and at the route's actual authorization boundary
-// (requireRole("operator") on the backend route). Ordered by how often an
-// operator actually reaches for each one, not alphabetically: Console
-// (the home base) and Register Business (one-time setup, drops out once
-// done) lead; Verify a Visit and Waitlist & Offers are the two genuinely
-// daily operational tasks, so they come right after; Content Generator and
-// Hire People are periodic/occasional; Multimodal Agent is an anytime
-// helper, so it closes out the list the same way it does for every role.
+// Operator nav split into primary/more the same way Traveller's already is
+// (previously operator dumped all nine destinations into one flat primary
+// bar with no More section at all -- inconsistent with every other
+// multi-item role, and it read as a grab-bag rather than a workflow).
+// PRIMARY is "the job": the core loop of running a listing day to day --
+// set up (Console, Register Business), get staffed (Hire People, which now
+// also holds Post a Gig as its third tab), then the two genuinely daily
+// operational tasks (Verify a Visit, Waitlist & Offers). MORE is "insight,
+// growth, and support" -- things reached for periodically, not per booking:
+// Revenue Management (GET/POST /v1/revenue/:businessId/..., demand
+// forecast + price/promotion/inventory recommendations), Content Generator
+// (Tourism Publicity Generator, Groq/Mistral marketing copy), Raise a
+// Complaint (POST /v1/safety/complaints -- never role-restricted
+// server-side, just previously nothing in this nav pointed at it), and
+// Multimodal Agent, same "anytime helper closes out More" placement
+// Traveller already uses. "Register Business" still drops out of PRIMARY
+// once at least one business is registered (navForRole's hasBusinesses
+// flag) -- reachable afterward from the profile-menu dropdown instead
+// (ProfileMenu, below).
 const OPERATOR_PRIMARY_BASE = [
   { to: '/operator', label: 'Operator Console', icon: Wrench },
   { to: '/register-business', label: 'Register Business', icon: Store },
+  { to: '/hire-people', label: 'Hire People', icon: Users },
   { to: '/visits', label: 'Verify a Visit', icon: BadgeCheck },
   { to: '/operator/waitlist', label: 'Waitlist & Offers', icon: Tag },
+]
+const OPERATOR_MORE = [
+  { to: '/operator/revenue', label: 'Revenue Management', icon: IndianRupee },
   { to: '/operator/content-generator', label: 'Content Generator', icon: Megaphone },
-  { to: '/hire-people', label: 'Hire People', icon: Users },
+  { to: '/operator/complaints', label: 'Raise a Complaint', icon: ClipboardList },
   { to: '/multimodal-agent', label: 'Multimodal Agent', icon: Bot },
 ]
-const OPERATOR_MORE = []
 // Authority nav trimmed to exactly two destinations, no More section --
 // Pressure Map and Businesses are removed as separate nav items (pressure
 // data still surfaces inside the Authority Dashboard itself, unchanged).
@@ -94,11 +92,30 @@ const AUTHORITY_PRIMARY = [
   { to: '/multimodal-agent', label: 'Multimodal Agent', icon: Bot },
 ]
 const AUTHORITY_MORE = []
+// Worker role -- the narrowest nav of any role (worker-role-spec.md §01:
+// "no dashboard full of KPIs. Just: be found, get offered work, do it, get
+// rated"). Worker Console holds gigs/jobs/profile as its own internal tabs
+// rather than three separate nav entries, same consolidation OperatorConsole
+// and AuthorityDashboard already use for closely related sub-views.
+const WORKER_PRIMARY = [
+  { to: '/worker', label: 'Worker Console', icon: Briefcase },
+  { to: '/multimodal-agent', label: 'Multimodal Agent', icon: Bot },
+]
+const WORKER_MORE = []
 
 // Shown next to the brand mark once logged in -- the account's own
 // server-side role (never a frontend guess), so a traveller/operator/
-// authority always sees which one they're signed in as.
-const ROLE_LABEL = { traveller: 'Traveller', operator: 'Operator', authority: 'Authority' }
+// authority/worker always sees which one they're signed in as.
+const ROLE_LABEL = { traveller: 'Traveller', operator: 'Operator', authority: 'Authority', worker: 'Worker' }
+
+// Where the brand mark itself links to -- was hardcoded to '/home' (the
+// traveller "Plan a trip" page) for every logged-in role, so clicking the
+// Sahyatri logo as an operator or authority incorrectly bounced them into
+// the traveller trip planner. Each role's own home base instead.
+const ROLE_HOME = { operator: '/operator', authority: '/authority', worker: '/worker' }
+function homeForRole(role) {
+  return ROLE_HOME[role] || '/home'
+}
 
 // Backend authorization remains the final authority (§56) -- this only
 // decides what a role is shown, never what it's allowed to call.
@@ -110,6 +127,7 @@ function navForRole(role, { hasBusinesses = false } = {}) {
     return { primary, more: OPERATOR_MORE }
   }
   if (role === 'authority') return { primary: AUTHORITY_PRIMARY, more: AUTHORITY_MORE }
+  if (role === 'worker') return { primary: WORKER_PRIMARY, more: WORKER_MORE }
   return { primary: TRAVELLER_PRIMARY, more: TRAVELLER_MORE }
 }
 
@@ -167,6 +185,12 @@ function ProfileMenu() {
           </div>
           <NavLink to="/profile" label="Profile" icon={UserRound} onClick={() => setOpen(false)} />
           {authUser.role === 'traveller' && <NavLink to="/trips" label="My Trips" icon={Route} onClick={() => setOpen(false)} />}
+          {/* Operator: "Register Business" itself drops out of the main nav
+              once at least one business is registered (navForRole's
+              hasBusinesses flag -- it "did its job"), but an operator with
+              more than one property still needs a way back to that form.
+              Always present here, unlike the main nav entry. */}
+          {authUser.role === 'operator' && <NavLink to="/register-business" label="Register a business" icon={Store} onClick={() => setOpen(false)} />}
           <button
             type="button"
             onClick={() => { setOpen(false); logout() }}
@@ -369,7 +393,7 @@ export default function Header() {
     <>
     <header className="glass-surface sticky top-0 z-50 border-b border-ink/5">
       <div className="mx-auto flex min-h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link to={authUser ? '/home' : '/'} className="group flex shrink-0 items-center gap-2.5 text-ink">
+        <Link to={authUser ? homeForRole(authUser.role) : '/'} className="group flex shrink-0 items-center gap-2.5 text-ink">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-paper shadow-sm transition group-hover:bg-ink-soft"><Compass size={19} aria-hidden="true" /></span>
           <span className="font-display text-xl tracking-tight">Sahyatri</span>
           {authUser && (

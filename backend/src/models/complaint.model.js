@@ -10,11 +10,22 @@ const complaintSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: [
+        // Traveller-facing categories (original set)
         "safety_advisory",
         "overcharging_pricing",
         "hygiene_cleanliness",
         "service_misrepresentation",
         "transport_issue",
+        // Operator-facing categories -- an operator reporting something is
+        // never complaining about being overcharged or mis-served the way
+        // a traveller would; these are the real shapes an operator's
+        // report actually takes. Same Complaint collection, same
+        // moderation queue -- just a category vocabulary that matches who
+        // is actually filing it.
+        "traveller_dispute",
+        "unfair_review",
+        "payment_billing_issue",
+        "platform_policy_issue",
         "other",
       ],
       default: "other",

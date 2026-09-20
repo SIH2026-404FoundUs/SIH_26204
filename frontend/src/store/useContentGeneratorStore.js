@@ -16,8 +16,15 @@ export const useContentGeneratorStore = create((set, get) => ({
     try {
       const formData = new FormData()
       formData.append('audio', blob, 'recording.webm')
+      // Content-Type: undefined, not 'multipart/form-data' -- see the
+      // matching comment in useAuthStore.js's uploadProfilePhoto. The
+      // literal string (no boundary) makes busboy throw "Boundary not
+      // found" and crash this endpoint with an unhandled 500 on every
+      // upload; `undefined` clears `api`'s default 'application/json' so
+      // the browser computes the real multipart boundary itself -- both
+      // confirmed live against the running backend.
       const res = await api.post('/v1/content/transcribe', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': undefined },
       })
       return res.data // { transcript, detectedLanguage }
     } catch (error) {
