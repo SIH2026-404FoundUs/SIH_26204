@@ -1,49 +1,31 @@
 {
   "_id": "manali",
-  "name": "Manali",
   "displayName": "Manali, Himachal Pradesh",
   "state": "HP",
-  "district": "Kullu",
-  "googlePlaceId": "ChIJc86YV4s3DzkRW8u2kU_1vCY",
-  "location": {
-    "lat": 32.2432,
-    "lng": 77.1887,
-    "type": "Point",
-    "coordinates": [
-      77.1887,
-      32.2432
-    ]
-  },
-  "trackingTier": "tracked",
-  "attrs": {
-    "snow": 1,
-    "trek": 0.9,
-    "riverside": 0.8,
-    "heritage": 0.4,
-    "nightlife": 0.8,
-    "food": 0.8,
-    "wildlife": 0.6,
-    "spiritual": 0.5
-  },
-  "nearestRailhead": "CDG",
-  "railheadDistanceKm": 280,
-  "railSignalConfidence": 0.08,
-  "roadAccess": {
-    "operators": [
-      "HRTC",
-      "Zingbus",
-      "Laxmi Travels"
-    ],
-    "corridor": "Delhi-Mandi-Manali",
-    "boardingPoint": "Kashmere Gate ISBT Delhi"
-  },
+  "lat": 32.2431872,
+  "lng": 77.1891761,
+  "googlePlaceId": "ChIJP9A_FgiHBDkRzXZQvg6oKYE",
+  "attr_snow": 0.85,
+  "attr_trek": 0.8,
+  "attr_riverside": 0.6,
+  "attr_heritage": 0.3,
+  "attr_nightlife": 0.5,
+  "attr_food": 0.65,
+  "attr_wildlife": 0.15,
+  "attr_spiritual": 0.35,
+  "nearestRailhead": "Chandigarh",
+  "railheadDistanceKm": 310,
+  "railSignalConfidence": 0.1,
+  "capacityPrior": 0.75,
   "nearestAirport": "KUU",
-  "capacityPrior": 0.85,
-  "baseline": {
-    "railWL": 25,
-    "roadSeatsAvail": 15,
-    "hotelMedianINR": 4200
-  },
-  "seededAt": "2026-09-05T16:16:25.121046Z",
-  "demoCorridor": true
+  "road_operators": "HRTC|HPTDC",
+  "road_corridor": "Chandigarh-Manali Highway (NH-3/NH-21)",
+  "road_boardingPoint": "Manali Bus Stand",
+  "baseline_railWL": 55,
+  "baseline_roadSeatsAvail": 0.18,
+  "baseline_hotelMedianINR": 4000,
+  "baselineDailyVisitors": 13000,
+  "trackingTier": "tracked",
+  "seededAt": "2026-09-17T00:00:00.000Z",
+  "provenanceNotes": "estimated"
 }

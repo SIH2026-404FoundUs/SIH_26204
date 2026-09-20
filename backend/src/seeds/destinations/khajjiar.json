@@ -1,46 +1,31 @@
 {
   "_id": "khajjiar",
-  "name": "Khajjiar",
   "displayName": "Khajjiar, Himachal Pradesh",
   "state": "HP",
-  "district": "Chamba",
-  "googlePlaceId": "ChIJF8y1m7RHDzkRsL66u4466AY",
-  "location": {
-    "lat": 32.55,
-    "lng": 76.06,
-    "type": "Point",
-    "coordinates": [
-      76.06,
-      32.55
-    ]
-  },
-  "trackingTier": "tracked",
-  "attrs": {
-    "snow": 0.8,
-    "trek": 0.6,
-    "riverside": 0.4,
-    "heritage": 0.3,
-    "nightlife": 0.1,
-    "food": 0.5,
-    "wildlife": 0.7,
-    "spiritual": 0.3
-  },
-  "nearestRailhead": "PTK",
-  "railheadDistanceKm": 95,
-  "railSignalConfidence": 0.35,
-  "roadAccess": {
-    "operators": [
-      "HRTC"
-    ],
-    "corridor": "Dalhousie-Khajjiar",
-    "boardingPoint": "Dalhousie"
-  },
-  "nearestAirport": "IXC",
+  "lat": 32.5532801,
+  "lng": 76.0615409,
+  "googlePlaceId": "ChIJtTM0cmqWHDkR3NPrdubYgbI",
+  "attr_snow": 0.35,
+  "attr_trek": 0.35,
+  "attr_riverside": 0.2,
+  "attr_heritage": 0.15,
+  "attr_nightlife": 0.05,
+  "attr_food": 0.2,
+  "attr_wildlife": 0.35,
+  "attr_spiritual": 0.2,
+  "nearestRailhead": "Pathankot",
+  "railheadDistanceKm": 100,
+  "railSignalConfidence": 0.28,
   "capacityPrior": 0.75,
-  "baseline": {
-    "railWL": 18,
-    "roadSeatsAvail": 45,
-    "hotelMedianINR": 2800
-  },
-  "seededAt": "2026-09-05T16:16:25.121046Z"
+  "nearestAirport": "DHM",
+  "road_operators": "HRTC",
+  "road_corridor": "Dalhousie-Khajjiar-Chamba Road",
+  "road_boardingPoint": "Khajjiar Chowk",
+  "baseline_railWL": 30,
+  "baseline_roadSeatsAvail": 0.3,
+  "baseline_hotelMedianINR": 2200,
+  "baselineDailyVisitors": 2500,
+  "trackingTier": "tracked",
+  "seededAt": "2026-09-17T00:00:00.000Z",
+  "provenanceNotes": "estimated"
 }

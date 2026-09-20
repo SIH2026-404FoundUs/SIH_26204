@@ -1,0 +1,75 @@
+{
+  "formula_version": 3,
+  "weights": {
+    "demand": 0.3059,
+    "access": 0.2135,
+    "stay": 0.2136,
+    "calendar": 0.1068,
+    "weather": 0.1068,
+    "capacity": 0.0534
+  },
+  "weights_doc": {
+    "demand": 0.35,
+    "access": 0.2,
+    "stay": 0.2,
+    "calendar": 0.1,
+    "weather": 0.1,
+    "capacity": 0.05
+  },
+  "weight_derivation": "demand = 0.35 * (1 - redundancy_R2=0.1261), floor 0.1; remainder split by doc ratios",
+  "level_thresholds": [
+    0.25,
+    0.5,
+    0.75
+  ],
+  "score_calibration": {
+    "type": "frozen_logistic",
+    "g": 9.763148251163035,
+    "median": 0.48702263329931106,
+    "formula": "score = 1 / (1 + exp(-g * (raw - median)))",
+    "fitted_on": "2025-H2 synthetic corpus",
+    "note": "bounded and strictly rank-preserving; never clips. Apply identically at inference."
+  },
+  "score_uncertainty": {
+    "demand_component_mae": 0.13559057688185605,
+    "demand_component_p95": 0.4137467988964546,
+    "fused_score_mae_from_demand": 0.10123690934961946,
+    "fused_score_p95_from_demand": 0.30891857042597043,
+    "model_test_nmae": 0.09035832001342148,
+    "note": "propagated from the model's own 2025-H2 error through the sigmoid and the fusion weight"
+  },
+  "sigmoid": {
+    "k": 10.822928683894892,
+    "midpoint": 1.0050804228111732,
+    "method": "closed_form_quantile_match_on_2025H1",
+    "clip": [
+      0.01,
+      0.99
+    ]
+  },
+  "baseline_definition": "per-destination per-calendar-month median of estimatedVisitors over 2024 training window; WITHIN-destination deviation only, not comparable across destinations",
+  "incentive_gate": 0.3,
+  "incentive_gate_population_frac": 0.27603260869565216,
+  "production_model": "xgb_causal",
+  "production_features": [
+    "is_weekend",
+    "is_monsoon",
+    "month_sin",
+    "month_cos",
+    "dow_sin",
+    "dow_cos",
+    "is_holiday",
+    "days_to_holiday",
+    "tempC",
+    "precipMm",
+    "attr_snow",
+    "attr_trek",
+    "attr_riverside",
+    "attr_heritage",
+    "attr_nightlife",
+    "attr_food",
+    "attr_wildlife",
+    "attr_spiritual",
+    "cap_prior_dest"
+  ]
+}

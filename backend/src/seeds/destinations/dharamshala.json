@@ -1,48 +1,31 @@
 {
   "_id": "dharamshala",
-  "name": "Dharamshala",
   "displayName": "Dharamshala, Himachal Pradesh",
   "state": "HP",
-  "district": "Kangra",
-  "googlePlaceId": "ChIJy4vX_y81DzkRQW8n6Q3w4vU",
-  "location": {
-    "lat": 32.219,
-    "lng": 76.3233,
-    "type": "Point",
-    "coordinates": [
-      76.3233,
-      32.219
-    ]
-  },
-  "trackingTier": "tracked",
-  "attrs": {
-    "snow": 0.6,
-    "trek": 0.7,
-    "riverside": 0.4,
-    "heritage": 0.7,
-    "nightlife": 0.5,
-    "food": 0.8,
-    "wildlife": 0.5,
-    "spiritual": 0.9
-  },
-  "nearestRailhead": "PTKC",
+  "lat": 32.219042,
+  "lng": 76.3234037,
+  "googlePlaceId": "ChIJEXO9Zd9QGzkRENzGALG9CD4",
+  "attr_snow": 0.35,
+  "attr_trek": 0.6,
+  "attr_riverside": 0.15,
+  "attr_heritage": 0.45,
+  "attr_nightlife": 0.3,
+  "attr_food": 0.5,
+  "attr_wildlife": 0.15,
+  "attr_spiritual": 0.55,
+  "nearestRailhead": "Pathankot",
   "railheadDistanceKm": 85,
-  "railSignalConfidence": 0.4,
-  "roadAccess": {
-    "operators": [
-      "HRTC",
-      "Bedi Travels"
-    ],
-    "corridor": "Delhi-Pathankot-Dharamshala",
-    "boardingPoint": "Pathankot Junction"
-  },
+  "railSignalConfidence": 0.35,
+  "capacityPrior": 0.5,
   "nearestAirport": "DHM",
-  "capacityPrior": 0.6,
-  "baseline": {
-    "railWL": 30,
-    "roadSeatsAvail": 45,
-    "hotelMedianINR": 2800
-  },
-  "seededAt": "2026-09-05T16:16:25.121046Z",
-  "demoCorridor": true
+  "road_operators": "HRTC|HPTDC",
+  "road_corridor": "Pathankot-Mandi Highway (NH-154)",
+  "road_boardingPoint": "Dharamshala ISBT, Kotwali Bazaar",
+  "baseline_railWL": 30,
+  "baseline_roadSeatsAvail": 0.3,
+  "baseline_hotelMedianINR": 2600,
+  "baselineDailyVisitors": 4200,
+  "trackingTier": "tracked",
+  "seededAt": "2026-09-17T00:00:00.000Z",
+  "provenanceNotes": "estimated"
 }

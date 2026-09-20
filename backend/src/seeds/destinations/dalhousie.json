@@ -1,46 +1,31 @@
 {
   "_id": "dalhousie",
-  "name": "Dalhousie",
   "displayName": "Dalhousie, Himachal Pradesh",
   "state": "HP",
-  "district": "Chamba",
-  "googlePlaceId": "ChIJW0A4yYdHDzkR6b89eW1x3v0",
-  "location": {
-    "lat": 32.53,
-    "lng": 75.98,
-    "type": "Point",
-    "coordinates": [
-      75.98,
-      32.53
-    ]
-  },
-  "trackingTier": "tracked",
-  "attrs": {
-    "snow": 0.7,
-    "trek": 0.6,
-    "riverside": 0.3,
-    "heritage": 0.8,
-    "nightlife": 0.3,
-    "food": 0.6,
-    "wildlife": 0.6,
-    "spiritual": 0.4
-  },
-  "nearestRailhead": "PTK",
+  "lat": 32.5387385,
+  "lng": 75.97099779999999,
+  "googlePlaceId": "ChIJ4Rp_YziRHDkRIIwZTJXxyLo",
+  "attr_snow": 0.45,
+  "attr_trek": 0.45,
+  "attr_riverside": 0.1,
+  "attr_heritage": 0.75,
+  "attr_nightlife": 0.15,
+  "attr_food": 0.4,
+  "attr_wildlife": 0.3,
+  "attr_spiritual": 0.2,
+  "nearestRailhead": "Pathankot",
   "railheadDistanceKm": 80,
   "railSignalConfidence": 0.3,
-  "roadAccess": {
-    "operators": [
-      "HRTC"
-    ],
-    "corridor": "Pathankot-Banikhet-Dalhousie",
-    "boardingPoint": "Pathankot"
-  },
-  "nearestAirport": "IXC",
-  "capacityPrior": 0.65,
-  "baseline": {
-    "railWL": 20,
-    "roadSeatsAvail": 40,
-    "hotelMedianINR": 3000
-  },
-  "seededAt": "2026-09-05T16:16:25.121046Z"
+  "capacityPrior": 0.55,
+  "nearestAirport": "DHM",
+  "road_operators": "HRTC|HPTDC",
+  "road_corridor": "Pathankot-Chamba Road (NH-154A)",
+  "road_boardingPoint": "Dalhousie Bus Stand, Gandhi Chowk",
+  "baseline_railWL": 30,
+  "baseline_roadSeatsAvail": 0.35,
+  "baseline_hotelMedianINR": 2900,
+  "baselineDailyVisitors": 3000,
+  "trackingTier": "tracked",
+  "seededAt": "2026-09-17T00:00:00.000Z",
+  "provenanceNotes": "estimated"
 }

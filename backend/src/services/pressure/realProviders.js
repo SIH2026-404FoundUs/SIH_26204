@@ -11,12 +11,22 @@
 import { getTrainAvailability } from "../../providers/railradar.provider.js";
 import { estimateStayScarcity } from "../../providers/stayEstimate.provider.js";
 import { getForecast } from "../../providers/openmeteo.provider.js";
+import { predictDemand } from "../../providers/demandML.provider.js";
+import { buildFeatures } from "./featureBuilder.js";
 import { getDestination } from "./seed.js";
 
 const compact = (d) => d.replace(/-/g, ""); // "2026-12-26" -> "20261226"
 
 export const realProviders = {
+  demandML: {
+    predict: async ({ dest, date, weatherData }) => {
+      const features = buildFeatures(dest, date, weatherData);
+      return await predictDemand({ destId: dest._id || dest.id, date, features });
+    },
+  },
+
   railradar: {
+
     // seed needs `trains: [{ number, from }]` per destination; none authored yet.
     arrivals: async ({ destId, from }) => {
       const d = getDestination(destId);

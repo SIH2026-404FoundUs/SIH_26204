@@ -137,10 +137,12 @@ from app.tools.fare import estimate_local_transport
 from app.services.backend_client import get as backend_get, post as backend_post
 from app.tools.itinerary import optimize_itinerary
 from app.pdf_builder import build_travel_brief_pdf
+from app.services.demand_predictor import predict_demand
 
 logger = logging.getLogger(__name__)
 
 APP_NAME = "travel_planner"
+
 
 # What a traveller (or a judge watching the demo) is shown when a plan cannot be
 # produced. The technical cause still travels in "detail" so a captured response
@@ -212,10 +214,25 @@ app.add_middleware(
 )
 
 
+class PredictDemandRequest(BaseModel):
+    destId: str
+    date: str
+    features: Dict[str, Any]
+
+
 @app.get("/health")
 def health():
     """Render's health check (and anyone's uptime monitor)."""
     return {"status": "ok"}
+
+
+@app.post("/api/v1/pressure/predict-demand")
+def predict_demand_endpoint(req: PredictDemandRequest):
+    """Predict expected visitor volume using the XGBoost causal model (Formula v3)."""
+    result = predict_demand(req.features)
+    if not result.get("ok"):
+        return JSONResponse(status_code=500, content=result)
+    return result
 
 
 @app.exception_handler(StarletteHTTPException)

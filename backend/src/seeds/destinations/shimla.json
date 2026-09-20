@@ -1,48 +1,31 @@
 {
   "_id": "shimla",
-  "name": "Shimla",
   "displayName": "Shimla, Himachal Pradesh",
   "state": "HP",
-  "district": "Shimla",
-  "googlePlaceId": "ChIJbd8h65-3DzkR_bM7kZ3v1AY",
-  "location": {
-    "lat": 31.1048,
-    "lng": 77.1734,
-    "type": "Point",
-    "coordinates": [
-      77.1734,
-      31.1048
-    ]
-  },
-  "trackingTier": "tracked",
-  "attrs": {
-    "snow": 0.8,
-    "trek": 0.5,
-    "riverside": 0.2,
-    "heritage": 0.9,
-    "nightlife": 0.6,
-    "food": 0.8,
-    "wildlife": 0.4,
-    "spiritual": 0.6
-  },
-  "nearestRailhead": "KLK",
-  "railheadDistanceKm": 88,
-  "railSignalConfidence": 0.3,
-  "roadAccess": {
-    "operators": [
-      "HRTC",
-      "Northern Travels"
-    ],
-    "corridor": "Delhi-Chandigarh-Shimla",
-    "boardingPoint": "Kalka / ISBT Chandigarh"
-  },
+  "lat": 31.1044032,
+  "lng": 77.174829,
+  "googlePlaceId": "ChIJZ25d4-N4BTkRt1Sf__Z_fh8",
+  "attr_snow": 0.5,
+  "attr_trek": 0.3,
+  "attr_riverside": 0.05,
+  "attr_heritage": 0.85,
+  "attr_nightlife": 0.35,
+  "attr_food": 0.6,
+  "attr_wildlife": 0.1,
+  "attr_spiritual": 0.3,
+  "nearestRailhead": "Kalka",
+  "railheadDistanceKm": 96,
+  "railSignalConfidence": 0.85,
+  "capacityPrior": 0.6,
   "nearestAirport": "SLV",
-  "capacityPrior": 0.75,
-  "baseline": {
-    "railWL": 45,
-    "roadSeatsAvail": 30,
-    "hotelMedianINR": 3500
-  },
-  "seededAt": "2026-09-05T16:16:25.121046Z",
-  "demoCorridor": true
+  "road_operators": "HRTC|HPTDC",
+  "road_corridor": "Kalka-Shimla Highway (NH-5)",
+  "road_boardingPoint": "ISBT Tutikandi, Shimla",
+  "baseline_railWL": 45,
+  "baseline_roadSeatsAvail": 0.25,
+  "baseline_hotelMedianINR": 3200,
+  "baselineDailyVisitors": 9500,
+  "trackingTier": "tracked",
+  "seededAt": "2026-09-17T00:00:00.000Z",
+  "provenanceNotes": "estimated"
 }

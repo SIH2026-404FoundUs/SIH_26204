@@ -1,46 +1,31 @@
 {
   "_id": "kalpa",
-  "name": "Kalpa",
-  "displayName": "Kalpa, Kinnaur, Himachal Pradesh",
+  "displayName": "Kalpa, Himachal Pradesh",
   "state": "HP",
-  "district": "Kinnaur",
-  "googlePlaceId": "ChIJ_zX124OADzkRuN890123456",
-  "location": {
-    "lat": 31.5362,
-    "lng": 78.2562,
-    "type": "Point",
-    "coordinates": [
-      78.2562,
-      31.5362
-    ]
-  },
+  "lat": 31.537657799999998,
+  "lng": 78.2753776,
+  "googlePlaceId": "ChIJIzOe3ShqBjkR22lclshSW74",
+  "attr_snow": 0.75,
+  "attr_trek": 0.55,
+  "attr_riverside": 0.2,
+  "attr_heritage": 0.4,
+  "attr_nightlife": 0.05,
+  "attr_food": 0.25,
+  "attr_wildlife": 0.2,
+  "attr_spiritual": 0.45,
+  "nearestRailhead": "Shimla",
+  "railheadDistanceKm": 245,
+  "railSignalConfidence": 0.08,
+  "capacityPrior": 0.65,
+  "nearestAirport": "KUU",
+  "road_operators": "HRTC",
+  "road_corridor": "Hindustan-Tibet Road (NH-5, Kinnaur)",
+  "road_boardingPoint": "Reckong Peo Bus Stand",
+  "baseline_railWL": 45,
+  "baseline_roadSeatsAvail": 0.5,
+  "baseline_hotelMedianINR": 1900,
+  "baselineDailyVisitors": 650,
   "trackingTier": "tracked",
-  "attrs": {
-    "snow": 0.9,
-    "trek": 0.7,
-    "riverside": 0.4,
-    "heritage": 0.6,
-    "nightlife": 0.1,
-    "food": 0.5,
-    "wildlife": 0.6,
-    "spiritual": 0.7
-  },
-  "nearestRailhead": "SML",
-  "railheadDistanceKm": 240,
-  "railSignalConfidence": 0.1,
-  "roadAccess": {
-    "operators": [
-      "HRTC"
-    ],
-    "corridor": "Shimla-Reckong Peo-Kalpa",
-    "boardingPoint": "Shimla"
-  },
-  "nearestAirport": "SLV",
-  "capacityPrior": 0.55,
-  "baseline": {
-    "railWL": 8,
-    "roadSeatsAvail": 30,
-    "hotelMedianINR": 2400
-  },
-  "seededAt": "2026-09-05T16:16:25.121046Z"
+  "seededAt": "2026-09-17T00:00:00.000Z",
+  "provenanceNotes": "estimated"
 }

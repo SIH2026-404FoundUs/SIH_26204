@@ -1,46 +1,31 @@
 {
   "_id": "palampur",
-  "name": "Palampur",
   "displayName": "Palampur, Himachal Pradesh",
   "state": "HP",
-  "district": "Kangra",
-  "googlePlaceId": "ChIJ223344556677DzkR99887766",
-  "location": {
-    "lat": 32.1109,
-    "lng": 76.5356,
-    "type": "Point",
-    "coordinates": [
-      76.5356,
-      32.1109
-    ]
-  },
-  "trackingTier": "tracked",
-  "attrs": {
-    "snow": 0.4,
-    "trek": 0.6,
-    "riverside": 0.6,
-    "heritage": 0.5,
-    "nightlife": 0.3,
-    "food": 0.6,
-    "wildlife": 0.6,
-    "spiritual": 0.6
-  },
-  "nearestRailhead": "PLMX",
-  "railheadDistanceKm": 40,
+  "lat": 32.1108599,
+  "lng": 76.5362526,
+  "googlePlaceId": "ChIJyTrm0eCzBDkRWf0to_1qBBE",
+  "attr_snow": 0.35,
+  "attr_trek": 0.4,
+  "attr_riverside": 0.25,
+  "attr_heritage": 0.2,
+  "attr_nightlife": 0.1,
+  "attr_food": 0.5,
+  "attr_wildlife": 0.15,
+  "attr_spiritual": 0.35,
+  "nearestRailhead": "Palampur",
+  "railheadDistanceKm": 2,
   "railSignalConfidence": 0.65,
-  "roadAccess": {
-    "operators": [
-      "HRTC"
-    ],
-    "corridor": "Dharamshala-Palampur",
-    "boardingPoint": "Palampur ISBT"
-  },
+  "capacityPrior": 0.4,
   "nearestAirport": "DHM",
-  "capacityPrior": 0.45,
-  "baseline": {
-    "railWL": 15,
-    "roadSeatsAvail": 50,
-    "hotelMedianINR": 2500
-  },
-  "seededAt": "2026-09-05T16:16:25.121046Z"
+  "road_operators": "HRTC",
+  "road_corridor": "Pathankot-Mandi Highway (NH-154)",
+  "road_boardingPoint": "Palampur Bus Stand",
+  "baseline_railWL": 8,
+  "baseline_roadSeatsAvail": 0.5,
+  "baseline_hotelMedianINR": 2000,
+  "baselineDailyVisitors": 1900,
+  "trackingTier": "tracked",
+  "seededAt": "2026-09-17T00:00:00.000Z",
+  "provenanceNotes": "estimated"
 }

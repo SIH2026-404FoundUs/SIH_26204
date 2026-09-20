@@ -10,6 +10,7 @@ const componentSchema = new mongoose.Schema(
 
 const pressureSchema = new mongoose.Schema(
   {
+    _id: { type: String, required: false },
     destId: { type: String, required: true }, // Ananya's canonical slug, never a Place ID
     date: { type: String, required: true },   // "YYYY-MM-DD"
     score: { type: Number, default: null },   // null when every component dropped (§4)
@@ -19,7 +20,9 @@ const pressureSchema = new mongoose.Schema(
       calendar: componentSchema,
       weather: componentSchema,
       capacity: componentSchema,
+      demand: componentSchema,
     },
+
     dateVaryingSubtotal: Number, // 0.90 normally, 0.45 when road is degraded (§5)
     staticSubtotal: Number,
     dropped: { type: [String], default: [] },
