@@ -3,7 +3,7 @@ import {
   Loader2, LogOut, Menu, X, ChevronDown, Compass, MapPinned,
   ShieldCheck, Store, Route, UserRound, Wrench, Landmark,
   Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users, Bot,
-  PanelLeftClose, PanelLeftOpen, CheckCircle2, Megaphone, IndianRupee, Briefcase, ClipboardList, ListChecks, ImageOff,
+  PanelLeftClose, PanelLeftOpen, CheckCircle2, Megaphone, IndianRupee, Briefcase, ClipboardList, ListChecks, ImageOff, Handshake,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -42,6 +42,7 @@ import { timeAgo } from '../../lib/time'
 const TRAVELLER_PRIMARY = [
   { to: '/home', label: 'Plan a trip', icon: Compass },
   { to: '/map', label: 'One Map', icon: MapIcon },
+  { to: '/travel-together', label: 'Travel Together', icon: Handshake },
   { to: '/forum', label: 'Community Forum', icon: Users },
 ]
 const TRAVELLER_MORE = [

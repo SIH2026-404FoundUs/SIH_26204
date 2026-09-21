@@ -57,6 +57,8 @@ export async function geocode(address) {
     }
   }
 
-  const failResult = fail(lastError, { source: 'geocode' });
-  return geocodeCache.set(cacheKey, failResult);
+  // Not cached: a transient/config failure (quota, billing, network) would
+  // otherwise stick around for the full TTL even after the real cause is
+  // fixed, since a fail result looks just as valid to `.get()` as a success.
+  return fail(lastError, { source: 'geocode' });
 }

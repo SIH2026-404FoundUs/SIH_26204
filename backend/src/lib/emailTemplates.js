@@ -127,3 +127,35 @@ export function complaintStatusEmail({ fullName, category, destId, status, appUr
     `),
   };
 }
+
+// Group Travel lifecycle (Revised Implementation Plan §14) -- reuses this
+// same sendMail/emailTemplates convention rather than a new Notification
+// collection (this codebase composes in-app notifications live from real
+// feature data client-side; email is the "reached you even if you're not
+// watching the app right now" channel every other lifecycle event here already uses).
+export function groupJoinRequestEmail({ fullName, requesterName, destId, appUrl, groupTripId }) {
+  const text = `Hi ${fullName},\n\n${requesterName} wants to join your group trip to ${destName(destId)}. Review the request: ${appUrl}/travel-together/groups/${groupTripId}`;
+  return {
+    subject: `${requesterName} wants to join your ${destName(destId)} group`,
+    text,
+    html: wrapHtml(`
+      <p>Hi ${fullName},</p>
+      <p><strong>${requesterName}</strong> wants to join your group trip to <strong>${destName(destId)}</strong>.</p>
+      ${button(`${appUrl}/travel-together/groups/${groupTripId}`, "Review request")}
+    `),
+  };
+}
+
+export function groupJoinDecisionEmail({ fullName, destId, accepted, appUrl, groupTripId }) {
+  const verb = accepted ? "accepted" : "declined";
+  const text = `Hi ${fullName},\n\nYour request to join the group trip to ${destName(destId)} was ${verb}.${accepted ? ` See the squad: ${appUrl}/travel-together/groups/${groupTripId}` : ""}`;
+  return {
+    subject: `Your request to join the ${destName(destId)} group was ${verb}`,
+    text,
+    html: wrapHtml(`
+      <p>Hi ${fullName},</p>
+      <p>Your request to join the group trip to <strong>${destName(destId)}</strong> was <strong>${verb}</strong>.</p>
+      ${accepted ? button(`${appUrl}/travel-together/groups/${groupTripId}`, "View your squad") : ""}
+    `),
+  };
+}

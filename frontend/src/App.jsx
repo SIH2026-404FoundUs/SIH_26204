@@ -50,6 +50,8 @@ const Notifications = lazy(() => import('./components/trust/Notifications'))
 const MapPreview = lazy(() => import('./pages/MapPreview'))
 const LandingPage = lazy(() => import('./pages/LandingPage'))
 const MultimodalTravelAgent = lazy(() => import('./components/ai/MultimodalTravelAgent'))
+const TravelTogether = lazy(() => import('./components/groups/TravelTogether'))
+const GroupTripDetail = lazy(() => import('./components/groups/GroupTripDetail'))
 
 // Where each role lands after authenticating (auth spec §7/§20) -- mirrors
 // AuthScreen's own ROLE_HOME, used here for the post-refresh/direct-URL
@@ -146,6 +148,12 @@ function App() {
           <Route path="/offers" element={<RequireAuth><OffersWaitlist /></RequireAuth>} />
           <Route path="/safety" element={<RequireAuth><Safety /></RequireAuth>} />
           <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+          {/* Group Travel (Revised Implementation Plan §16) -- open to
+              every authenticated role, same posture as My Trips; the
+              backend's own auth-required reads/writes remain the real
+              authorization boundary. */}
+          <Route path="/travel-together" element={<RequireAuth><TravelTogether /></RequireAuth>} />
+          <Route path="/travel-together/groups/:id" element={<RequireAuth><GroupTripDetail /></RequireAuth>} />
 
           {/* Role-specific (§56) */}
           <Route path="/operator" element={<RequireRole role="operator" wide><OperatorConsole /></RequireRole>} />

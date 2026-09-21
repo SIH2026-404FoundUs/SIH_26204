@@ -71,10 +71,18 @@ function humanizeSlug(id) {
     .join(' ')
 }
 
+// displayName is "Place, Full State Name" -- d.state is only an abbreviation
+// code (e.g. "HP", "TG"), unfit for a group heading, so the full name is
+// pulled from displayName's own suffix instead of hardcoding a code->name map.
+function stateNameFromDisplayName(displayName) {
+  const parts = String(displayName || '').split(',')
+  return parts.length > 1 ? parts[parts.length - 1].trim() : ''
+}
+
 function toGroups(items) {
   const byState = new Map()
   for (const d of items) {
-    const key = d.state || 'Other'
+    const key = stateNameFromDisplayName(d.displayName) || d.state || 'Other'
     if (!byState.has(key)) byState.set(key, [])
     byState.get(key).push({ id: d.id, label: d.displayName })
   }

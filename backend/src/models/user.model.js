@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { TRAVEL_TYPE_IDS, PREFERRED_ACTIVITIES, PREFERRED_PACE, PREFERRED_GROUP_SIZE, PREFERRED_TRIP_DURATION } from "../lib/travelTypes.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -58,6 +59,52 @@ const userSchema = new mongoose.Schema(
       languages: {
         type: [String],
         default: [],
+      },
+      // Travel Types (Revised Implementation Plan §6) -- structured
+      // additions to this SAME preferences subdocument, not a second
+      // TravellerProfile collection. interests/budgetBand/languages above
+      // are untouched; existing readers (planner tool, PreferencesCard)
+      // keep working unchanged, they just don't see these fields yet.
+      travelTypes: {
+        type: [String],
+        enum: TRAVEL_TYPE_IDS,
+        default: [],
+      },
+      primaryTravelType: {
+        type: String,
+        enum: TRAVEL_TYPE_IDS,
+      },
+      preferredActivities: {
+        type: [String],
+        enum: PREFERRED_ACTIVITIES,
+        default: [],
+      },
+      preferredPace: {
+        type: String,
+        enum: PREFERRED_PACE,
+      },
+      // Structured INR range, additive alongside budgetBand rather than
+      // replacing it (plan §6: "retaining compatibility with existing
+      // budgetBand").
+      budgetRange: {
+        min: { type: Number },
+        max: { type: Number },
+      },
+      preferredGroupSize: {
+        type: String,
+        enum: PREFERRED_GROUP_SIZE,
+      },
+      preferredTripDuration: {
+        type: String,
+        enum: PREFERRED_TRIP_DURATION,
+      },
+      openToGroupTravel: {
+        type: Boolean,
+        default: false,
+      },
+      openToCaptainLedTrips: {
+        type: Boolean,
+        default: false,
       },
     },
   },

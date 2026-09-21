@@ -15,6 +15,15 @@ from app.services.backend_client import get as backend_get
 from app.tools.alternate_tools import get_alternate, get_alternate_dates, get_alternate_tools
 from app.tools.places import search_places as search_places_backend
 from app.tools.pressure import get_pressure
+from app.tools.user_preferences import get_user_preferences as _get_user_preferences_raw
+from app.tools.travel_education import get_destination_education, get_personalized_destination_education
+from app.tools.group_travel import (
+    search_group_trips as _search_group_trips_raw,
+    get_group_trip,
+    get_group_match_reasons as _get_group_match_reasons_raw,
+    create_group_trip as _create_group_trip_raw,
+    join_group_trip as _join_group_trip_raw,
+)
 
 
 DEFAULT_MODEL = "vertex_ai/gemini-2.5-flash"
@@ -133,10 +142,7 @@ def plan_trip(
     }
 
 
-multimodal_agent = Agent(
-    name="multimodal_tourism_agent",
-    model=_model(),
-    instruction="""You are Sahyatri's focused multimodal tourism agent.
+_BASE_INSTRUCTION = """You are Sahyatri's focused multimodal tourism agent.
 
 You support travellers, tourism operators and authorities. Answer in the
 language requested by the user: English, Telugu or Hindi. Use tools for real
@@ -153,15 +159,106 @@ alternative tools when the user asks why a destination is crowded or whether
 another place/date would be better. Keep answers practical and concise.
 For nearby-place questions, prefer results within the requested area and
 mention only the best 5-8 options instead of dumping the entire provider list.
-""",
-    tools=[
+
+Travel Education: use get_destination_education (full) or
+get_personalized_destination_education (short summary, prefer this one
+unless the user clearly wants the full breakdown) when the user asks what a
+destination is like, when to go, how to get there, culture/safety/packing
+guidance, or budget context. If the response's "education" field is null,
+say plainly that no education content has been authored for that
+destination yet -- never fill the gap with your own general knowledge
+presented as if it were sourced/verified platform content.
+
+Group Travel (only usable when a signed-in traveller's tools are bound --
+if get_traveller_preferences/search_group_trips are not available to you,
+tell the user this needs an account and to open the app to use it):
+read get_traveller_preferences first so matching reflects their real saved
+preferences, then search_group_trips for a destination to find compatible
+open groups. Describe a match using ONLY the "reasons" strings the tool
+returns (e.g. "Same travel style", "Budget ranges overlap") -- never state a
+percentage or a reason the tool didn't give you. create_group_trip and
+join_group_trip are real, consequential actions: restate exactly what you're
+about to do (destination, dates, group size for create; which specific group
+for join) and get an explicit yes from the user in this conversation before
+calling either -- never call them speculatively while the user is still
+exploring options.
+"""
+
+
+def _bind_traveller_tools(user_id: str) -> list:
+    """Wraps every tool that must act as a specific traveller so the model
+    is never asked to supply (or trusted to correctly state) a user id --
+    it's bound here from the session's own authenticated_id (main.py),
+    the same value already used for the ADK session itself. Returns an
+    empty-tools list of closures, not the raw imported functions, so
+    there's no user_id parameter for the LLM to see or fill in at all.
+    """
+
+    def get_traveller_preferences() -> dict:
+        """Read the current signed-in traveller's own saved preferences --
+        travel types, preferred activities, pace, budget range, preferred
+        group size/trip duration, languages, interests. Call this before
+        search_group_trips so matching reflects their real preferences."""
+        return _get_user_preferences_raw(user_id)
+
+    def search_group_trips(dest_id: str, start_date: str = None, end_date: str = None) -> dict:
+        """Find open group trips at a destination matching the current
+        traveller's own saved preferences. destId is the canonical
+        destination slug. Returns ranked matches with real "reasons"
+        strings only -- never state a percentage."""
+        return _search_group_trips_raw(user_id, dest_id, start_date, end_date)
+
+    def get_group_match_reasons(group_trip_id: str) -> dict:
+        """Explain why the current traveller does or doesn't match one
+        specific group trip, factor by factor."""
+        return _get_group_match_reasons_raw(user_id, group_trip_id)
+
+    def create_group_trip(
+        dest_id: str, start_date: str, end_date: str, max_members: int,
+        travel_types: list = None, activities: list = None, pace: str = None,
+        join_policy: str = "request",
+    ) -> dict:
+        """Create a new group trip as the current traveller. This is a
+        real, persisted action other travellers can discover and request
+        to join -- only call this after the user has explicitly confirmed
+        the destination, dates, and group size in this conversation."""
+        return _create_group_trip_raw(user_id, dest_id, start_date, end_date, max_members, travel_types, activities, pace, join_policy)
+
+    def join_group_trip(group_trip_id: str) -> dict:
+        """Request to join a specific group trip as the current traveller.
+        A real action the group's creator will see -- only call this after
+        the user has explicitly confirmed they want to send this request."""
+        return _join_group_trip_raw(user_id, group_trip_id)
+
+    return [get_traveller_preferences, search_group_trips, get_group_match_reasons, create_group_trip, join_group_trip]
+
+
+def build_agent(user_id: str | None = None) -> Agent:
+    """Builds the agent fresh per request so signed-in-only tools (Group
+    Travel, preferences) can be bound to this specific request's
+    authenticated_id via closure, instead of exposing a user_id parameter
+    the model itself would have to state (and could get wrong/spoof).
+    Anonymous sessions (user_id=None) get every tool except those."""
+    tools = [
         plan_trip,
         search_hotels,
         search_places,
         get_pressure,
+        get_destination_education,
+        get_personalized_destination_education,
+        get_group_trip,
         *get_alternate_tools(),
-    ],
-)
+    ]
+    if user_id:
+        tools.extend(_bind_traveller_tools(user_id))
+    return Agent(name="multimodal_tourism_agent", model=_model(), instruction=_BASE_INSTRUCTION, tools=tools)
+
+
+# Module-level singleton for anonymous sessions and existing callers
+# (tool_inventory below, any test importing `multimodal_agent` directly) --
+# main.py's endpoint now calls build_agent(authenticated_id) per request
+# instead of using this fixed instance whenever a real user is signed in.
+multimodal_agent = build_agent()
 
 
 def tool_inventory() -> list[dict[str, Any]]:
@@ -173,4 +270,7 @@ def tool_inventory() -> list[dict[str, Any]]:
         {"name": "get_pressure", "kind": "pressure"},
         {"name": "get_alternate", "kind": "alternative"},
         {"name": "get_alternate_dates", "kind": "alternative"},
+        {"name": "get_destination_education", "kind": "education"},
+        {"name": "get_personalized_destination_education", "kind": "education"},
+        {"name": "get_group_trip", "kind": "group"},
     ]

@@ -40,6 +40,9 @@ import revenueRoutes from "./routes/revenue.route.js";
 import workersRoutes from "./routes/workers.route.js";
 import gigsRoutes from "./routes/gigs.route.js";
 import operatorsRoutes from "./routes/operators.route.js";
+import travelTypesRoutes from "./routes/travelTypes.route.js";
+import educationRoutes from "./routes/education.route.js";
+import groupTripsRoutes from "./routes/groupTrips.route.js";
 import { startAlertPolling } from "./jobs/scheduler.js";
 
 // dotenv.config() with no path loads .env from process.cwd(), which silently
@@ -118,6 +121,9 @@ app.use("/api/v1/revenue", revenueRoutes); // Operator Revenue Management System
 app.use("/api/v1/workers", workersRoutes); // Worker role -- worker-only
 app.use("/api/v1/gigs", gigsRoutes); // Worker role -- gig post/browse/accept/complete/rate
 app.use("/api/v1/operators", operatorsRoutes); // Worker role -- operator's own posted-gig tracking
+app.use("/api/v1/travel-types", travelTypesRoutes); // Travel Types taxonomy (Revised Implementation Plan §6)
+app.use("/api/v1/destinations", educationRoutes); // Travel Education, keyed on the canonical destId (§8/§9) -- distinct base path from /api/destinations (the file-seeded list) since this is Mongo-backed content, mounted where the plan's API list (§18) put it
+app.use("/api/v1/group-trips", groupTripsRoutes); // Group Travel core lifecycle (§10-13)
 
 app.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);
