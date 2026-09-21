@@ -1755,9 +1755,14 @@ async def multimodal_chat_endpoint(
     on each request, and no conversation is persisted by this endpoint.
     """
     _check_chat_rate_limit(_chat_rate_key(request, authenticated_id))
-    from app.agents.multimodal_agent import multimodal_agent
+    # Built fresh per request: Group Travel/preferences tools are only
+    # bound when a real signed-in user is making the request (see
+    # multimodal_agent.build_agent's own docstring for why -- the model is
+    # never given a user_id parameter to fill in itself).
+    from app.agents.multimodal_agent import build_agent
     from google.adk.runners import InMemoryRunner
     from google.genai import types
+    agent = build_agent(authenticated_id)
 
     language_names = {"en": "English", "te": "Telugu", "hi": "Hindi"}
     history = req.history[-CHAT_MAX_HISTORY_MESSAGES:]
@@ -1770,7 +1775,7 @@ async def multimodal_chat_endpoint(
     )
 
     async def run_agent() -> tuple[str, Dict[str, Any]]:
-        runner = InMemoryRunner(agent=multimodal_agent, app_name="sahyatri_multimodal")
+        runner = InMemoryRunner(agent=agent, app_name="sahyatri_multimodal")
         session = await runner.session_service.create_session(
             app_name=runner.app_name,
             user_id=authenticated_id or "anonymous-demo-user",

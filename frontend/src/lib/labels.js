@@ -244,3 +244,30 @@ export const GIG_REQUEST_STATUS = {
 export function gigRequestStatus(status) {
   return GIG_REQUEST_STATUS[status] || { label: status, tone: 'neutral' }
 }
+
+// GroupTrip.status (Revised Implementation Plan §11's lifecycle).
+export const GROUP_TRIP_STATUS = {
+  draft: { label: 'Draft', tone: 'neutral' },
+  open: { label: 'Open — accepting members', tone: 'success' },
+  forming: { label: 'Full — squad forming', tone: 'info' },
+  confirmed: { label: 'Confirmed', tone: 'info' },
+  active: { label: 'Active', tone: 'success' },
+  completed: { label: 'Completed', tone: 'neutral' },
+  cancelled: { label: 'Cancelled', tone: 'danger' },
+}
+
+export function groupTripStatus(status) {
+  return GROUP_TRIP_STATUS[status] || { label: status, tone: 'neutral' }
+}
+
+// GroupTripMember.status -- a creator's view of one join request/membership.
+export const GROUP_MEMBER_STATUS = {
+  requested: { label: 'Requested', tone: 'warning' },
+  accepted: { label: 'Accepted', tone: 'success' },
+  rejected: { label: 'Rejected', tone: 'neutral' },
+  left: { label: 'Left', tone: 'neutral' },
+}
+
+export function groupMemberStatus(status) {
+  return GROUP_MEMBER_STATUS[status] || { label: status, tone: 'neutral' }
+}

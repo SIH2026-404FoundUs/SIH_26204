@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { MapPin, Store, ArrowLeft, Download, Check, Plane, Train, Bus, Users, IndianRupee } from 'lucide-react'
+import { MapPin, Store, ArrowLeft, Download, Check, Plane, Train, Bus, Users, IndianRupee, BookOpen, ThumbsUp, ThumbsDown, ShieldAlert } from 'lucide-react'
 import api, { getErrorMessage } from '../../lib/api'
 import { getDestinationLabel, downloadEducationPack, readEducationPack } from '../../lib/destinations'
+import { useTravelEducationStore } from '../../store/useTravelEducationStore'
 import PressureRing from '../pressure/PressureRing'
 import PressureCard from '../pressure/PressureCard'
 import { scoreLabel } from '../pressure/scoreColor'
 import PageHeader from '../ui/PageHeader'
 import Card from '../ui/Card'
+import Badge from '../ui/Badge'
 import Button from '../ui/Button'
 import Alert from '../ui/Alert'
 import LoadingState from '../ui/LoadingState'
+import EmptyState from '../ui/EmptyState'
 import { inputClass } from '../ui/FormField'
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -46,7 +49,7 @@ function EducationPackCard({ destId }) {
     <Card>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-ink">Travel Education pack</p>
+          <p className="text-sm font-semibold text-ink">Offline access pack</p>
           <p className="text-xs text-ash">Access, pricing, and destination facts -- saved to this device, readable with no connection.</p>
         </div>
         <Button variant={pack ? 'outline' : 'primary'} size="sm" icon={pack ? Check : Download} loading={isDownloading} onClick={handleDownload}>
@@ -78,6 +81,105 @@ function EducationPackCard({ destId }) {
           </div>
           <p className="text-[11px] text-ash">Saved {new Date(pack.downloadedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })} -- these are structural facts, not today's live crowding.</p>
         </div>
+      )}
+    </Card>
+  )
+}
+
+// One content section, only rendered when the field actually has a value
+// -- an unauthored field stays silent rather than showing an empty
+// heading (§8: "Unknown information remains explicitly unknown").
+function EducationField({ label, text }) {
+  if (!text) return null
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-ash">{label}</p>
+      <p className="mt-1 text-sm text-ink/80">{text}</p>
+    </div>
+  )
+}
+
+// Travel Education (Revised Implementation Plan §8/§9) -- structured,
+// source-backed destination knowledge, distinct from the Offline access
+// pack above (which is just the raw seed facts): overview, culture,
+// safety, packing, etc, authored by an authority and merged read-only
+// with the live Pressure Engine + verified alerts at request time.
+function TravelEducationSection({ destId }) {
+  const { education, pressureContext, safetyAlerts, isLoading, error, isSubmittingFeedback, feedbackResult, fetchEducation, submitFeedback } = useTravelEducationStore()
+
+  useEffect(() => { fetchEducation(destId) }, [destId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (isLoading) return <Card><LoadingState label="Loading destination education…" /></Card>
+  if (error) return <Card><Alert tone="error">{error}</Alert></Card>
+
+  return (
+    <Card>
+      <div className="mb-3 flex items-center gap-2">
+        <BookOpen size={16} className="text-relief" aria-hidden="true" />
+        <h2 className="text-sm font-semibold text-ink">Travel Education</h2>
+      </div>
+
+      {!education ? (
+        <EmptyState icon={BookOpen} title="Not authored yet" description="No education content has been reviewed and published for this destination yet -- check back later." />
+      ) : (
+        <div className="space-y-3">
+          <EducationField label="Overview" text={education.overview} />
+          <EducationField label="Best time to visit" text={education.bestTime} />
+          <EducationField label="Getting there" text={education.gettingThere} />
+          <EducationField label="Getting around" text={education.gettingAround} />
+          <EducationField label="Culture" text={education.localCulture} />
+          <EducationField label="Etiquette" text={education.etiquette} />
+          <EducationField label="Responsible travel" text={education.responsibleTravel} />
+          <EducationField label="Packing" text={education.packing} />
+          <EducationField label="Food" text={education.food} />
+          <EducationField label="Accessibility" text={education.accessibility} />
+          <EducationField label="Budget context" text={education.budgetContext} />
+          {education.travelStyleTags?.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {education.travelStyleTags.map((t) => <Badge key={t} tone="info">{t.replace(/_/g, ' ')}</Badge>)}
+            </div>
+          )}
+          {education.sources?.length > 0 && (
+            <p className="text-[11px] text-ash">
+              Sources: {education.sources.map((s, i) => (
+                <span key={s.url || s.label}>
+                  {i > 0 && ', '}
+                  {s.url ? <a href={s.url} target="_blank" rel="noreferrer" className="underline hover:text-ink">{s.label}</a> : s.label}
+                </span>
+              ))}
+            </p>
+          )}
+          {education.lastReviewedAt && (
+            <p className="text-[11px] text-ash">Last reviewed {new Date(education.lastReviewedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}</p>
+          )}
+
+          <div className="flex items-center gap-2 border-t border-paper-dim pt-3">
+            <span className="text-xs text-ash">Was this helpful?</span>
+            <Button variant="outline" size="sm" icon={ThumbsUp} loading={isSubmittingFeedback} onClick={() => submitFeedback(destId, { helpful: true })}>Yes</Button>
+            <Button variant="outline" size="sm" icon={ThumbsDown} loading={isSubmittingFeedback} onClick={() => submitFeedback(destId, { helpful: false })}>No</Button>
+          </div>
+          {feedbackResult && <Alert tone={feedbackResult.tone}>{feedbackResult.message}</Alert>}
+        </div>
+      )}
+
+      {(education?.safety || safetyAlerts?.length > 0) && (
+        <div className="mt-4 border-t border-paper-dim pt-4">
+          <div className="mb-2 flex items-center gap-2"><ShieldAlert size={14} className="text-pressure" aria-hidden="true" /><p className="text-xs font-semibold uppercase tracking-wide text-ash">Safety</p></div>
+          {education?.safety && <p className="mb-2 text-sm text-ink/80">{education.safety}</p>}
+          {safetyAlerts?.length > 0 && (
+            <div className="space-y-1.5">
+              {safetyAlerts.map((a) => (
+                <div key={a._id} className="rounded-lg border border-paper-dim px-3 py-2 text-xs text-ink/70">{a.text || a.body}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {pressureContext?.score != null && (
+        <p className="mt-4 border-t border-paper-dim pt-4 text-xs text-ash">
+          {pressureContext.template || `Current crowding: ${Math.round(pressureContext.score * 100)}/100${pressureContext.stale ? ' (last known reading, may be stale)' : ''}.`}
+        </p>
       )}
     </Card>
   )
@@ -128,7 +230,10 @@ export default function DestinationDetail() {
       {/* Independent of the pressure fetch below on purpose -- a downloaded
           pack still renders even if that live call fails or the device is
           offline entirely, which is the whole point of it. */}
-      <div className="mb-4"><EducationPackCard key={destId} destId={destId} /></div>
+      <div className="mb-4 space-y-4">
+        <TravelEducationSection key={`edu-${destId}`} destId={destId} />
+        <EducationPackCard key={`pack-${destId}`} destId={destId} />
+      </div>
 
       {isLoading ? (
         <LoadingState label="Reading pressure for this destination…" />

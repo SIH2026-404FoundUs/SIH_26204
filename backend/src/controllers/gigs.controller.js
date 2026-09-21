@@ -1,6 +1,7 @@
 import WorkerProfile from "../models/workerProfile.model.js";
 import GigRequest from "../models/gigRequest.model.js";
 import GigMatch from "../models/gigMatch.model.js";
+import GroupTrip from "../models/groupTrip.model.js";
 import {
   listOpenGigs,
   createGigRequest,
@@ -9,9 +10,11 @@ import {
   rateGig,
   getOperatorGigs,
 } from "../services/gigs/gigService.js";
+import { assignCaptainFromGig } from "../services/groups/captainService.js";
 import { parsePagination } from "../lib/pagination.js";
 
 const models = { WorkerProfileModel: WorkerProfile, GigRequestModel: GigRequest, GigMatchModel: GigMatch };
+const groupModels = { GroupTripModel: GroupTrip };
 
 // GET /api/v1/gigs?destId&skill -- browse open gigs nearby (spec §04's
 // "browse second" half; worker-only, matching the spec's own Actor column).
@@ -53,6 +56,10 @@ export const acceptGigController = async (req, res) => {
       return res.status(403).json({ message: "worker role required" });
     }
     const result = await acceptGig(req.params.id, req.user._id, models);
+    // Closes the Captain/Gig bridge loop (§13) if this gig happens to be
+    // group-linked -- a no-op (linked:false) for every ordinary gig, which
+    // is the overwhelming majority; never blocks or fails the real accept.
+    if (result.success) assignCaptainFromGig(req.params.id, req.user._id, groupModels).catch(() => {});
     res.status(result.status).json(result.success ? { success: true, match: result.match } : { message: result.message });
   } catch (error) {
     console.log("Error in acceptGig controller", error.message);
