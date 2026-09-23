@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { loadGoogleMaps } from '../../lib/googleMaps'
+import { loadGoogleMaps } from '../../lib/googleMapsLoader'
 import { scoreColor } from './scoreColor'
 import { getDestinationLabel } from '../../lib/destinations'
 import IndiaMap from './IndiaMap'

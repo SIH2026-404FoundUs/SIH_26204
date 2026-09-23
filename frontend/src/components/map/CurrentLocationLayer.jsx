@@ -9,23 +9,37 @@ export default function CurrentLocationLayer({ map, mapsSDK, location }) {
     if (!map || !mapsSDK || !location) return undefined
 
     const position = { lat: location.lat, lng: location.lng }
-    const icon = {
-      path: mapsSDK.SymbolPath.CIRCLE,
-      scale: 8,
-      fillColor: '#2563EB',
-      fillOpacity: 1,
-      strokeColor: '#FFFFFF',
-      strokeWeight: 3,
-    }
+    const hasAdvanced = mapsSDK.marker && typeof mapsSDK.marker.AdvancedMarkerElement === 'function'
 
     if (!markerRef.current) {
-      markerRef.current = new mapsSDK.Marker({
-        map,
-        position,
-        title: 'Your current location',
-        icon,
-        zIndex: 1000,
-      })
+      if (hasAdvanced) {
+        const content = document.createElement('div')
+        content.style.cssText = 'width:16px;height:16px;border-radius:50%;background:#2563EB;border:3px solid #FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,0.4);'
+        markerRef.current = new mapsSDK.marker.AdvancedMarkerElement({
+          map,
+          position,
+          title: 'Your current location',
+          content,
+          zIndex: 1000,
+        })
+      } else {
+        markerRef.current = new mapsSDK.Marker({
+          map,
+          position,
+          title: 'Your current location',
+          icon: {
+            path: mapsSDK.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: '#2563EB',
+            fillOpacity: 1,
+            strokeColor: '#FFFFFF',
+            strokeWeight: 3,
+          },
+          zIndex: 1000,
+        })
+      }
+    } else if (hasAdvanced) {
+      markerRef.current.position = position
     } else {
       markerRef.current.setPosition(position)
     }
@@ -52,7 +66,10 @@ export default function CurrentLocationLayer({ map, mapsSDK, location }) {
   }, [map, mapsSDK, location])
 
   useEffect(() => () => {
-    markerRef.current?.setMap(null)
+    if (markerRef.current) {
+      if (typeof markerRef.current.setMap === 'function') markerRef.current.setMap(null)
+      else markerRef.current.map = null
+    }
     accuracyRef.current?.setMap(null)
     markerRef.current = null
     accuracyRef.current = null

@@ -48,31 +48,46 @@ export default function LocationPickerMap({ value, onChange }) {
         const map = new maps.Map(containerRef.current, {
           center,
           zoom: value ? 11 : 5,
+          // A Map ID is required for AdvancedMarkerElement to render at all --
+          // DEMO_MAP_ID is Google's documented placeholder for this (no cloud
+          // styling attached to it). Override with VITE_GOOGLE_MAPS_MAP_ID once
+          // a real Map ID is created in Cloud Console.
+          mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID',
           streetViewControl: false,
           mapTypeControl: false,
           fullscreenControl: false,
         })
         mapRef.current = map
 
+        const hasAdvanced = maps.marker && typeof maps.marker.AdvancedMarkerElement === 'function'
+
+        const createDraggableMarker = (position) => {
+          if (hasAdvanced) {
+            const el = new maps.marker.AdvancedMarkerElement({ position, map, gmpDraggable: true })
+            el.addListener('dragend', (e) => onChange({ lat: e.latLng.lat(), lng: e.latLng.lng() }))
+            return el
+          }
+          const el = new maps.Marker({ position, map, draggable: true })
+          el.addListener('dragend', (e) => onChange({ lat: e.latLng.lat(), lng: e.latLng.lng() }))
+          return el
+        }
+
         const placeMarker = (position) => {
           if (markerRef.current) {
-            markerRef.current.setPosition(position)
+            if (hasAdvanced) markerRef.current.position = position
+            else markerRef.current.setPosition(position)
           } else {
-            markerRef.current = new maps.Marker({ position, map, draggable: true })
-            markerRef.current.addListener('dragend', (e) => {
-              onChange({ lat: e.latLng.lat(), lng: e.latLng.lng() })
-            })
+            markerRef.current = createDraggableMarker(position)
           }
-          onChange({ lat: position.lat(), lng: position.lng() })
+          const lat = typeof position.lat === 'function' ? position.lat() : position.lat
+          const lng = typeof position.lng === 'function' ? position.lng() : position.lng
+          onChange({ lat, lng })
         }
 
         map.addListener('click', (e) => placeMarker(e.latLng))
 
         if (value) {
-          markerRef.current = new maps.Marker({ position: value, map, draggable: true })
-          markerRef.current.addListener('dragend', (e) => {
-            onChange({ lat: e.latLng.lat(), lng: e.latLng.lng() })
-          })
+          markerRef.current = createDraggableMarker(value)
         }
 
         map._placeMarker = placeMarker // used by the search-result handler below
