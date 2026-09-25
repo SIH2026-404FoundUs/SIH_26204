@@ -43,6 +43,7 @@ import operatorsRoutes from "./routes/operators.route.js";
 import travelTypesRoutes from "./routes/travelTypes.route.js";
 import educationRoutes from "./routes/education.route.js";
 import groupTripsRoutes from "./routes/groupTrips.route.js";
+import broadcastAlertsRoutes from "./routes/broadcastAlerts.route.js";
 import { startAlertPolling } from "./jobs/scheduler.js";
 
 // dotenv.config() with no path loads .env from process.cwd(), which silently
@@ -53,6 +54,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
 const app = express();
+
+// Render (and most PaaS hosts) terminate TLS at a reverse proxy and forward
+// the real client IP via X-Forwarded-For. Without this, express-rate-limit
+// resolves every request to the proxy's own IP -- collapsing signup/login
+// rate limits onto one shared bucket for all users -- and newer versions of
+// express-rate-limit throw a validation error outright when they see
+// X-Forwarded-For with trust proxy left at Express's default (false). "1"
+// trusts exactly the first hop (the platform's own proxy), not an
+// arbitrary client-supplied header.
+app.set("trust proxy", 1);
 
 const PORT = process.env.PORT || 5000;
 
@@ -124,6 +135,7 @@ app.use("/api/v1/operators", operatorsRoutes); // Worker role -- operator's own 
 app.use("/api/v1/travel-types", travelTypesRoutes); // Travel Types taxonomy (Revised Implementation Plan §6)
 app.use("/api/v1/destinations", educationRoutes); // Travel Education, keyed on the canonical destId (§8/§9) -- distinct base path from /api/destinations (the file-seeded list) since this is Mongo-backed content, mounted where the plan's API list (§18) put it
 app.use("/api/v1/group-trips", groupTripsRoutes); // Group Travel core lifecycle (§10-13)
+app.use("/api/v1/broadcast-alerts", broadcastAlertsRoutes); // authority emergency broadcast, every account
 
 app.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bell, Tag, CheckCircle2, X } from 'lucide-react'
+import { Bell, Tag, CheckCircle2, X, Siren } from 'lucide-react'
 import { useNotificationsStore } from '../../store/useNotificationsStore'
 import { useTrustStore } from '../../store/useTrustStore'
 import { getDestinationLabel } from '../../lib/destinations'
@@ -38,6 +38,24 @@ function AlertCard({ n }) {
           <Button variant="outline" size="sm">View details</Button>
         </Link>
       </div>
+    </Card>
+  )
+}
+
+// Platform-wide authority broadcast -- no destId/kind/source to show (it's
+// not sourced from an external feed, the authority IS the source), so this
+// is its own card rather than a variant of AlertCard.
+function BroadcastCard({ n }) {
+  const severity = alertSeverity(n.severity)
+  return (
+    <Card padding="p-4">
+      <div className="mb-1.5 flex items-center gap-2">
+        <Siren size={14} className="text-pressure" aria-hidden="true" />
+        <Badge tone={severity.tone}>{severity.label}</Badge>
+      </div>
+      <p className="text-sm font-semibold text-ink">{n.title}</p>
+      <p className="mt-1 text-sm text-ink/80">{n.body}</p>
+      <p className="mt-2 text-xs text-ash">From {n.createdByName}, sent to every account</p>
     </Card>
   )
 }
@@ -162,6 +180,8 @@ export default function Notifications() {
               <OfferCard key={n.id} n={n} onRespond={handleRespond} />
             ) : n.type === 'waitlist_fulfilled' ? (
               <WaitlistFulfilledCard key={n.id} n={n} />
+            ) : n.type === 'broadcast' ? (
+              <BroadcastCard key={n.id} n={n} />
             ) : (
               <AlertCard key={n.id} n={n} />
             )

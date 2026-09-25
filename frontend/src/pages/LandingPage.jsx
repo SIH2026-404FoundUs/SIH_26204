@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Flame, ArrowLeftRight, ShieldCheck, MapPinned, Landmark, Wrench,
+  Flame, ArrowLeftRight, ShieldCheck, MapPinned, Building2, Wrench,
   TriangleAlert, Tag, Compass, CheckCircle2, UserRound,
 } from 'lucide-react'
 import { useTrustStore } from '../store/useTrustStore'
@@ -46,21 +46,21 @@ const FEATURES = [
   },
 ]
 
-const AUDIENCES = [
+const PERSONAS = [
   {
     icon: Compass,
-    role: 'Travellers',
-    body: 'Plan a trip against real crowding data, discover verified local businesses, and get notified about what actually affects your itinerary.',
+    role: 'Traveller',
+    body: 'Plan a trip against real crowding data, get redirected to a calmer option when your first pick is over capacity, and book verified local businesses.',
+  },
+  {
+    icon: Building2,
+    role: 'Operator',
+    body: 'List your homestay, guesthouse, or restaurant, run flash offers to fill quiet dates, and post gigs to hire verified local drivers, guides, and staff.',
   },
   {
     icon: Wrench,
-    role: 'Local businesses',
-    body: 'Drivers, guides, guesthouses, and homestays get listed, get discovered by destination, and can run flash offers directly through the platform.',
-  },
-  {
-    icon: Landmark,
-    role: 'Tourism authorities',
-    body: 'A dashboard for destination pressure, capacity gaps, redistribution impact, and acceptance rate -- plus a moderation queue for community-suggested places.',
+    role: 'Worker',
+    body: 'Drivers, guides, cooks, cleaners, and porters get discovered for real gig work, build a verified profile, and get rated after every job.',
   },
 ]
 
@@ -78,10 +78,9 @@ export default function LandingPage() {
           correct (UI/UX doc §3.3): there's no trip data yet to give a
           layout hierarchy to. */}
       <div className="isobar-canvas px-4 py-24 text-center sm:px-6">
-        <p className="font-display text-4xl text-paper sm:text-5xl">Sahyatri</p>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-paper/80">Tourism, redistributed.</p>
-        <p className="mx-auto mt-2 max-w-xl text-sm text-paper/60">
-          We check how crowded a destination will be before you book it -- and if it's over capacity, we offer you a real alternative instead of just saying no.
+        <p className="font-display text-4xl text-paper sm:text-5xl">Tourism, redistributed.</p>
+        <p className="mx-auto mt-4 max-w-xl text-sm text-paper/70">
+          We check how crowded a destination will be before you book it, and offer a real alternative instead of just saying no.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
@@ -96,6 +95,28 @@ export default function LandingPage() {
           >
             Sign in
           </Link>
+        </div>
+      </div>
+
+      {/* Who it's built for -- the three real account roles (traveller,
+          operator, worker), positioned right after the hero so a visitor
+          knows which one they are before reading feature details. */}
+      <div className="border-b border-paper-dim bg-paper-dim/40">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+          <div className="mb-10 text-center">
+            <h2 className="font-display text-3xl text-ink">Built for travellers, operators, and workers</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {PERSONAS.map((p) => (
+              <div key={p.role} className="rounded-lg border border-paper-dim bg-white p-6 text-center">
+                <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-ink text-paper">
+                  <p.icon size={20} aria-hidden="true" />
+                </span>
+                <h3 className="mt-3 font-display text-lg text-ink">{p.role}</h3>
+                <p className="mt-1.5 text-sm text-ink/60">{p.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -147,26 +168,6 @@ export default function LandingPage() {
           </div>
         </div>
       )}
-
-      {/* Who it's built for */}
-      <div className="border-t border-paper-dim bg-paper-dim/40">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <div className="mb-10 text-center">
-            <h2 className="font-display text-3xl text-ink">Built for everyone in the loop</h2>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {AUDIENCES.map((a) => (
-              <div key={a.role} className="rounded-lg border border-paper-dim bg-white p-6 text-center">
-                <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-ink text-paper">
-                  <a.icon size={20} aria-hidden="true" />
-                </span>
-                <h3 className="mt-3 font-display text-lg text-ink">{a.role}</h3>
-                <p className="mt-1.5 text-sm text-ink/60">{a.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* How it actually works, in order */}
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
