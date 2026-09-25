@@ -54,6 +54,10 @@ function saveReadIds(ids) {
 // 3. Waitlist status -- the same endpoint also includes a "fulfilled" entry
 //    once a waitlist has been claimed through, so a status change is
 //    visible here too, not just the original match moment.
+// 4. Emergency broadcasts -- GET /v1/broadcast-alerts, active platform-wide
+//    authority alerts. Public, not trip-scoped, so it's a flat fetch rather
+//    than something composed per-trip like alerts. Gives a user who already
+//    dismissed EmergencyBanner.jsx a place to still find it.
 export const useNotificationsStore = create((set, get) => ({
   notifications: [],
   unreadCount: 0,
@@ -75,7 +79,7 @@ export const useNotificationsStore = create((set, get) => ({
         tripEntries.push({ tripId: trip._id, destId, dates })
       }
 
-      const [alertResults, offerNotifRes] = await Promise.all([
+      const [alertResults, offerNotifRes, broadcasts] = await Promise.all([
         Promise.all(
           tripEntries.map(async ({ tripId, destId, dates }) => {
             try {
@@ -89,6 +93,7 @@ export const useNotificationsStore = create((set, get) => ({
           })
         ),
         api.get('/v1/waitlist/notifications').then((res) => res.data || []).catch(() => []),
+        api.get('/v1/broadcast-alerts').then((res) => res.data || []).catch(() => []),
       ])
 
       const notifications = []
@@ -108,8 +113,11 @@ export const useNotificationsStore = create((set, get) => ({
       for (const n of offerNotifRes) {
         notifications.push(n)
       }
+      for (const b of broadcasts) {
+        notifications.push({ id: `broadcast:${b._id}`, type: 'broadcast', sentAt: b.createdAt, ...b })
+      }
 
-      // Most recent first, across all three sources.
+      // Most recent first, across all four sources.
       notifications.sort((a, b) => new Date(b.sentAt || 0) - new Date(a.sentAt || 0))
 
       const readIds = loadReadIds()

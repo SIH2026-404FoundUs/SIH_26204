@@ -146,6 +146,30 @@ export function groupJoinRequestEmail({ fullName, requesterName, destId, appUrl,
   };
 }
 
+const SEVERITY_PREFIX = { critical: "URGENT", warning: "Warning", info: "Notice" };
+
+// Sent to every account when an authority sends a platform-wide emergency
+// broadcast (disaster, safety incident) -- see broadcastAlert.model.js's own
+// comment on why this is a separate, directly-authored alert rather than a
+// row in the externally-sourced Alert collection.
+export function emergencyBroadcastEmail({ fullName, title, body, severity, appUrl }) {
+  const prefix = SEVERITY_PREFIX[severity] || "Notice";
+  const text = `${prefix}: ${title}\n\n${body}\n\nSent by a Sahyatri tourism authority to every account. View current alerts: ${appUrl}/alerts`;
+  const barColor = severity === "critical" ? "#dc2626" : severity === "warning" ? "#d97706" : INK;
+  return {
+    subject: `[${prefix}] ${title}`,
+    text,
+    html: wrapHtml(`
+      <p style="display:inline-block; background:${barColor}; color:#fff; font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:3px 8px; border-radius:4px;">${prefix}</p>
+      <p style="margin-top:10px; font-size:16px; font-weight:700;">${title}</p>
+      <p>Hi ${fullName},</p>
+      <p>${body}</p>
+      <p style="color:#6b7280; font-size:13px;">Sent by a ${BRAND} tourism authority to every account.</p>
+      ${button(`${appUrl}/alerts`, "View current alerts")}
+    `),
+  };
+}
+
 export function groupJoinDecisionEmail({ fullName, destId, accepted, appUrl, groupTripId }) {
   const verb = accepted ? "accepted" : "declined";
   const text = `Hi ${fullName},\n\nYour request to join the group trip to ${destName(destId)} was ${verb}.${accepted ? ` See the squad: ${appUrl}/travel-together/groups/${groupTripId}` : ""}`;

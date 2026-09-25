@@ -3,7 +3,7 @@ import {
   Loader2, LogOut, Menu, X, ChevronDown, Compass, MapPinned,
   ShieldCheck, Store, Route, UserRound, Wrench, Landmark,
   Map as MapIcon, Bell, ClipboardCheck, Tag, BadgeCheck, Users, Bot,
-  PanelLeftClose, PanelLeftOpen, CheckCircle2, Megaphone, IndianRupee, Briefcase, ClipboardList, ListChecks, ImageOff, Handshake,
+  PanelLeftClose, PanelLeftOpen, CheckCircle2, Megaphone, IndianRupee, Briefcase, ClipboardList, ListChecks, ImageOff, Handshake, Siren,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -96,6 +96,7 @@ const OPERATOR_MORE = [
 // other role's nav already gives it.
 const AUTHORITY_PRIMARY = [
   { to: '/authority', label: 'Authority Dashboard', icon: Landmark },
+  { to: '/authority/alerts', label: 'Emergency Alerts', icon: Siren },
   { to: '/authority/complaints', label: 'Complaints', icon: ClipboardList },
   { to: '/community', label: 'Community Review', icon: ClipboardCheck },
 ]
@@ -269,6 +270,14 @@ function notificationSummary(n) {
       detail: 'You claimed an offer here.',
     }
   }
+  if (n.type === 'broadcast') {
+    return {
+      icon: Siren,
+      tone: 'text-pressure bg-pressure/10',
+      title: n.title,
+      detail: n.body,
+    }
+  }
   const severity = alertSeverity(n.severity)
   return {
     icon: Bell,
@@ -433,9 +442,8 @@ export default function Header() {
     <>
     <header className="glass-surface sticky top-0 z-50 border-b border-ink/5">
       <div className="mx-auto flex min-h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link to={authUser ? homeForRole(authUser.role) : '/'} className="group flex shrink-0 items-center gap-2.5 text-ink">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-paper shadow-sm transition group-hover:bg-ink-soft"><Compass size={19} aria-hidden="true" /></span>
-          <span className="font-display text-xl tracking-tight">Sahyatri</span>
+        <Link to={authUser ? homeForRole(authUser.role) : '/'} className="group flex shrink-0 items-center gap-2 text-ink">
+          <img src="/logo.webp" alt="Sahyatri" className="h-20 w-auto py-1.5 transition group-hover:opacity-80" />
           {authUser && (
             <span className="hidden rounded-full bg-paper-dim px-2 py-1 text-[11px] font-sans font-semibold tracking-normal text-ink/60 sm:inline-flex">
               {ROLE_LABEL[authUser.role] || authUser.role}

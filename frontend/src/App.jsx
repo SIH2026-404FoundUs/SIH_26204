@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuthStore } from './store/useAuthStore'
 import Header, { FullPageLoader } from './components/shell/Header'
+import EmergencyBanner from './components/shell/EmergencyBanner'
 import { Page, RequireAuth, RequireAuthBare, RequireRole } from './components/shell/Guards'
 
 // Route-level code splitting: every screen below is its own chunk, fetched
@@ -36,6 +37,7 @@ const WorkerMyJobs = lazy(() => import('./components/worker/WorkerMyJobs'))
 const WorkerComplaints = lazy(() => import('./components/worker/WorkerComplaints'))
 const AuthorityDashboard = lazy(() => import('./components/authority/AuthorityDashboard'))
 const AuthorityComplaints = lazy(() => import('./components/authority/AuthorityComplaints'))
+const AuthorityAlerts = lazy(() => import('./components/authority/AuthorityAlerts'))
 const VisitVerify = lazy(() => import('./components/trust/VisitVerify'))
 const CommunitySubmit = lazy(() => import('./components/trust/CommunitySubmit'))
 const CommunityReview = lazy(() => import('./components/trust/CommunityReview'))
@@ -80,6 +82,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="flex min-h-screen flex-col bg-paper">
+        <EmergencyBanner />
         <Header />
         <Suspense fallback={<FullPageLoader />}>
         <Routes>
@@ -159,6 +162,7 @@ function App() {
           <Route path="/operator" element={<RequireRole role="operator" wide><OperatorConsole /></RequireRole>} />
           <Route path="/authority" element={<RequireRole role="authority" wide><AuthorityDashboard /></RequireRole>} />
           <Route path="/authority/complaints" element={<RequireRole role="authority"><AuthorityComplaints /></RequireRole>} />
+          <Route path="/authority/alerts" element={<RequireRole role="authority"><AuthorityAlerts /></RequireRole>} />
 
           {/* Back-compat redirects for pre-rebuild URLs */}
           <Route path="/login" element={<Navigate to="/signin" replace />} />

@@ -22,6 +22,33 @@ services:
         sync: false
       - key: CLIENT_URL
         sync: false # the deployed Vercel URL (add localhost too, comma-separated, if testing this backend from a local frontend)
+      # Internal-service auth (serviceAuth.middleware.js's protectRouteOrService):
+      # ai-service authenticates its server-to-server calls into this backend
+      # (trip drafts, group-trip tools, preference reads) with this token in an
+      # X-Internal-Service-Token header instead of a session cookie, since it has
+      # no browser session to send. Must be set to the SAME value as
+      # sahyatri-ai-service's own INTERNAL_SERVICE_TOKEN below, or every one of
+      # those calls silently falls back to cookie auth and 401s.
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false
+      # Base URL of the deployed sahyatri-ai-service, e.g.
+      # https://sahyatri-ai-service.onrender.com -- without this,
+      # demandML.provider.js falls back to its http://localhost:8000 default,
+      # which does not exist on Render, and pressure demand-ML predictions
+      # silently degrade to the non-ML baseline.
+      - key: AI_SERVICE_URL
+        sync: false
+      # Full URL including path, e.g.
+      # https://sahyatri-ai-service.onrender.com/onboarding/extract -- without
+      # this, WhatsApp onboarding field extraction fails outright (falls back
+      # to the same nonexistent localhost:8000 default).
+      - key: EXTRACT_SERVICE_URL
+        sync: false
+      # Full URL including path, e.g.
+      # https://sahyatri-ai-service.onrender.com/onboarding/transcribe --
+      # same failure mode as EXTRACT_SERVICE_URL above if left unset.
+      - key: TRANSCRIBE_SERVICE_URL
+        sync: false
       - key: GOOGLE_MAPS_API_KEY
         sync: false
       - key: RAILRADAR_API_KEY
@@ -54,6 +81,10 @@ services:
         sync: false # same value as the backend's CLIENT_URL
       - key: BACKEND_URL
         sync: false # the deployed sahyatri-backend URL, e.g. https://sahyatri-backend.onrender.com
+      # Must be set to the SAME value as sahyatri-backend's own
+      # INTERNAL_SERVICE_TOKEN above -- see that entry's comment.
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false
       # Trip planning falls through Groq -> Mistral -> Gemini in that order
       # (app/agents/travel_agent.py's PROVIDER_CHAIN), skipping whichever of
       # these are left blank. Groq is primary -- Gemini is a last-resort
