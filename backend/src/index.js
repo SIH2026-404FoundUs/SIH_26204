@@ -45,6 +45,8 @@ import educationRoutes from "./routes/education.route.js";
 import groupTripsRoutes from "./routes/groupTrips.route.js";
 import broadcastAlertsRoutes from "./routes/broadcastAlerts.route.js";
 import { startAlertPolling } from "./jobs/scheduler.js";
+import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
+import { logger } from "./lib/logger.js";
 
 // dotenv.config() with no path loads .env from process.cwd(), which silently
 // finds nothing (MONGODB_URI etc. come back undefined) if the server is started
@@ -90,7 +92,8 @@ app.use(
       // let it through; credentialed browser requests always send Origin,
       // so this can't be used to smuggle a cross-site cookie read.
       if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error(`Origin ${origin} not allowed by CORS`));
+      // status 403 so errorHandler answers "forbidden", not a generic 500.
+      callback(Object.assign(new Error(`Origin ${origin} not allowed by CORS`), { status: 403 }));
     },
     credentials: true,
   })
@@ -137,8 +140,13 @@ app.use("/api/v1/destinations", educationRoutes); // Travel Education, keyed on 
 app.use("/api/v1/group-trips", groupTripsRoutes); // Group Travel core lifecycle (§10-13)
 app.use("/api/v1/broadcast-alerts", broadcastAlertsRoutes); // authority emergency broadcast, every account
 
+// Must stay after every route: JSON 404 for unmatched /api paths, then the
+// one place all thrown/rejected errors end up.
+app.use("/api", notFoundHandler);
+app.use(errorHandler);
+
 app.listen(PORT, () => {
-  console.log("server is running on PORT:" + PORT);
+  logger.info("server is running on PORT:" + PORT);
   connectDB().then(() => startAlertPolling());
 });
 

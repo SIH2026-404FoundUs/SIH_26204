@@ -1,12 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { aiApi, getErrorMessage } from '../../lib/api'
 import { Loader2, Send, X } from 'lucide-react'
 
-const AI_URL = import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:8000'
 const MAX_MESSAGE_CHARS = 500
-
-function errorMessage(response, fallback) {
-  return response?.detail || response?.message || fallback
-}
 
 export default function AskAIChat({ request, trip, onClose }) {
   const [messages, setMessages] = useState([
@@ -36,18 +32,11 @@ export default function AskAIChat({ request, trip, onClose }) {
     setIsSending(true)
 
     try {
-      const response = await fetch(`${AI_URL}/internal/ai/chat`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ request: request || {}, trip, question: userMessage.content, history }),
-      })
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok) throw new Error(errorMessage(data, 'Ask AI is temporarily unavailable.'))
+      const { data } = await aiApi.post('/internal/ai/chat', { request: request || {}, trip, question: userMessage.content, history })
       if (!data.answer) throw new Error('Ask AI returned an empty answer.')
       setMessages((current) => [...current, { role: 'assistant', content: data.answer }])
     } catch (sendError) {
-      setError(sendError.message || 'Ask AI is temporarily unavailable.')
+      setError(getErrorMessage(sendError, 'Ask AI is temporarily unavailable.'))
     } finally {
       setIsSending(false)
     }

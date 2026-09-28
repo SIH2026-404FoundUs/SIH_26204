@@ -22,6 +22,7 @@ import { requestCaptainForGroup } from "../services/groups/captainService.js";
 import { sendMail } from "../lib/mailer.js";
 import { groupJoinRequestEmail, groupJoinDecisionEmail } from "../lib/emailTemplates.js";
 import { parsePagination } from "../lib/pagination.js";
+import { logger } from "../lib/logger.js";
 
 const models = { GroupTripModel: GroupTrip, GroupTripMemberModel: GroupTripMember, UserModel: User };
 const captainModels = { GroupTripModel: GroupTrip, GigRequestModel: GigRequest, GigMatchModel: GigMatch, WorkerProfileModel: WorkerProfile };
@@ -54,7 +55,7 @@ export const createGroupTripController = async (req, res) => {
     const result = await createGroupTrip(userId, req.body, models);
     respond(res, result);
   } catch (error) {
-    console.log("Error in createGroupTrip controller", error.message);
+    logger.error("Error in createGroupTrip controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -67,7 +68,7 @@ export const listGroupTripsController = async (req, res) => {
     const result = await listGroupTrips({ destId, startDate, endDate, status, limit, skip }, models);
     respond(res, result);
   } catch (error) {
-    console.log("Error in listGroupTrips controller", error.message);
+    logger.error("Error in listGroupTrips controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -80,7 +81,7 @@ export const getMyGroupTripsController = async (req, res) => {
     const result = await getMyGroupTrips(userId, models);
     respond(res, result);
   } catch (error) {
-    console.log("Error in getMyGroupTrips controller", error.message);
+    logger.error("Error in getMyGroupTrips controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -91,7 +92,7 @@ export const getGroupTripController = async (req, res) => {
     const result = await getGroupTrip(req.params.id, models);
     respond(res, result);
   } catch (error) {
-    console.log("Error in getGroupTrip controller", error.message);
+    logger.error("Error in getGroupTrip controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -104,7 +105,7 @@ export const updateGroupTripController = async (req, res) => {
     const result = await updateGroupTrip(req.params.id, userId, req.body, models);
     respond(res, result);
   } catch (error) {
-    console.log("Error in updateGroupTrip controller", error.message);
+    logger.error("Error in updateGroupTrip controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -115,7 +116,7 @@ export const getGroupMembersController = async (req, res) => {
     const result = await getGroupMembers(req.params.id, models);
     respond(res, result);
   } catch (error) {
-    console.log("Error in getGroupMembers controller", error.message);
+    logger.error("Error in getGroupMembers controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -128,7 +129,7 @@ export const joinGroupTripController = async (req, res) => {
     const result = await joinGroupTrip(req.params.id, userId, models, { sendMailFn: sendJoinRequestMail });
     respond(res, result);
   } catch (error) {
-    console.log("Error in joinGroupTrip controller", error.message);
+    logger.error("Error in joinGroupTrip controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -141,7 +142,7 @@ export const leaveGroupTripController = async (req, res) => {
     const result = await leaveGroupTrip(req.params.id, userId, models);
     respond(res, result);
   } catch (error) {
-    console.log("Error in leaveGroupTrip controller", error.message);
+    logger.error("Error in leaveGroupTrip controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -154,7 +155,7 @@ export const acceptGroupMemberController = async (req, res) => {
     const result = await acceptMember(req.params.id, req.params.userId, actorId, models, { sendMailFn: sendJoinDecisionMail });
     respond(res, result);
   } catch (error) {
-    console.log("Error in acceptGroupMember controller", error.message);
+    logger.error("Error in acceptGroupMember controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -167,7 +168,7 @@ export const rejectGroupMemberController = async (req, res) => {
     const result = await rejectMember(req.params.id, req.params.userId, actorId, models, { sendMailFn: sendJoinDecisionMail });
     respond(res, result);
   } catch (error) {
-    console.log("Error in rejectGroupMember controller", error.message);
+    logger.error("Error in rejectGroupMember controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -182,7 +183,7 @@ export const getGroupMatchReasonsController = async (req, res) => {
     const result = await getGroupMatchReasons(req.params.id, userId, models);
     respond(res, result);
   } catch (error) {
-    console.log("Error in getGroupMatchReasons controller", error.message);
+    logger.error("Error in getGroupMatchReasons controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -198,7 +199,7 @@ export const searchGroupMatchesController = async (req, res) => {
     const result = await searchGroupMatches(userId, { destId, startDate, endDate }, models);
     respond(res, result);
   } catch (error) {
-    console.log("Error in searchGroupMatches controller", error.message);
+    logger.error("Error in searchGroupMatches controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -213,7 +214,7 @@ export const requestCaptainController = async (req, res) => {
     const result = await requestCaptainForGroup(req.params.id, userId, { skillNeeded, budget }, captainModels);
     respond(res, result);
   } catch (error) {
-    console.log("Error in requestCaptain controller", error.message);
+    logger.error("Error in requestCaptain controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

@@ -1,15 +1,6 @@
 import { create } from 'zustand'
-import axios from 'axios'
+import { aiApi as aiClient } from '../lib/api'
 import { useAuthStore } from './useAuthStore'
-
-// The agent orchestrator runs as its own service (ai-service/app/main.py),
-// separate from the Express backend -- not proxied through /api like every
-// other store here, so it gets its own small client instead of reusing lib/api.js.
-const aiClient = axios.create({
-  baseURL: import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:8000',
-  headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,
-})
 
 const getErrorMessage = (error, fallback) => {
   if (error?.response?.status === 401) {

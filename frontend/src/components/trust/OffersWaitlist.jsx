@@ -102,9 +102,21 @@ export default function OffersWaitlist() {
   const activeWaitlists = useMemo(() => waitlists.filter((w) => w.state === 'waiting'), [waitlists])
 
   const loadOffers = (e) => { e?.preventDefault(); fetchOffers(destId) }
+  // The backend now treats a repeat join as idempotent (returns the
+  // existing standing request instead of creating a duplicate), but a
+  // double-click/double-tap before the first response lands still fires
+  // two requests -- this local guard is the cheap fix for that race,
+  // without needing a new store-level loading flag for one button.
+  const [isJoining, setIsJoining] = useState(false)
   const handleJoin = async (e) => {
     e.preventDefault()
-    await joinWaitlist({ destId, windowFrom: joinForm.windowFrom, windowTo: joinForm.windowTo, maxPriceINR: Number(joinForm.maxPriceINR) || undefined })
+    if (isJoining) return
+    setIsJoining(true)
+    try {
+      await joinWaitlist({ destId, windowFrom: joinForm.windowFrom, windowTo: joinForm.windowTo, maxPriceINR: Number(joinForm.maxPriceINR) || undefined })
+    } finally {
+      setIsJoining(false)
+    }
   }
 
   return (
@@ -171,7 +183,7 @@ export default function OffersWaitlist() {
                 <FormField label="From"><input required type="date" value={joinForm.windowFrom} onChange={(e) => setJoinForm((p) => ({ ...p, windowFrom: e.target.value }))} className={inputClass} /></FormField>
                 <FormField label="To"><input required type="date" value={joinForm.windowTo} onChange={(e) => setJoinForm((p) => ({ ...p, windowTo: e.target.value }))} className={inputClass} /></FormField>
                 <FormField label="Max ₹/night" optional><input type="number" value={joinForm.maxPriceINR} onChange={(e) => setJoinForm((p) => ({ ...p, maxPriceINR: e.target.value }))} className={inputClass} /></FormField>
-                <div className="flex items-end"><Button type="submit" variant="primary" fullWidth>Join waitlist</Button></div>
+                <div className="flex items-end"><Button type="submit" variant="primary" fullWidth loading={isJoining}>Join waitlist</Button></div>
               </div>
             </form>
           </Card>

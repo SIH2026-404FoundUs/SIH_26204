@@ -1,6 +1,7 @@
 import { getVerifiedAlerts, getAlertsForDateRange, ingestAlert } from "../services/alerts/alertService.js";
 import Alert from "../models/alert.model.js";
 import AuditLog from "../models/auditLog.model.js";
+import { logger } from "../lib/logger.js";
 
 const models = { AlertModel: Alert, AuditLogModel: AuditLog };
 
@@ -12,7 +13,7 @@ export const getAlertsController = async (req, res) => {
     if (!destId) return res.status(400).json({ message: "destId query param required" });
     res.status(200).json(await getVerifiedAlerts({ destId, kind }, models));
   } catch (error) {
-    console.log("Error in getAlerts controller", error.message);
+    logger.error("Error in getAlerts controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -29,7 +30,7 @@ export const getAlertsForTripController = async (req, res) => {
     }
     res.status(200).json(await getAlertsForDateRange({ destId, startDate, endDate }, models));
   } catch (error) {
-    console.log("Error in getAlertsForTrip controller", error.message);
+    logger.error("Error in getAlertsForTrip controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -45,7 +46,7 @@ export const ingestAlertController = async (req, res) => {
     const result = await ingestAlert(req.body, models);
     res.status(result.status).json(result);
   } catch (error) {
-    console.log("Error in ingestAlert controller", error.message);
+    logger.error("Error in ingestAlert controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

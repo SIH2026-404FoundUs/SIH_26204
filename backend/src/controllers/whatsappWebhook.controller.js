@@ -64,6 +64,7 @@ import { processInboundAudio, isDuplicateMessage } from "../services/onboarding/
 import { processInboundImage } from "../services/onboarding/processInboundImage.js";
 import { processDraftConfirmReply } from "../services/onboarding/draftConfirm.js";
 import { handleWorkerTextCommand } from "../services/onboarding/whatsappWorkerCommands.js";
+import { logger } from "../lib/logger.js";
 
 const workerModels = { UserModel: User, WorkerProfileModel: WorkerProfile, GigMatchModel: GigMatch, GigRequestModel: GigRequest };
 
@@ -255,11 +256,11 @@ async function processWebhookPayload(body, deps) {
  */
 export function createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn, sendMessageFn, uploadFn } = {}) {
   function handleReceiveWebhook(req, res) {
-    console.log("WhatsApp webhook payload:", JSON.stringify(req.body, null, 2));
-
     // Fast 200 first — see module docstring for why this must not wait on
-    // the actual processing below.
+    // the actual processing below (or on logging the payload).
     res.sendStatus(200);
+
+    console.log("WhatsApp webhook payload:", JSON.stringify(req.body, null, 2));
 
     const backgroundWork = processWebhookPayload(req.body, {
       fetchFn,
@@ -269,7 +270,7 @@ export function createReceiveWebhookHandler({ fetchFn, transcribeFn, extractFn, 
       uploadFn,
     }).catch((error) => {
       // The response is already sent; nothing to return this to. Log only.
-      console.error("Error processing WhatsApp webhook payload:", error.message);
+      logger.error("Error processing WhatsApp webhook payload:", error);
     });
 
     // Exposed purely for tests to await ("...through to a persisted state

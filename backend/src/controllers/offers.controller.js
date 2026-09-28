@@ -8,6 +8,7 @@ import User from "../models/user.model.js";
 import { sendMail } from "../lib/mailer.js";
 import { flashOfferEmail, waitlistFulfilledEmail } from "../lib/emailTemplates.js";
 import { parsePagination } from "../lib/pagination.js";
+import { logger } from "../lib/logger.js";
 
 const models = { OfferModel: Offer, WaitlistModel: Waitlist, AuditLogModel: AuditLog };
 const APP_URL = (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0].trim();
@@ -71,7 +72,7 @@ export const listOffersController = async (req, res) => {
     }).sort({ expiresAt: 1 }).skip(skip).limit(limit);
     res.status(200).json(offers);
   } catch (error) {
-    console.log("Error in listOffers controller", error.message);
+    logger.error("Error in listOffers controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -90,7 +91,7 @@ export const claimOfferController = async (req, res) => {
     }
     res.status(result.status).json(result);
   } catch (error) {
-    console.log("Error in claimOffer controller", error.message);
+    logger.error("Error in claimOffer controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

@@ -17,7 +17,6 @@ import { calculateNameSimilarity, slugify } from "./similarityUtils.js";
 // Deduplication thresholds per specification
 export const DEDUP_RADIUS_KM = 5.0;
 export const DEDUP_SIMILARITY_THRESHOLD = 0.7;
-export const MAX_SUBMISSIONS_PER_30_DAYS = 3;
 
 /**
  * Default AI enrichment generator if external Qwen3 endpoint is omitted.
@@ -158,33 +157,6 @@ export async function submitCommunityDestination(params, models = {}) {
           };
         }
       }
-    }
-  }
-
-  // Step 3: RATE LIMIT Check — Max 3 submissions per user per 30 days
-  if (CommunitySubmissionModel) {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const recentSubmissionsCount = await CommunitySubmissionModel.countDocuments({
-      userId,
-      createdAt: { $gte: thirtyDaysAgo },
-    });
-
-    if (recentSubmissionsCount >= MAX_SUBMISSIONS_PER_30_DAYS) {
-      if (AuditLogModel && typeof AuditLogModel.create === "function") {
-        await AuditLogModel.create({
-          actor: String(userId),
-          action: "community.submit.rejected",
-          reasonCode: "COMMUNITY_RATE_LIMIT_EXCEEDED",
-          at: new Date(),
-        }).catch(() => {});
-      }
-
-      return {
-        success: false,
-        status: 429,
-        error: "COMMUNITY_RATE_LIMIT_EXCEEDED",
-        message: "Maximum 3 community submissions allowed per user per 30 days",
-      };
     }
   }
 

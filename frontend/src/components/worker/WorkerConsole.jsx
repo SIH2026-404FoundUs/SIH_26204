@@ -223,8 +223,13 @@ function ProfileTab() {
 }
 
 function GigsNearYouTab() {
-  const { openGigs, isLoadingGigs, gigsError, fetchOpenGigs, isAccepting, acceptError, acceptGig, profile } = useWorkerStore()
-  const [destId, setDestId] = useState(profile?.serviceAreaDestIds?.[0] || '')
+  const { openGigs, isLoadingGigs, gigsError, fetchOpenGigs, isAccepting, acceptError, acceptGig } = useWorkerStore()
+  // Defaults to every destination, not just this worker's own first service
+  // area -- a real bug this used to be: an operator's gig for a destination
+  // that wasn't the worker's *first-listed* one was silently invisible on
+  // load, with no way to clear the filter back to "all" (DestinationSelect's
+  // blank option used to be permanently disabled). See allowAll below.
+  const [destId, setDestId] = useState('')
   const [skill, setSkill] = useState('')
   const [queuedGigId, setQueuedGigId] = useState(null)
 
@@ -244,7 +249,7 @@ function GigsNearYouTab() {
     <div>
       <Card className="mb-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <FormField label="Destination" optional><DestinationSelect value={destId} onChange={setDestId} /></FormField>
+          <FormField label="Destination" optional><DestinationSelect value={destId} onChange={setDestId} allowAll allLabel="All destinations" /></FormField>
           <FormField label="Skill" optional>
             <select value={skill} onChange={(e) => setSkill(e.target.value)} className={inputClass}>
               <option value="">Any skill</option>

@@ -8,6 +8,7 @@ import { passwordResetEmail, welcomeEmail } from "../lib/emailTemplates.js";
 import mongoose from "mongoose";
 import multer from "multer";
 import cloudinary, { optimizedImageUrl } from "../lib/cloudinary.js";
+import { logger } from "../lib/logger.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_FULLNAME_LEN = 200;
@@ -97,7 +98,7 @@ export const signup = async (req, res) => {
       createdAt: newUser.createdAt,
     });
   } catch (error) {
-    console.log("Error in signup controller", error.message);
+    logger.error("Error in signup controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -142,7 +143,7 @@ export const login = async (req, res) => {
       createdAt: user.createdAt,
     });
   } catch (error) {
-    console.log("Error in login controller", error.message);
+    logger.error("Error in login controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -155,7 +156,7 @@ export const logout = (req, res) => {
     res.cookie("jwt", "", { ...AUTH_COOKIE_OPTIONS, maxAge: 0 });
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    console.log("Error in logout controller", error.message);
+    logger.error("Error in logout controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -164,7 +165,7 @@ export const checkAuth = (req, res) => {
   try {
     res.status(200).json(req.user);
   } catch (error) {
-    console.log("Error in checkAuth controller", error.message);
+    logger.error("Error in checkAuth controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -195,7 +196,7 @@ export const forgotPassword = async (req, res) => {
 
     res.status(200).json(GENERIC);
   } catch (error) {
-    console.log("Error in forgotPassword controller", error.message);
+    logger.error("Error in forgotPassword controller", error);
     res.status(200).json(GENERIC);
   }
 };
@@ -237,7 +238,7 @@ export const resetPassword = async (req, res) => {
     // password rather than trusting the reset link itself as a session.
     res.status(200).json({ message: "Password reset. Please sign in with your new password." });
   } catch (error) {
-    console.log("Error in resetPassword controller", error.message);
+    logger.error("Error in resetPassword controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -279,7 +280,7 @@ export const changePassword = async (req, res) => {
 
     res.status(200).json({ message: "Password changed." });
   } catch (error) {
-    console.log("Error in changePassword controller", error.message);
+    logger.error("Error in changePassword controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -339,7 +340,7 @@ export const updateProfile = async (req, res) => {
       createdAt: user.createdAt,
     });
   } catch (error) {
-    console.log("Error in updateProfile controller", error.message);
+    logger.error("Error in updateProfile controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -383,7 +384,7 @@ export const uploadProfilePhoto = async (req, res) => {
       createdAt: user.createdAt,
     });
   } catch (error) {
-    console.log("Error in uploadProfilePhoto controller", error.message);
+    logger.error("Error in uploadProfilePhoto controller", error);
     res.status(500).json({ message: "Could not upload profile photo" });
   }
 };
@@ -406,7 +407,7 @@ export const removeProfilePhoto = async (req, res) => {
       createdAt: user.createdAt,
     });
   } catch (error) {
-    console.log("Error in removeProfilePhoto controller", error.message);
+    logger.error("Error in removeProfilePhoto controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

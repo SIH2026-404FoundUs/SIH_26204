@@ -1,5 +1,6 @@
 import { getPressure, getPressureMap } from "../services/pressure/service.js";
 import { isValidCalendarDate } from "../lib/dateValidation.js";
+import { logger } from "../lib/logger.js";
 
 // GET /api/v1/pressure/:destId?date=YYYY-MM-DD  (spec §10)
 export const getPressureController = async (req, res) => {
@@ -15,7 +16,7 @@ export const getPressureController = async (req, res) => {
     if (!row) return res.status(404).json({ message: "unknown destId and no stored row" });
     res.status(200).json(row);
   } catch (error) {
-    console.log("Error in getPressure controller", error.message);
+    logger.error("Error in getPressure controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -31,7 +32,7 @@ export const getPressureMapController = async (req, res) => {
 
     res.status(200).json(await getPressureMap(date));
   } catch (error) {
-    console.log("Error in getPressureMap controller", error.message);
+    logger.error("Error in getPressureMap controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

@@ -171,6 +171,17 @@ export async function createGigRequest(operatorUserId, data, models = {}) {
 // findOneAndUpdate-with-guard shape claimOfferAtomic (offerService.js) uses
 // for exactly the same "only the first request through this door wins"
 // problem. Two different collections, same race.
+//
+// Two workers can reach this: one who was pushed an "offered" GigMatch row
+// (push-matched on skills/serviceArea/availability at posting time) and one
+// who found the gig purely by browsing (listOpenGigs's own self-serve
+// intent -- "a worker who wasn't notified... can still self-serve", not
+// gated on ever having matched the push criteria). A worker in the second
+// group has no "offered" row to flip, so a fresh "accepted" row is created
+// for them instead -- the unique (gigRequestId, workerId) index on
+// GigMatch still makes a concurrent double-accept from the same worker
+// race-safe (the second create() hits a duplicate-key error, not a
+// duplicate row).
 export async function acceptGig(gigRequestId, workerUserId, models = {}) {
   const { GigRequestModel, GigMatchModel, WorkerProfileModel } = models;
 
@@ -179,18 +190,28 @@ export async function acceptGig(gigRequestId, workerUserId, models = {}) {
 
   const gigRequest = await GigRequestModel.findById(gigRequestId);
   if (!gigRequest) return { success: false, status: 404, message: "gig not found" };
+  if (!["open", "matched"].includes(gigRequest.status)) {
+    return { success: false, status: 409, message: "This gig is no longer open." };
+  }
 
   // The atomic step: this exact worker's own offered row flips to accepted
   // only if it is still "offered" right now -- a second accept attempt (a
   // double-tap, a stale tab) finds nothing to update and fails cleanly
   // instead of racing.
-  const match = await GigMatchModel.findOneAndUpdate(
+  let match = await GigMatchModel.findOneAndUpdate(
     { gigRequestId, workerId: profile._id, status: "offered" },
     { $set: { status: "accepted", respondedAt: new Date() } },
     { new: true }
   );
   if (!match) {
-    return { success: false, status: 409, message: "This gig is no longer available to you -- it may already be filled or you weren't matched to it." };
+    try {
+      match = await GigMatchModel.create({ gigRequestId, workerId: profile._id, status: "accepted", respondedAt: new Date() });
+    } catch {
+      // Duplicate key -- this worker already has a row for this gig
+      // (already accepted/declined/completed/cancelled), so there is
+      // nothing fresh to claim.
+      return { success: false, status: 409, message: "This gig is no longer available to you -- it may already be filled or you weren't matched to it." };
+    }
   }
 
   const acceptedCount = await GigMatchModel.countDocuments({ gigRequestId, status: "accepted" });

@@ -13,6 +13,7 @@ import { computeTripsAnalytics } from "../services/dashboard/tripsAnalytics.js";
 import { laborDemandGap } from "../services/incentive/laborDemandGap.js";
 import { loadDestinations } from "../services/pressure/seed.js";
 import { isValidCalendarDate } from "../lib/dateValidation.js";
+import { logger } from "../lib/logger.js";
 
 function requireDateParam(req, res) {
   const { date } = req.query;
@@ -35,7 +36,7 @@ export const getDashboardPressureController = async (req, res) => {
     const rows = await getPressureMap(date);
     res.status(200).json({ date, destinations: rows });
   } catch (error) {
-    console.log("Error in getDashboardPressure controller", error.message);
+    logger.error("Error in getDashboardPressure controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -48,7 +49,7 @@ export const getDashboardCapacityController = async (req, res) => {
     const destinations = await computeCapacityGapForDate(date);
     res.status(200).json({ date, destinations });
   } catch (error) {
-    console.log("Error in getDashboardCapacity controller", error.message);
+    logger.error("Error in getDashboardCapacity controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -70,7 +71,7 @@ export const getDashboardRedistributionController = async (req, res) => {
       byDestination: analytics.byDestination,
     });
   } catch (error) {
-    console.log("Error in getDashboardRedistribution controller", error.message);
+    logger.error("Error in getDashboardRedistribution controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -87,7 +88,7 @@ export const getDashboardAcceptanceController = async (req, res) => {
       totalTrips: analytics.totalTrips,
     });
   } catch (error) {
-    console.log("Error in getDashboardAcceptance controller", error.message);
+    logger.error("Error in getDashboardAcceptance controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -171,7 +172,7 @@ export const getDashboardLaborController = async (req, res) => {
     );
     res.status(200).json({ date, destinations: rows });
   } catch (error) {
-    console.log("Error in getDashboardLabor controller", error.message);
+    logger.error("Error in getDashboardLabor controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

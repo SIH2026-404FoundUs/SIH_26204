@@ -3,6 +3,7 @@ import Business from "../models/business.model.js";
 import BusinessAvailability from "../models/businessAvailability.model.js";
 import { sendMail } from "../lib/mailer.js";
 import { bookingConfirmationEmail } from "../lib/emailTemplates.js";
+import { logger } from "../lib/logger.js";
 
 // Business.type -> BusinessAvailability.resourceType. Same mapping a real
 // operator-declared-availability row would use (businessAvailability.model.js's
@@ -68,7 +69,7 @@ export const createBookingController = async (req, res) => {
 
     res.status(201).json(booking);
   } catch (error) {
-    console.log("Error in createBooking controller", error.message);
+    logger.error("Error in createBooking controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -79,7 +80,7 @@ export const getMyBookingsController = async (req, res) => {
     const bookings = await Booking.find({ userId: String(req.user._id) }).sort({ createdAt: -1 }).lean();
     res.status(200).json(bookings);
   } catch (error) {
-    console.log("Error in getMyBookings controller", error.message);
+    logger.error("Error in getMyBookings controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -100,7 +101,7 @@ export const getBusinessBookingsController = async (req, res) => {
     const bookings = await Booking.find({ businessId: req.params.businessId }).sort({ date: 1 }).select("-userId").lean();
     res.status(200).json(bookings);
   } catch (error) {
-    console.log("Error in getBusinessBookings controller", error.message);
+    logger.error("Error in getBusinessBookings controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

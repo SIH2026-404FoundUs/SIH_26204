@@ -25,9 +25,44 @@ axiosRetry(api, {
   retryDelay: axiosRetry.exponentialDelay,
 })
 
+// A 401 on any non-auth call means the session cookie expired or was cleared;
+// the auth store registers a handler so stale `authUser` state gets dropped
+// (and ProtectedRoute redirects to login) instead of every page failing
+// separately. Registered rather than imported to avoid a store <-> api cycle.
+let onUnauthorized = null
+export const setUnauthorizedHandler = (fn) => { onUnauthorized = fn }
+
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    const url = error?.config?.url || ''
+    // /auth/* 401s are expected (checkAuth when logged out, bad login password).
+    if (error?.response?.status === 401 && !url.startsWith('/auth/')) onUnauthorized?.()
+    return Promise.reject(error)
+  }
+)
+
+// Separate origin (ai-service, FastAPI). Errors arrive as `detail`/`error`
+// rather than `message`, so getErrorMessage below reads all three. No retry:
+// these are POSTs that call paid LLMs.
+export const aiApi = axios.create({
+  baseURL: import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:8000',
+  headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
+  timeout: 60000,
+})
+
 // The backend answers with { message } on failure; surface that string to callers.
 export function getErrorMessage(error, fallback = 'Something went wrong') {
-  return error?.response?.data?.message || error?.message || fallback
+  const d = error?.response?.data
+  return (
+    d?.message
+    || d?.error
+    || d?.detail?.[0]?.msg
+    || (typeof d?.detail === 'string' ? d.detail : null)
+    || error?.message
+    || fallback
+  )
 }
 
 export default api

@@ -8,6 +8,7 @@ import { getPressure } from '../services/pressure/service.js';
 import { travelTimeFn } from '../services/travelTime.js';
 import { calculateBudget } from '../services/budgetService.js';
 import { getDestination } from '../services/pressure/seed.js';
+import { logger } from "../lib/logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -122,7 +123,7 @@ router.post('/', async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    console.log('Error in alternatives route', error.message);
+    logger.error('Error in alternatives route', error);
     res.status(500).json({ ok: false, error: 'Internal Server Error' });
   }
 });

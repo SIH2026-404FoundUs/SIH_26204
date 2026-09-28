@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import api, { getErrorMessage } from '../lib/api'
+import api, { getErrorMessage, setUnauthorizedHandler } from '../lib/api'
 
 export const useAuthStore = create((set) => ({
   authUser: null,
@@ -149,3 +149,7 @@ export const useAuthStore = create((set) => ({
     }
   },
 }))
+
+setUnauthorizedHandler(() => {
+  if (useAuthStore.getState().authUser) useAuthStore.setState({ authUser: null })
+})

@@ -2,6 +2,7 @@ import { verifyVisit, generateCurrentOperatorCode } from "../services/pov/povSer
 import Business from "../models/business.model.js";
 import Visit from "../models/visit.model.js";
 import AuditLog from "../models/auditLog.model.js";
+import { logger } from "../lib/logger.js";
 
 const models = { BusinessModel: Business, VisitModel: Visit, AuditLogModel: AuditLog };
 
@@ -17,7 +18,7 @@ export const verifyVisitController = async (req, res) => {
     );
     res.status(result.code ?? (result.status === "verified" ? 200 : 400)).json(result);
   } catch (error) {
-    console.log("Error in verifyVisit controller", error.message);
+    logger.error("Error in verifyVisit controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -33,7 +34,7 @@ export const getOperatorCodeController = async (req, res) => {
     }
     res.status(200).json(generateCurrentOperatorCode(business.povSecret, business._id));
   } catch (error) {
-    console.log("Error in getOperatorCode controller", error.message);
+    logger.error("Error in getOperatorCode controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

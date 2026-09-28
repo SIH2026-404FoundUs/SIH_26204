@@ -14,6 +14,7 @@ import User from "../models/user.model.js";
 import { sendMail } from "../lib/mailer.js";
 import { complaintStatusEmail } from "../lib/emailTemplates.js";
 import { parsePagination } from "../lib/pagination.js";
+import { logger } from "../lib/logger.js";
 
 const APP_URL = (process.env.CLIENT_URL || "http://localhost:5173").split(",")[0].trim();
 
@@ -47,7 +48,7 @@ export const getShareableTripController = async (req, res) => {
     const result = await getShareableTripRecord(req.params.token, { ShareableTripModel: ShareableTrip });
     res.status(result.status || 200).json(result);
   } catch (error) {
-    console.log("Error in getShareableTrip controller", error.message);
+    logger.error("Error in getShareableTrip controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -62,7 +63,7 @@ export const revokeShareableTripController = async (req, res) => {
     );
     res.status(result.status || 200).json(result);
   } catch (error) {
-    console.log("Error in revokeShareableTrip controller", error.message);
+    logger.error("Error in revokeShareableTrip controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -76,7 +77,7 @@ export const submitComplaintController = async (req, res) => {
     );
     res.status(result.status).json(result);
   } catch (error) {
-    console.log("Error in submitComplaint controller", error.message);
+    logger.error("Error in submitComplaint controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -86,7 +87,7 @@ export const getMyComplaintsController = async (req, res) => {
   try {
     res.status(200).json(await getUserComplaints(String(req.user._id), { ComplaintModel: Complaint }));
   } catch (error) {
-    console.log("Error in getMyComplaints controller", error.message);
+    logger.error("Error in getMyComplaints controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -101,7 +102,7 @@ export const getAllComplaintsController = async (req, res) => {
     const { limit, skip } = parsePagination(req.query);
     res.status(200).json(await getAllComplaints({ status, limit, skip }, { ComplaintModel: Complaint }));
   } catch (error) {
-    console.log("Error in getAllComplaints controller", error.message);
+    logger.error("Error in getAllComplaints controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -133,7 +134,7 @@ export const updateComplaintStatusController = async (req, res) => {
 
     res.status(result.status).json(result);
   } catch (error) {
-    console.log("Error in updateComplaintStatus controller", error.message);
+    logger.error("Error in updateComplaintStatus controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
