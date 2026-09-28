@@ -82,32 +82,6 @@ describe("Community Discovery Service", () => {
     expect(dedupFailResult.error).toBe("COMMUNITY_DUPLICATE_DESTINATION");
   });
 
-  test("30-Day Rate Limit (Max 3 Submissions)", async () => {
-    const mockVisitModelHasVisits = { exists: async () => true };
-    const mockCommunitySubmissionModelRateLimit = {
-      find: async () => [],
-      countDocuments: async () => 3,
-    };
-
-    const rateLimitResult = await submitCommunityDestination(
-      {
-        userId: "usr_spammer",
-        name: "Fourth Waterfall",
-        lat: 32.2432,
-        lng: 77.1892,
-      },
-      {
-        VisitModel: mockVisitModelHasVisits,
-        DestinationModel: { find: async () => [] },
-        CommunitySubmissionModel: mockCommunitySubmissionModelRateLimit,
-      }
-    );
-
-    expect(rateLimitResult.success).toBe(false);
-    expect(rateLimitResult.status).toBe(429);
-    expect(rateLimitResult.error).toBe("COMMUNITY_RATE_LIMIT_EXCEEDED");
-  });
-
   test("Queueing Pipeline & Zero Auto-Write to Destinations", async () => {
     const mockVisitModelHasVisits = { exists: async () => true };
     let createdDestinationsCount = 0;

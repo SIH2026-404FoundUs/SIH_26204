@@ -8,15 +8,12 @@ import { sendOrQueue } from '../lib/offlineQueue'
 // (GET /v1/waitlist/business/:id), creating a flash offer (the existing
 // POST /v1/offers -- unchanged, operator-only server-side), the live
 // Verify-a-Visit code for one business (GET /v1/visits/operator-code/:id,
-// polled -- it rotates every 90s), browsing already-onboarded workers to
-// hire (GET /v1/businesses/search, the exact same endpoint Available
+// polled -- it rotates every 90s), and browsing already-onboarded workers
+// to hire (GET /v1/businesses/search, the exact same endpoint Available
 // Services/Businesses use, filtered to worker types) with a "click to
-// hire" contact reveal (GET /v1/businesses/:id/contact), and the "hire
-// people" audio-upload fallback (POST /internal/onboarding/upload -- the
-// same internal demo-safety pipeline the WhatsApp webhook itself feeds,
-// per its own docstring: "never present this as the feature", so the UI
-// is honest that this is a fallback for a real WhatsApp number that isn't
-// provisioned in this environment, not a separate hiring system).
+// hire" contact reveal (GET /v1/businesses/:id/contact). Onboarding a new
+// worker happens through the real WhatsApp voice pipeline itself, not a
+// form in this store.
 export const useOperatorStore = create((set, get) => ({
   myBusinesses: [],
   isLoadingBusinesses: false,
@@ -196,38 +193,6 @@ export const useOperatorStore = create((set, get) => ({
     }
   },
 
-  // -- Hire people (audio-upload onboarding fallback) --
-  isSubmittingHire: false,
-  hireError: null,
-  hireResult: null,
-
-  submitHireOnboarding: async ({ audioFile, destId, ownerPhone }) => {
-    set({ isSubmittingHire: true, hireError: null, hireResult: null })
-    try {
-      const formData = new FormData()
-      formData.append('audio', audioFile)
-      formData.append('destId', destId)
-      formData.append('ownerPhone', ownerPhone)
-      // Content-Type: undefined, not 'multipart/form-data' -- see the
-      // matching comment in useAuthStore.js's uploadProfilePhoto. The
-      // literal string (no boundary) makes busboy throw "Boundary not
-      // found" and crash this endpoint with an unhandled 500 on every
-      // upload; `undefined` clears `api`'s default 'application/json' so
-      // the browser computes the real multipart boundary itself -- both
-      // confirmed live against the running backend.
-      const res = await api.post('/internal/onboarding/upload', formData, {
-        headers: { 'Content-Type': undefined },
-      })
-      set({ hireResult: res.data })
-      return true
-    } catch (error) {
-      set({ hireError: getErrorMessage(error, 'Could not process this recording') })
-      return false
-    } finally {
-      set({ isSubmittingHire: false })
-    }
-  },
-
   // -- Local Tourism Business Growth Platform: the same growthRanking
   // formula that already silently orders GET /v1/businesses/search results,
   // now surfaced so an operator can see their own multiplier breakdown
@@ -367,6 +332,7 @@ export const useOperatorStore = create((set, get) => ({
     set({ isRatingGig: true, rateGigError: null })
     try {
       await api.post(`/v1/gigs/${gigId}/rate`, { score, comment })
+      await get().fetchPostedGigs({ silent: true })
       return true
     } catch (error) {
       set({ rateGigError: getErrorMessage(error, 'Could not submit this rating') })

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import { TRAVEL_TYPE_IDS, PREFERRED_ACTIVITIES, PREFERRED_PACE, PREFERRED_GROUP_SIZE, PREFERRED_TRIP_DURATION } from "../lib/travelTypes.js";
+import { logger } from "../lib/logger.js";
 
 // GET /api/v1/users/:id/preferences — public read, no auth, consistent with
 // every other agent-facing tool endpoint in this codebase (pressure, alerts,
@@ -20,7 +21,7 @@ export const getUserPreferencesController = async (req, res) => {
     if (!user) return res.status(404).json({ message: "user not found" });
     res.status(200).json(user.preferences);
   } catch (error) {
-    console.log("Error in getUserPreferences controller", error.message);
+    logger.error("Error in getUserPreferences controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -139,7 +140,7 @@ export const updateUserPreferencesController = async (req, res) => {
     if (!user) return res.status(404).json({ message: "user not found" });
     res.status(200).json(user.preferences);
   } catch (error) {
-    console.log("Error in updateUserPreferences controller", error.message);
+    logger.error("Error in updateUserPreferences controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

@@ -3,8 +3,8 @@ import { ArrowRight, Bot, CalendarDays, Image, Loader2, Map, Mic, RotateCcw, Sen
 import Card from '../ui/Card'
 import Button from '../ui/Button'
 import { useAuthStore } from '../../store/useAuthStore'
+import { aiApi, getErrorMessage } from '../../lib/api'
 
-const AI_URL = import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:8000'
 const MAX_MESSAGE_CHARS = 500
 const LANGUAGES = [{ value: 'en', label: 'English' }, { value: 'te', label: 'తెలుగు' }, { value: 'hi', label: 'हिंदी' }]
 
@@ -15,9 +15,12 @@ const LANGUAGES = [{ value: 'en', label: 'English' }, { value: 'te', label: 'త
 // those same tools are worth leading with in copy: a traveller wants a
 // trip planned, an operator wants to know whether pressure justifies a
 // discount or what's nearby to recommend to guests, an authority wants
-// pressure/redistribution framed for a dashboard-adjacent conversation.
-// Nothing here claims a capability (e.g. "check my bookings") the agent
-// doesn't actually have.
+// pressure/redistribution framed for a dashboard-adjacent conversation,
+// and a worker (driver/guide/cook/cleaner/porter) wants to know the
+// destination they're about to work in -- crowding/demand and real
+// destination facts, not a vacation planned for themselves.
+// Nothing here claims a capability (e.g. "check my bookings" or "find me
+// a gig") the agent doesn't actually have.
 const ROLE_COPY = {
   traveller: {
     eyebrow: 'Sahyatri tourism agent',
@@ -61,9 +64,29 @@ const ROLE_COPY = {
       { icon: CalendarDays, tone: 'text-ink/55', text: 'Nearby hotels and attractions for verification and planning.' },
     ],
   },
+  // Drivers, guides, cooks, cleaners, and porters don't need a trip planned
+  // for themselves -- they need to know the destination they're about to
+  // work in. Same tools as every other role (get_pressure, the education
+  // tools, search_places/search_hotels), reframed around "am I about to be
+  // busy" and "what do I actually need to know about this place" instead of
+  // vacation planning. No gig/job-matching tool exists in the agent yet, so
+  // nothing here claims that capability -- Worker Console still owns gigs.
+  worker: {
+    eyebrow: 'Sahyatri worker agent',
+    title: 'Know the ground before you work it.',
+    tagline: 'Ask how crowded a destination will be, what to know before guiding or driving someone there, or what’s nearby -- the same real pressure and destination data the rest of the platform uses.',
+    emptyTitle: 'What do you want to check before your next job?',
+    emptyDescription: 'Ask about crowding/demand at a destination, what to know about a place you’re working in, or attractions and stays nearby.',
+    placeholder: 'Ask about crowding, a destination, or nearby places...',
+    starters: ['How crowded will Manali be this weekend?', 'What should I know before guiding a group in Kasol?', 'What attractions are near Charminar?'],
+    sidebar: [
+      { icon: Bot, tone: 'text-pressure', text: 'Real-time destination pressure, so you know where demand (and traffic) is actually heading.' },
+      { icon: Map, tone: 'text-relief', text: 'Culture, safety, and getting-around facts for a destination you’re about to work in.' },
+      { icon: CalendarDays, tone: 'text-ink/55', text: 'Nearby attractions and stays worth knowing for the travellers you’re working with.' },
+    ],
+  },
 }
 
-function errorMessage(data, fallback) { return data?.detail || data?.message || fallback }
 
 function placePhoto(place) {
   if (place?.photoUrl) return place.photoUrl
@@ -128,13 +151,11 @@ export default function MultimodalTravelAgent() {
     setError('')
     setIsSending(true)
     try {
-      const response = await fetch(`${AI_URL}/api/multimodal/chat`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: userMessage.content, language, role: authUser?.role || 'traveller', history, context: {} }) })
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok) throw new Error(errorMessage(data, 'The tourism agent is temporarily unavailable.'))
+      const { data } = await aiApi.post('/api/multimodal/chat', { message: userMessage.content, language, role: authUser?.role || 'traveller', history, context: {} })
       setMessages((current) => [...current, { role: 'assistant', content: data.answer || 'The agent returned an empty answer.' }])
       setLastResults(data.results || null)
     } catch (sendError) {
-      setError(sendError.message || 'The tourism agent is temporarily unavailable.')
+      setError(getErrorMessage(sendError, 'The tourism agent is temporarily unavailable.'))
     } finally {
       setIsSending(false)
     }
@@ -191,13 +212,11 @@ export default function MultimodalTravelAgent() {
         try {
           const formData = new FormData()
           formData.append('audio', new Blob(chunks, { type: recorder.mimeType || 'audio/webm' }), 'voice.webm')
-          const response = await fetch(`${AI_URL}/api/multimodal/transcribe`, { method: 'POST', credentials: 'include', body: formData })
-          const data = await response.json().catch(() => ({}))
-          if (!response.ok) throw new Error(errorMessage(data, 'Voice transcription is temporarily unavailable.'))
+          const { data } = await aiApi.post('/api/multimodal/transcribe', formData, { headers: { 'Content-Type': undefined } })
           if (!data.transcript) throw new Error('No speech was detected. Please try again.')
           await send(null, null, data.transcript)
         } catch (voiceError) {
-          setError(voiceError.message || 'Voice transcription is temporarily unavailable.')
+          setError(getErrorMessage(voiceError, 'Voice transcription is temporarily unavailable.'))
         } finally {
           setIsTranscribing(false)
         }
@@ -218,7 +237,22 @@ export default function MultimodalTravelAgent() {
         {mode === 'voice' && <div className="flex items-center justify-between border-b border-amber-100 bg-amber-50 px-5 py-3 text-xs font-medium text-amber-900"><span>{isRecording ? 'Listening… click the microphone to finish.' : isTranscribing ? 'Transcribing your voice…' : 'Press the microphone and speak naturally.'}</span><button type="button" onClick={toggleRecording} disabled={isTranscribing || isSending} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-semibold ${isRecording ? 'bg-pressure text-paper' : 'bg-ink text-paper'} disabled:opacity-50`}><Mic size={13} />{isRecording ? 'Stop' : 'Talk'}</button></div>}
         <div className="min-h-[360px] space-y-3 bg-paper/35 px-5 py-5" aria-live="polite">{messages.length === 0 && <div className="flex min-h-[290px] flex-col items-center justify-center text-center"><div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-ink text-paper"><Bot size={26} /></div><h2 className="mt-4 font-display text-2xl">{copy.emptyTitle}</h2><p className="mt-2 max-w-md text-sm leading-6 text-ash">{copy.emptyDescription}</p><div className="mt-5 flex flex-wrap justify-center gap-2">{copy.starters.map((starter) => <button key={starter} type="button" onClick={() => send(null, starter)} className="rounded-full border border-paper-dim bg-white px-3 py-2 text-xs font-medium text-ink/70 transition hover:border-relief hover:text-relief">{starter}</button>)}</div></div>}{messages.map((item, index) => <div key={`${item.role}-${index}`} className={`flex ${item.role === 'user' ? 'justify-end' : 'justify-start'}`}><p className={`max-w-[88%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-6 ${item.role === 'user' ? 'bg-ink text-paper' : 'border border-paper-dim bg-white text-ink/75'}`}>{item.content}</p></div>)}{isSending && <div className="flex items-center gap-2 text-xs font-semibold text-ash"><Loader2 size={14} className="animate-spin text-pressure" /> Checking real tourism data...</div>}<ResultsStrip results={lastResults} /><div ref={endRef} /></div>
         {error && <div className="flex items-center justify-between border-t border-rose-100 bg-rose-50 px-5 py-3 text-xs font-semibold text-rose-700">{error}<button type="button" onClick={() => setError('')} aria-label="Dismiss error"><X size={14} /></button></div>}
-        <form onSubmit={send} className="flex items-end gap-2 border-t border-paper-dim p-4"><textarea value={message} onChange={(event) => setMessage(event.target.value.slice(0, MAX_MESSAGE_CHARS))} rows={2} placeholder={mode === 'voice' ? 'Use Talk above, or switch to Chat…' : copy.placeholder} className="min-h-[48px] flex-1 resize-none rounded-xl border border-paper-dim bg-paper px-3 py-2.5 text-sm outline-none transition placeholder:text-ash focus:border-relief focus:ring-4 focus:ring-relief/10" /><Button type="submit" loading={isSending} icon={Send} disabled={!message.trim() || mode === 'voice'}>Send</Button></form>
+        <form onSubmit={send} className="flex items-end gap-2 border-t border-paper-dim p-4">
+          <textarea
+            value={message}
+            onChange={(event) => setMessage(event.target.value.slice(0, MAX_MESSAGE_CHARS))}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault()
+                event.currentTarget.form?.requestSubmit()
+              }
+            }}
+            rows={2}
+            placeholder={mode === 'voice' ? 'Use Talk above, or switch to Chat…' : copy.placeholder}
+            className="min-h-[48px] flex-1 resize-none rounded-xl border border-paper-dim bg-paper px-3 py-2.5 text-sm outline-none transition placeholder:text-ash focus:border-relief focus:ring-4 focus:ring-relief/10"
+          />
+          <Button type="submit" loading={isSending} icon={Send} disabled={!message.trim() || mode === 'voice'}>Send</Button>
+        </form>
       </Card>
       <aside className="space-y-4"><Card className="bg-white"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-relief">Available now</p><div className="mt-4 space-y-3">{copy.sidebar.map(({ icon: Icon, tone, text }) => <div key={text} className="flex gap-3"><Icon size={17} className={`mt-0.5 ${tone}`} /><p className="text-sm leading-5 text-ink/70">{text}</p></div>)}</div></Card><Card className="border-dashed border-ink/20 bg-paper/40"><div className="flex items-center gap-2 text-sm font-semibold"><Image size={16} className="text-pressure" /> Multimodal inputs</div><p className="mt-2 text-xs leading-5 text-ash">Photo, video and voice-note understanding will be added after the chat foundation is stable.</p><div className="mt-3 flex gap-2 text-ink/40"><Image size={16} /><Mic size={16} /><Video size={16} /></div></Card></aside>
     </div>

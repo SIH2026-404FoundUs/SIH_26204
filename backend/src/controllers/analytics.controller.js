@@ -3,6 +3,7 @@ import Booking from "../models/booking.model.js";
 import Visit from "../models/visit.model.js";
 import Waitlist from "../models/waitlist.model.js";
 import Offer from "../models/offer.model.js";
+import { logger } from "../lib/logger.js";
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -116,7 +117,7 @@ export const getOperatorAnalyticsController = async (req, res) => {
 
     res.status(200).json({ businesses: businessAnalytics, totals });
   } catch (error) {
-    console.log("Error in getOperatorAnalytics controller", error.message);
+    logger.error("Error in getOperatorAnalytics controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

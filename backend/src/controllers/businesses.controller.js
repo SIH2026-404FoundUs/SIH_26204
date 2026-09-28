@@ -4,6 +4,7 @@ import BusinessAvailability from "../models/businessAvailability.model.js";
 import { getPressure } from "../services/pressure/service.js";
 import { rankBusinessesForGrowth, calculateBusinessGrowthRank } from "../services/feedback/growthRanking.js";
 import { slugify } from "../services/community/similarityUtils.js";
+import { logger } from "../lib/logger.js";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -28,7 +29,7 @@ export const getBusinessAvailabilityController = async (req, res) => {
     const from = asDate(req.query.from) || new Date(new Date().toISOString().slice(0, 10) + "T00:00:00.000Z");
     const rows = await BusinessAvailability.find({ businessId: business._id, date: { $gte: from } }).sort({ date: 1 }).lean();
     res.status(200).json(rows);
-  } catch (error) { console.log("Error in getBusinessAvailability controller", error.message); res.status(500).json({ message: "Internal Server Error" }); }
+  } catch (error) { logger.error("Error in getBusinessAvailability controller", error); res.status(500).json({ message: "Internal Server Error" }); }
 };
 
 export const upsertBusinessAvailabilityController = async (req, res) => {
@@ -53,7 +54,7 @@ export const upsertBusinessAvailabilityController = async (req, res) => {
       { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
     ).lean();
     res.status(200).json(row);
-  } catch (error) { console.log("Error in upsertBusinessAvailability controller", error.message); res.status(500).json({ message: "Internal Server Error" }); }
+  } catch (error) { logger.error("Error in upsertBusinessAvailability controller", error); res.status(500).json({ message: "Internal Server Error" }); }
 };
 
 // GET /api/v1/businesses/:id/growth -- operator-only, own business only.
@@ -100,7 +101,7 @@ export const getBusinessGrowthController = async (req, res) => {
       nudges,
     });
   } catch (error) {
-    console.log("Error in getBusinessGrowth controller", error.message);
+    logger.error("Error in getBusinessGrowth controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -141,7 +142,7 @@ export const searchBusinessesController = async (req, res) => {
     const ranked = rankBusinessesForGrowth(businesses, { isInLowPressureDest });
     res.status(200).json(ranked);
   } catch (error) {
-    console.log("Error in searchBusinesses controller", error.message);
+    logger.error("Error in searchBusinesses controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -228,7 +229,7 @@ export const registerBusinessController = async (req, res) => {
     if (error.code === 11000) {
       return res.status(409).json({ message: "A business with this owner phone number already exists" });
     }
-    console.log("Error in registerBusiness controller", error.message);
+    logger.error("Error in registerBusiness controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -267,7 +268,7 @@ export const getBusinessContactController = async (req, res) => {
       ownerPhone: business.ownerPhone,
     });
   } catch (error) {
-    console.log("Error in getBusinessContact controller", error.message);
+    logger.error("Error in getBusinessContact controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -287,7 +288,7 @@ export const getMyBusinessesController = async (req, res) => {
     const businesses = await Business.find({ ownerUserId: String(req.user._id) }).lean();
     res.status(200).json(businesses);
   } catch (error) {
-    console.log("Error in getMyBusinesses controller", error.message);
+    logger.error("Error in getMyBusinesses controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

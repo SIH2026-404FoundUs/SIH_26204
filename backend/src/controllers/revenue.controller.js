@@ -1,6 +1,7 @@
 import Business from "../models/business.model.js";
 import { isValidCalendarDate } from "../lib/dateValidation.js";
 import { buildRevenueDashboard, simulatePrices } from "../services/revenue/revenueEngine.js";
+import { logger } from "../lib/logger.js";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const MAX_FORECAST_DAYS = 30;
@@ -37,7 +38,7 @@ export const getRevenueDashboardController = async (req, res) => {
     const dashboard = await buildRevenueDashboard(business, { today: date, forecastDays: days });
     res.status(200).json(dashboard);
   } catch (error) {
-    console.log("Error in getRevenueDashboard controller", error.message);
+    logger.error("Error in getRevenueDashboard controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -63,7 +64,7 @@ export const simulateRevenueController = async (req, res) => {
     const result = await simulatePrices(business, date, cleanPrices);
     res.status(200).json(result);
   } catch (error) {
-    console.log("Error in simulateRevenue controller", error.message);
+    logger.error("Error in simulateRevenue controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

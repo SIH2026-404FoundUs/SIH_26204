@@ -37,6 +37,18 @@ export async function createWaitlistEntry(params, models = {}) {
     throw new Error("userId, destId, windowFrom, and windowTo are required to create waitlist entry");
   }
 
+  // Idempotent join: a double-click on "Join waitlist" (no submit-disable
+  // guard on the frontend button) used to create a fresh row every time,
+  // each one counted and rendered separately downstream -- an operator with
+  // one real traveller waiting could see that traveller's own duplicate
+  // rows several times over. Returning the existing standing request
+  // instead keeps "join the waitlist" meaning "have exactly one active
+  // request", not "add another".
+  if (WaitlistModel && typeof WaitlistModel.findOne === "function") {
+    const existing = await WaitlistModel.findOne({ userId, destId, businessId, state: "waiting" });
+    if (existing) return existing;
+  }
+
   const newEntry = {
     userId,
     businessId,
@@ -126,9 +138,14 @@ export async function processOfferMatching(offer, models = {}) {
 
   let activeWaitlists = [];
   if (WaitlistModel && typeof WaitlistModel.find === "function") {
+    // Same staleness gap as getBusinessWaitlistController: a "waiting" row
+    // whose own requested window has already ended is not actually a real
+    // candidate for this offer, and notifying it (or counting it toward
+    // the operator's "N people notified" figure) would be dishonest.
     activeWaitlists = await WaitlistModel.find({
       destId: offer.destId,
       state: "waiting",
+      "window.to": { $gte: new Date() },
     });
   }
 

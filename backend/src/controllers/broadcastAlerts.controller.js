@@ -6,6 +6,7 @@ import {
   getActiveBroadcastAlerts,
   resolveBroadcastAlert,
 } from "../services/alerts/broadcastAlertService.js";
+import { logger } from "../lib/logger.js";
 
 const models = { BroadcastAlertModel: BroadcastAlert, UserModel: User, AuditLogModel: AuditLog };
 
@@ -23,7 +24,7 @@ export const sendBroadcastAlertController = async (req, res) => {
     );
     res.status(result.status).json(result);
   } catch (error) {
-    console.log("Error in sendBroadcastAlert controller", error.message);
+    logger.error("Error in sendBroadcastAlert controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -36,7 +37,7 @@ export const getActiveBroadcastAlertsController = async (req, res) => {
     const alerts = await getActiveBroadcastAlerts(models);
     res.status(200).json(alerts);
   } catch (error) {
-    console.log("Error in getActiveBroadcastAlerts controller", error.message);
+    logger.error("Error in getActiveBroadcastAlerts controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -49,7 +50,7 @@ export const resolveBroadcastAlertController = async (req, res) => {
     const result = await resolveBroadcastAlert(req.params.id, models);
     res.status(result.status).json(result);
   } catch (error) {
-    console.log("Error in resolveBroadcastAlert controller", error.message);
+    logger.error("Error in resolveBroadcastAlert controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

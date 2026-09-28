@@ -1,4 +1,5 @@
 import AlternativeSuggestion from "../../models/alternativeSuggestion.model.js";
+import { logger } from "../../lib/logger.js";
 
 // Persists every option the substitution engine offered on one trip draft --
 // called right after createTripController creates the Trip, from the same
@@ -46,7 +47,7 @@ export async function saveOfferedAlternatives(trip, alternatives) {
   try {
     await AlternativeSuggestion.insertMany(docs, { ordered: false });
   } catch (error) {
-    console.log("Error saving offered alternatives:", error.message);
+    logger.error("Error saving offered alternatives:", error);
   }
 }
 
@@ -74,6 +75,6 @@ export async function markAcceptedAlternative(trip) {
   try {
     await AlternativeSuggestion.updateOne(query, { $set: { accepted: true, acceptedAt: new Date() } });
   } catch (error) {
-    console.log("Error marking accepted alternative:", error.message);
+    logger.error("Error marking accepted alternative:", error);
   }
 }

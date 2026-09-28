@@ -12,7 +12,7 @@ export async function travelTimeFn(origin, destId) {
 
   const result = await calculateRoute(
     originLocation.data.lat, originLocation.data.lng,
-    destination.location.lat, destination.location.lng
+    destination.lat, destination.lng
   );
   if (!result.ok) return null;
 

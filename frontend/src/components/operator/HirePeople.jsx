@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Users, Store, Mic, Upload, Phone, Languages, Briefcase } from 'lucide-react'
+import { Users, Store, Phone, Languages, Briefcase } from 'lucide-react'
 import { useOperatorStore } from '../../store/useOperatorStore'
 import PostGig from './PostGig'
 import PageHeader from '../ui/PageHeader'
@@ -9,12 +9,11 @@ import Button from '../ui/Button'
 import Alert from '../ui/Alert'
 import EmptyState from '../ui/EmptyState'
 import LoadingState from '../ui/LoadingState'
-import FormField, { inputClass } from '../ui/FormField'
+import FormField from '../ui/FormField'
 import DestinationSelect from '../ui/DestinationSelect'
 
 const PAGE_TABS = [
   { key: 'businesses', label: 'Local Businesses', icon: Store },
-  { key: 'onboarding', label: 'Onboarding', icon: Mic },
   { key: 'post-gig', label: 'Post a Gig', icon: Briefcase },
 ]
 
@@ -102,75 +101,15 @@ function LocalBusinessesTab() {
   )
 }
 
-function OnboardingTab() {
-  const { isSubmittingHire, hireError, hireResult, submitHireOnboarding } = useOperatorStore()
-  const [onboardDestId, setOnboardDestId] = useState('')
-  const [ownerPhone, setOwnerPhone] = useState('')
-  const [audioFile, setAudioFile] = useState(null)
-  const [validationError, setValidationError] = useState(null)
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setValidationError(null)
-    if (!audioFile) return setValidationError('Choose a voice recording')
-    if (!onboardDestId) return setValidationError('Destination is required')
-    if (!ownerPhone.trim()) return setValidationError("The worker's phone number is required")
-    await submitHireOnboarding({ audioFile, destId: onboardDestId, ownerPhone: ownerPhone.trim() })
-  }
-
-  return (
-    <div>
-      <div className="mb-4">
-        <Alert tone="info">
-          This platform's WhatsApp onboarding number isn't set up in this environment yet. In production, a worker sends their voice note straight to it. Until then, use the form below -- it runs through the exact same pipeline (transcription, then extraction into a real listing).
-        </Alert>
-      </div>
-
-      <Card>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <FormField label="Worker's phone number">
-            <input value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} required placeholder="+91XXXXXXXXXX" className={inputClass} />
-          </FormField>
-          <FormField label="Destination" hint="Where this person works">
-            <DestinationSelect value={onboardDestId} onChange={setOnboardDestId} required />
-          </FormField>
-          <FormField label="Voice recording" hint="A short note describing their role, skills, and experience (e.g. 'I'm a driver in Manali, 5 years experience, speak Hindi and English')">
-            <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-paper-dim bg-paper px-4 py-6 text-sm font-medium text-ink/70 transition hover:border-ink/40">
-              <Upload size={16} aria-hidden="true" />
-              {audioFile ? audioFile.name : 'Choose an audio file'}
-              <input type="file" accept="audio/*" onChange={(e) => setAudioFile(e.target.files?.[0] || null)} className="hidden" />
-            </label>
-          </FormField>
-
-          {(validationError || hireError) && <Alert tone="error">{validationError || hireError}</Alert>}
-
-          <Button type="submit" variant="primary" fullWidth loading={isSubmittingHire}>Submit for onboarding</Button>
-        </form>
-      </Card>
-
-      {hireResult && (
-        <div className="mt-4">
-          <Alert tone={hireResult.applied === false ? 'warning' : hireResult.extraction ? 'success' : 'info'}>
-            <p className="font-medium">
-              {hireResult.applied === false ? 'Already processed.' : `Onboarding state: ${hireResult.onboardingState || 'unknown'}`}
-            </p>
-            {hireResult.transcript && <p className="mt-1 text-sm text-ink/70">"{hireResult.transcript}"</p>}
-          </Alert>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // Hiring on this platform happens through the same voice-onboarding pipeline
 // a business itself uses to list -- a worker (cook, driver, guide, or any
 // other travel-industry role) describes themselves in a WhatsApp voice
-// note and gets listed the same way. There's no separate "hiring" system,
-// so this page is two real things built on that, as two tabs: browsing
-// workers who are already listed (Local Businesses -- same GET
-// /v1/businesses/search Available Services uses, filtered to worker types)
-// with a "click to hire" contact reveal, and the same onboarding pipeline
-// for a worker who isn't listed yet (Onboarding).
+// note and gets listed the same way. There's no separate "hiring" system.
+// This page browses workers already listed that way (Local Businesses --
+// same GET /v1/businesses/search Available Services uses, filtered to
+// worker types) with a "click to hire" contact reveal, and posts short-term
+// gigs (Post a Gig). Onboarding a new worker happens through the real
+// WhatsApp number/voice pipeline itself, not a form on this page.
 //
 // Gated on having registered a business first (same useOperatorStore.
 // myBusinesses the header's nav already reads) -- an operator with nothing
@@ -189,13 +128,13 @@ export default function HirePeople() {
       <PageHeader
         icon={Users}
         title="Hire people"
-        description="Browse workers already onboarded, onboard someone new, or post a short-term gig that notifies matching workers immediately."
+        description="Browse workers already onboarded, or post a short-term gig that notifies matching workers immediately."
       />
 
       {isLoadingBusinesses ? (
         <LoadingState label="Loading your businesses…" />
       ) : myBusinesses.length === 0 ? (
-        <EmptyState icon={Store} title="Register a business first" description="Once you've registered a business, you can browse and hire local workers, or onboard someone new." />
+        <EmptyState icon={Store} title="Register a business first" description="Once you've registered a business, you can browse and hire local workers." />
       ) : (
         <>
           <div className="mb-6 flex gap-1.5 rounded-lg border border-paper-dim bg-white p-1">
@@ -215,7 +154,6 @@ export default function HirePeople() {
           </div>
 
           {activeTab === 'businesses' && <LocalBusinessesTab />}
-          {activeTab === 'onboarding' && <OnboardingTab />}
           {activeTab === 'post-gig' && <PostGig />}
         </>
       )}

@@ -12,6 +12,7 @@ import {
 } from "../services/gigs/gigService.js";
 import { assignCaptainFromGig } from "../services/groups/captainService.js";
 import { parsePagination } from "../lib/pagination.js";
+import { logger } from "../lib/logger.js";
 
 const models = { WorkerProfileModel: WorkerProfile, GigRequestModel: GigRequest, GigMatchModel: GigMatch };
 const groupModels = { GroupTripModel: GroupTrip };
@@ -25,7 +26,7 @@ export const listGigsController = async (req, res) => {
     const gigs = await listOpenGigs({ destId, skill, limit, skip }, models);
     res.status(200).json(gigs);
   } catch (error) {
-    console.log("Error in listGigs controller", error.message);
+    logger.error("Error in listGigs controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -43,7 +44,7 @@ export const createGigController = async (req, res) => {
     if (!result.success) return res.status(result.status).json({ message: result.message });
     res.status(201).json({ gigRequest: result.gigRequest, notified: result.matchCount });
   } catch (error) {
-    console.log("Error in createGig controller", error.message);
+    logger.error("Error in createGig controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -62,7 +63,7 @@ export const acceptGigController = async (req, res) => {
     if (result.success) assignCaptainFromGig(req.params.id, req.user._id, groupModels).catch(() => {});
     res.status(result.status).json(result.success ? { success: true, match: result.match } : { message: result.message });
   } catch (error) {
-    console.log("Error in acceptGig controller", error.message);
+    logger.error("Error in acceptGig controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -76,7 +77,7 @@ export const completeGigController = async (req, res) => {
     const result = await completeGig(req.params.id, req.user._id, req.user.role, models);
     res.status(result.status).json(result.success ? result : { message: result.message });
   } catch (error) {
-    console.log("Error in completeGig controller", error.message);
+    logger.error("Error in completeGig controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -91,7 +92,7 @@ export const rateGigController = async (req, res) => {
     const result = await rateGig(req.params.id, req.user._id, req.user.role, req.body, models);
     res.status(result.status).json(result.success ? result : { message: result.message });
   } catch (error) {
-    console.log("Error in rateGig controller", error.message);
+    logger.error("Error in rateGig controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -105,7 +106,7 @@ export const getMyPostedGigsController = async (req, res) => {
     const gigs = await getOperatorGigs(req.user._id, models);
     res.status(200).json(gigs);
   } catch (error) {
-    console.log("Error in getMyPostedGigs controller", error.message);
+    logger.error("Error in getMyPostedGigs controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

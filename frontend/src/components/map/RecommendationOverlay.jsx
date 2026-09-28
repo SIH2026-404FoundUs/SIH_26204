@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, Check, CloudSun, Eye, MapPin, RefreshCw, Route, ShieldCheck, X } from 'lucide-react'
-import api from '../../lib/api'
+import api, { aiApi } from '../../lib/api'
 import { useDestinationsStore } from '../../store/useDestinationsStore'
 import { usePlannerStore } from '../../store/usePlannerStore'
 
@@ -80,12 +80,8 @@ export default function RecommendationOverlay({ onHighlight, onPreviewRoute, swa
   useEffect(() => {
     if (!awaitingDecision || !request) return undefined
     let active = true
-    fetch(`${import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:8000'}/internal/ai/recommendation`, {
-      method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trip: request, pressure, alternatives, interests: request.interests || {} }),
-    })
-      .then((response) => response.ok ? response.json() : null)
-      .then((data) => { if (active && data) setAiInsight(data) })
+    aiApi.post('/internal/ai/recommendation', { trip: request, pressure, alternatives, interests: request.interests || {} })
+      .then(({ data }) => { if (active && data) setAiInsight(data) })
       .catch(() => {})
     return () => { active = false }
   }, [awaitingDecision, request, pressure, alternatives])

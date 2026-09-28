@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Briefcase, Users, CalendarDays, IndianRupee, Star } from 'lucide-react'
+import { Briefcase, Users, CalendarDays, IndianRupee, Star, CheckCircle2 } from 'lucide-react'
 import { useOperatorStore } from '../../store/useOperatorStore'
 import { workerSkillLabel, gigRequestStatus, WORKER_SKILL_LABEL } from '../../lib/labels'
 import { getDestinationLabel } from '../../lib/destinations'
@@ -20,8 +20,34 @@ const dayLabel = (v) => (v ? new Date(v).toLocaleDateString('en-IN', { day: 'num
 function RateWorkerForm({ gigId, onSubmit, isSubmitting }) {
   const [score, setScore] = useState(5)
   const [comment, setComment] = useState('')
+  // rateGig has no "already rated" state of its own (an operator can
+  // re-submit and it just overwrites the previous score) -- this is
+  // purely local, visible confirmation that the submit actually did
+  // something, since neither the form nor the gig card otherwise changes
+  // at all on success. Without this, submitting looked broken: the button
+  // stopped loading and nothing else happened.
+  const [justRated, setJustRated] = useState(false)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    const ok = await onSubmit(gigId, { score, comment })
+    if (ok) {
+      setJustRated(true)
+      setComment('')
+    }
+  }
+
+  if (justRated) {
+    return (
+      <p className="mt-3 flex items-center gap-1.5 border-t border-paper-dim pt-3 text-xs font-medium text-relief">
+        <CheckCircle2 size={14} aria-hidden="true" /> Rating submitted.
+        <button type="button" onClick={() => setJustRated(false)} className="text-ink/50 underline hover:text-ink/70">Rate again</button>
+      </p>
+    )
+  }
+
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(gigId, { score, comment }) }} className="mt-3 flex flex-wrap items-center gap-2 border-t border-paper-dim pt-3">
+    <form onSubmit={handleSubmit} className="mt-3 flex flex-wrap items-center gap-2 border-t border-paper-dim pt-3">
       <div className="flex gap-0.5">
         {[1, 2, 3, 4, 5].map((n) => (
           <button key={n} type="button" onClick={() => setScore(n)} aria-label={`${n} stars`} className={n <= score ? 'text-pressure' : 'text-paper-dim'}>
@@ -76,7 +102,7 @@ export default function PostGig() {
     postedGigs, isLoadingPostedGigs, postedGigsError, fetchPostedGigs,
     isPostingGig, postGigError, lastPostedGigNotifiedCount, postGig,
     isCompletingGig, completeGigError, completeGig,
-    isRatingGig, rateGig,
+    isRatingGig, rateGigError, rateGig,
   } = useOperatorStore()
 
   const [form, setForm] = useState({ destId: '', skillNeeded: 'driver', startDate: '', endDate: '', headcount: 1, budgetMin: '', budgetMax: '', notes: '' })
@@ -138,6 +164,7 @@ export default function PostGig() {
       <h2 className="mb-3 text-sm font-semibold text-ink">Your posted gigs</h2>
       {postedGigsError && <div className="mb-4"><Alert tone="error">{postedGigsError}</Alert></div>}
       {completeGigError && <div className="mb-4"><Alert tone="error">{completeGigError}</Alert></div>}
+      {rateGigError && <div className="mb-4"><Alert tone="error">{rateGigError}</Alert></div>}
       {isLoadingPostedGigs ? (
         <LoadingState label="Loading your posted gigs…" />
       ) : postedGigs.length === 0 ? (

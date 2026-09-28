@@ -9,6 +9,7 @@ import Waitlist from "../models/waitlist.model.js";
 import Business from "../models/business.model.js";
 import Offer from "../models/offer.model.js";
 import { parsePagination } from "../lib/pagination.js";
+import { logger } from "../lib/logger.js";
 
 const models = { WaitlistModel: Waitlist };
 
@@ -27,7 +28,7 @@ export const getMyWaitlistsController = async (req, res) => {
   try {
     res.status(200).json(await getUserWaitlists(String(req.user._id), models));
   } catch (error) {
-    console.log("Error in getMyWaitlists controller", error.message);
+    logger.error("Error in getMyWaitlists controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -54,7 +55,14 @@ export const getBusinessWaitlistController = async (req, res) => {
     }
 
     const { limit, skip } = parsePagination(req.query, { defaultLimit: 100 });
-    const entries = await Waitlist.find({ destId: business.destId, state: "waiting" })
+    // "waiting" alone isn't enough -- nothing ever flips a row to a terminal
+    // state once the traveller's own requested window has simply passed
+    // (there's no cron for this, unlike Offer's TTL). Without this,
+    // "waiting" silently means "waiting, or their window already ended
+    // weeks ago and nobody ever told anyone" -- exactly the stale clutter
+    // an operator would see as "too many" entries that clearly can't still
+    // be relevant.
+    const entries = await Waitlist.find({ destId: business.destId, state: "waiting", "window.to": { $gte: new Date() } })
       .select("-userId")
       .sort({ createdAt: 1 })
       .skip(skip)
@@ -62,7 +70,7 @@ export const getBusinessWaitlistController = async (req, res) => {
       .lean();
     res.status(200).json(entries);
   } catch (error) {
-    console.log("Error in getBusinessWaitlist controller", error.message);
+    logger.error("Error in getBusinessWaitlist controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -81,7 +89,7 @@ export const getMyOfferNotificationsController = async (req, res) => {
     });
     res.status(200).json(notifications);
   } catch (error) {
-    console.log("Error in getMyOfferNotifications controller", error.message);
+    logger.error("Error in getMyOfferNotifications controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -100,7 +108,7 @@ export const declineOfferNotificationController = async (req, res) => {
 
     res.status(200).json({ success: true, waitlistId: String(updated._id), offerId, response: "declined" });
   } catch (error) {
-    console.log("Error in declineOfferNotification controller", error.message);
+    logger.error("Error in declineOfferNotification controller", error);
     res.status(400).json({ message: error.message });
   }
 };

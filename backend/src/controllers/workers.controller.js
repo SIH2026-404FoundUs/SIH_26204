@@ -7,6 +7,7 @@ import {
   getWorkerProfileByUserId,
   getWorkerGigs,
 } from "../services/gigs/gigService.js";
+import { logger } from "../lib/logger.js";
 
 const models = { WorkerProfileModel: WorkerProfile, GigRequestModel: GigRequest, GigMatchModel: GigMatch };
 
@@ -19,7 +20,7 @@ export const upsertWorkerProfileController = async (req, res) => {
     const result = await createOrUpdateWorkerProfile(req.user._id, req.body, models);
     res.status(result.status).json(result.success ? result.profile : { message: result.message });
   } catch (error) {
-    console.log("Error in upsertWorkerProfile controller", error.message);
+    logger.error("Error in upsertWorkerProfile controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -32,7 +33,7 @@ export const getMyWorkerProfileController = async (req, res) => {
     if (!profile) return res.status(404).json({ message: "no worker profile yet" });
     res.status(200).json(profile);
   } catch (error) {
-    console.log("Error in getMyWorkerProfile controller", error.message);
+    logger.error("Error in getMyWorkerProfile controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -44,7 +45,7 @@ export const updateAvailabilityController = async (req, res) => {
     const result = await updateWorkerAvailability(req.user._id, req.body, models);
     res.status(result.status).json(result.success ? result.profile : { message: result.message });
   } catch (error) {
-    console.log("Error in updateAvailability controller", error.message);
+    logger.error("Error in updateAvailability controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -58,7 +59,7 @@ export const getMyGigsController = async (req, res) => {
     const rows = await getWorkerGigs(req.user._id, models);
     res.status(200).json(rows);
   } catch (error) {
-    console.log("Error in getMyGigs controller", error.message);
+    logger.error("Error in getMyGigs controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

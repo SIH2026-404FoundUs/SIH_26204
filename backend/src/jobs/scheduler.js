@@ -7,6 +7,7 @@ import { runPollAlerts } from "./pollAlerts.job.js";
 import { loadDestinations } from "../services/pressure/seed.js";
 import Alert from "../models/alert.model.js";
 import AuditLog from "../models/auditLog.model.js";
+import { logger } from "../lib/logger.js";
 
 const POLL_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6h -- Open-Meteo forecasts don't change fast enough to justify polling more often
 
@@ -20,7 +21,7 @@ export function startAlertPolling() {
     } catch (error) {
       // A failed poll (e.g. Open-Meteo down) must never crash the server --
       // alerts are best-effort advisory data, not a critical path.
-      console.log("[alerts] poll run failed:", error.message);
+      logger.error("[alerts] poll run failed:", error);
     }
   };
 

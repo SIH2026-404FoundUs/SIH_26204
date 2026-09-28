@@ -17,6 +17,7 @@
 
 import multer from "multer";
 import { processInboundAudio } from "../services/onboarding/processInboundAudio.js";
+import { logger } from "../lib/logger.js";
 
 const MAX_AUDIO_BYTES = 20 * 1024 * 1024; // 20MB — comfortably above any real WhatsApp voice note
 
@@ -186,7 +187,7 @@ export function createOnboardingUploadHandler({ transcribeFn, extractFn, sendMes
         extraction: result.extraction,
       });
     } catch (error) {
-      console.error("Error in onboarding upload handler:", error.message);
+      logger.error("Error in onboarding upload handler:", error);
       return res.status(500).json({ error: true, message: error.message });
     }
   };

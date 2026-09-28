@@ -3,6 +3,7 @@ import Visit from "../models/visit.model.js";
 import Feedback from "../models/feedback.model.js";
 import AuditLog from "../models/auditLog.model.js";
 import { submitTouristFeedback, processBusinessFeedback, getBusinessFeedbackInsights } from "../services/feedback/feedbackService.js";
+import { logger } from "../lib/logger.js";
 
 const models = { FeedbackModel: Feedback, BusinessModel: Business, AuditLogModel: AuditLog };
 
@@ -46,7 +47,7 @@ export const submitFeedbackController = async (req, res) => {
     );
     res.status(result.status).json(result);
   } catch (error) {
-    console.log("Error in submitFeedback controller", error.message);
+    logger.error("Error in submitFeedback controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -65,7 +66,7 @@ export const getFeedbackInsightsController = async (req, res) => {
     const result = await getBusinessFeedbackInsights(req.params.id, models);
     res.status(200).json(result);
   } catch (error) {
-    console.log("Error in getFeedbackInsights controller", error.message);
+    logger.error("Error in getFeedbackInsights controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -87,7 +88,7 @@ export const processFeedbackController = async (req, res) => {
     const result = await processBusinessFeedback(req.params.id, models);
     res.status(result.status).json(result);
   } catch (error) {
-    console.log("Error in processFeedback controller", error.message);
+    logger.error("Error in processFeedback controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

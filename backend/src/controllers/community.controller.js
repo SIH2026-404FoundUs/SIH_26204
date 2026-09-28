@@ -15,6 +15,7 @@ import CommunitySubmission from "../models/communitySubmission.model.js";
 import AuditLog from "../models/auditLog.model.js";
 import cloudinary, { optimizedImageUrl } from "../lib/cloudinary.js";
 import { parsePagination } from "../lib/pagination.js";
+import { logger } from "../lib/logger.js";
 
 // Every submission card in Community Forum/Community Review shows photos at
 // thumbnail size, never full resolution -- q_auto/f_auto/width on the way
@@ -71,7 +72,7 @@ export const uploadPhotosController = async (req, res) => {
 
     res.status(201).json({ urls });
   } catch (error) {
-    console.log("Error in uploadPhotos controller", error.message);
+    logger.error("Error in uploadPhotos controller", error);
     res.status(500).json({ message: "Could not upload photos" });
   }
 };
@@ -86,7 +87,7 @@ export const submitSubmissionController = async (req, res) => {
     );
     res.status(result.status).json(result);
   } catch (error) {
-    console.log("Error in submitSubmission controller", error.message);
+    logger.error("Error in submitSubmission controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -100,7 +101,7 @@ export const getQueuedSubmissionsController = async (req, res) => {
     const { limit, skip } = parsePagination(req.query);
     res.status(200).json(withOptimizedPhotos(await getQueuedSubmissions({ limit, skip }, models)));
   } catch (error) {
-    console.log("Error in getQueuedSubmissions controller", error.message);
+    logger.error("Error in getQueuedSubmissions controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -113,7 +114,7 @@ export const getMySubmissionsController = async (req, res) => {
   try {
     res.status(200).json(withOptimizedPhotos(await getUserSubmissions(String(req.user._id), models)));
   } catch (error) {
-    console.log("Error in getMySubmissions controller", error.message);
+    logger.error("Error in getMySubmissions controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -131,7 +132,7 @@ export const reviewSubmissionController = async (req, res) => {
     );
     res.status(result.status).json(result);
   } catch (error) {
-    console.log("Error in reviewSubmission controller", error.message);
+    logger.error("Error in reviewSubmission controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -153,7 +154,7 @@ export const getApprovedSubmissionsController = async (req, res) => {
     );
     res.status(200).json(withOptimizedPhotos(submissions));
   } catch (error) {
-    console.log("Error in getApprovedSubmissions controller", error.message);
+    logger.error("Error in getApprovedSubmissions controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -169,7 +170,7 @@ export const reactToSubmissionController = async (req, res) => {
     const result = await reactToSubmission(req.params.id, String(req.user._id), reaction, models);
     res.status(result.status).json(result);
   } catch (error) {
-    console.log("Error in reactToSubmission controller", error.message);
+    logger.error("Error in reactToSubmission controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -184,7 +185,7 @@ export const addCommentController = async (req, res) => {
     const result = await addCommentToSubmission(req.params.id, String(req.user._id), text, models);
     res.status(result.status).json(result);
   } catch (error) {
-    console.log("Error in addComment controller", error.message);
+    logger.error("Error in addComment controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -206,7 +207,7 @@ export const getNearbySuggestionCountController = async (req, res) => {
     const count = await countNearbySuggestions(destination.location.lat, destination.location.lng, models);
     res.status(200).json({ destId, count });
   } catch (error) {
-    console.log("Error in getNearbySuggestionCount controller", error.message);
+    logger.error("Error in getNearbySuggestionCount controller", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
