@@ -125,15 +125,15 @@ class TripSummary(BaseModel):
 from app.onboarding.extraction_prompt import build_extraction_prompt
 from app.onboarding.transcribe import run_transcription
 from app.services import trip_drafts
-from app.tools.alternatives import find_alternative, find_alternative_dates, find_alternatives
+from app.tools.pressure.alternatives import find_alternative, find_alternative_dates
 from app.tools.alerts import get_verified_alerts
 from app.tools.businesses import search_businesses
 from app.tools.places import search_places
-from app.tools.pressure import get_pressure
-from app.tools.road import search_road_services
-from app.tools.routes import calculate_route
+from app.tools.pressure.pressure import get_pressure
+from app.tools.transport.road import search_road_services
+from app.tools.transport.routes import calculate_route
 from app.tools.weather import get_weather
-from app.tools.fare import estimate_local_transport
+from app.tools.transport.fare import estimate_local_transport
 from app.services.backend_client import get as backend_get, post as backend_post
 from app.tools.itinerary import optimize_itinerary
 from app.pdf_builder import build_travel_brief_pdf
@@ -342,7 +342,13 @@ def pressure_score(pressure: Any) -> Optional[float]:
 
 
 def _response_data(response: Any) -> Any:
-    """Unwrap the backend's {ok, data, meta} envelope when present."""
+    """Unwrap the backend's {ok, data, meta} envelope when present.
+
+    Some routes (businesses search, alerts) return a bare JSON array instead of
+    an envelope; pass those through rather than discarding them.
+    """
+    if isinstance(response, list):
+        return response
     if not isinstance(response, dict):
         return None
     if response.get("ok") is False:
@@ -1317,7 +1323,7 @@ async def confirm_trip(req: ConfirmTripRequest, authenticated_id: Optional[str] 
 async def transcribe_endpoint(audio: UploadFile = File(...)) -> dict:
     """
     bharani-tasks.md Section 1.2/1.6 -- real contract this must satisfy,
-    matching backend/src/services/onboarding/transcription.js's
+    matching backend/src/services/onboarding/media/transcription.js's
     transcribeFn: given raw audio bytes, return
     { transcript: string, detectedLanguage: string }.
     """
@@ -1358,7 +1364,7 @@ class PriceRangeINR(BaseModel):
 class ExtractionResult(BaseModel):
     """
     Exactly the schema already validated on the Node side by
-    validateExtractionShape() (services/onboarding/extraction.js) --
+    validateExtractionShape() (services/onboarding/extraction/extraction.js) --
     this is the contract, not a suggestion; keep both sides in sync.
     """
 
@@ -1442,7 +1448,7 @@ EXTRACTION_MODEL = os.environ.get("MODEL", DEFAULT_MODEL)
 async def extract_endpoint(req: ExtractRequest) -> dict:
     """
     bharani-tasks.md Section 1.3 -- real contract this must satisfy,
-    matching backend/src/services/onboarding/extraction.js's extractFn:
+    matching backend/src/services/onboarding/extraction/extraction.js's extractFn:
     given a transcript (+ detected language, + optional pendingField
     context), return the strict JSON object shape ExtractionResult above.
     """
@@ -1869,57 +1875,8 @@ async def travel_brief_endpoint(req: TravelBriefRequest) -> TravelBriefResult:
         raise HTTPException(status_code=503, detail=f"travel brief unavailable: {exc}") from exc
 
 
-def _draw_brief_pdf(brief: TravelBriefResult, req: TravelBriefRequest) -> BytesIO:
-    """Render a compact, printable travel brief with a trip QR code."""
-    from reportlab.lib import colors
-    from reportlab.lib.enums import TA_CENTER
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-    from reportlab.lib.units import mm
-    from reportlab.graphics.barcode import qr
-    from reportlab.graphics.shapes import Drawing
-    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-
-    output = BytesIO()
-    doc = SimpleDocTemplate(output, pagesize=A4, rightMargin=16 * mm, leftMargin=16 * mm, topMargin=14 * mm, bottomMargin=14 * mm)
-    styles = getSampleStyleSheet()
-    title = ParagraphStyle('BriefTitle', parent=styles['Title'], alignment=TA_CENTER, textColor=colors.HexColor('#0f172a'), spaceAfter=6)
-    section = ParagraphStyle('BriefSection', parent=styles['Heading2'], textColor=colors.HexColor('#4338ca'), spaceBefore=9, spaceAfter=4)
-    body = ParagraphStyle('BriefBody', parent=styles['BodyText'], leading=15, fontSize=9.5, textColor=colors.HexColor('#334155'))
-    small = ParagraphStyle('BriefSmall', parent=body, fontSize=8, leading=11, textColor=colors.HexColor('#64748b'))
-    story = [Paragraph(brief.title, title), Paragraph(brief.summary, body), Spacer(1, 4)]
-    story.append(Paragraph(brief.explanation, body))
-
-    sections = [
-        ('Day-wise itinerary', brief.dayWisePlan),
-        ('Packing checklist', brief.packingChecklist),
-        ('Weather advice', brief.weatherAdvice),
-        ('Hotels and hidden gems', brief.hiddenGems),
-        ('Safety tips', brief.safetyTips),
-        ('Local etiquette', brief.localEtiquette),
-        ('Emergency contacts', brief.emergencyContacts),
-    ]
-    for heading, items in sections:
-        if items:
-            story.append(Paragraph(heading, section))
-            story.append(Paragraph('<br/>'.join(f'- {item}' for item in items), body))
-
-    qr_payload = req.request.get('tripUrl') or f"{CLIENT_URLS[0]}/map?destId={req.request.get('destId', '')}"
-    qr_code = qr.QrCodeWidget(qr_payload)
-    bounds = qr_code.getBounds()
-    qr_drawing = Drawing(28 * mm, 28 * mm, transform=[28 * mm / (bounds[2] - bounds[0]), 0, 0, 28 * mm / (bounds[3] - bounds[1]), 0, 0])
-    qr_drawing.add(qr_code)
-    footer = Table([[Paragraph('Open this trip in Sahyatri', small), qr_drawing]], colWidths=[135 * mm, 28 * mm])
-    footer.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), ('ALIGN', (1, 0), (1, 0), 'RIGHT'), ('TOPPADDING', (0, 0), (-1, -1), 8)]))
-    story.extend([Spacer(1, 8), footer])
-    doc.build(story)
-    output.seek(0)
-    return output
-
-
 # Keep the existing endpoint contract while delegating layout to the reusable
-# premium guide builder. The old renderer remains above as a safe local
-# fallback/reference during rollout.
+# premium guide builder.
 def _draw_premium_brief_pdf(brief: TravelBriefResult, req: TravelBriefRequest) -> BytesIO:
     return build_travel_brief_pdf(brief, req.request, req.trip)
 

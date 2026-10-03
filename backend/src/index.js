@@ -1,7 +1,7 @@
+import "./lib/loadEnv.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import express from "express";
-import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import compression from "compression";
@@ -48,12 +48,7 @@ import { startAlertPolling } from "./jobs/scheduler.js";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
 import { logger } from "./lib/logger.js";
 
-// dotenv.config() with no path loads .env from process.cwd(), which silently
-// finds nothing (MONGODB_URI etc. come back undefined) if the server is started
-// from the repo root instead of backend/. Load backend/.env explicitly so
-// `node backend/src/index.js` works the same from either directory.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, "../.env") });
 
 const app = express();
 

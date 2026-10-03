@@ -1,3 +1,4 @@
+import { extractPressureScore } from './standardize.js';
 import DestinationPressure from '../../models/destinationPressure.model.js';
 
 /**
@@ -40,10 +41,10 @@ async function scanDates(destId, requestedDate, pressureFn) {
       let pressure = 0;
       if (rowsMap.has(dateString)) {
         const res = rowsMap.get(dateString);
-        pressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
+        pressure = extractPressureScore(res);
       } else if (typeof pressureFn === 'function') {
         const res = await pressureFn(destId, dateString);
-        pressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
+        pressure = extractPressureScore(res);
       }
       return { date: dateString, pressure };
     })
@@ -151,7 +152,7 @@ async function findDateAlternatives(requestedDest, requestedDate, pressureFn, bu
 
   if (typeof pressureFn === 'function') {
     const res = await pressureFn(destId, requestedDate);
-    basePressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
+    basePressure = extractPressureScore(res);
   }
 
   const allDates = await scanDates(destId, requestedDate, pressureFn);

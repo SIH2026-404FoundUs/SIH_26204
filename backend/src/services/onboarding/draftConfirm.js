@@ -1,10 +1,10 @@
 import Business from "../../models/business.model.js";
 import BusinessAvailability from "../../models/businessAvailability.model.js";
-import { transitionDraft } from "./stateMachine.js";
-import { parseUnitCount } from "./dateParser.js";
-import { extractFields } from "./extractFields.js";
-import { validateExtractionShape, checkExtractionHonesty } from "./extraction.js";
-import { sendWhatsAppMessage } from "./sendMessage.js";
+import { transitionDraft, isReplayedMessage } from "./stateMachine.js";
+import { parseUnitCount } from "./extraction/dateParser.js";
+import { extractFields } from "./extraction/extractFields.js";
+import { validateExtractionShape, checkExtractionHonesty } from "./extraction/extraction.js";
+import { sendWhatsAppMessage } from "./messaging/sendMessage.js";
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -266,10 +266,9 @@ export function isConfirmationReply(text) {
  * @param {Object} [deps]
  * @param {string} [deps.language]
  * @param {Function} [deps.extractFn]
- * @param {Object} [deps.existingBusiness]
  * @returns {Promise<Object|null>} updates to apply, or null if no valid correction found
  */
-export async function parseDraftCorrection(text, { language = "en", extractFn, existingBusiness } = {}) {
+export async function parseDraftCorrection(text, { language = "en", extractFn } = {}) {
   if (!text || typeof text !== "string") return null;
 
   const updates = {};
@@ -417,7 +416,7 @@ export async function processDraftConfirmReply({
   const attemptMessageId = messageId || crypto.randomUUID();
 
   // Whole-attempt idempotency: skip replayed message
-  if (existing.lastWhatsAppMessageId != null && existing.lastWhatsAppMessageId === attemptMessageId) {
+  if (isReplayedMessage(existing, attemptMessageId)) {
     return {
       applied: false,
       reason: "duplicate_message",
@@ -481,7 +480,6 @@ export async function processDraftConfirmReply({
   const correctionUpdates = await parseDraftCorrection(text, {
     language: lang,
     extractFn,
-    existingBusiness: existing,
   });
 
   if (correctionUpdates) {

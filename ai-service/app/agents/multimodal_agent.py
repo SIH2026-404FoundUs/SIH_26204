@@ -12,9 +12,9 @@ from google.adk.agents import Agent
 from google.adk.models.lite_llm import LiteLlm
 
 from app.services.backend_client import get as backend_get
-from app.tools.alternate_tools import get_alternate, get_alternate_dates, get_alternate_tools
+from app.tools.pressure.alternate_tools import get_alternate, get_alternate_dates, get_alternate_tools
 from app.tools.places import search_places as search_places_backend
-from app.tools.pressure import get_pressure
+from app.tools.pressure.pressure import get_pressure
 from app.tools.user_preferences import get_user_preferences as _get_user_preferences_raw
 from app.tools.travel_education import get_destination_education, get_personalized_destination_education
 from app.tools.group_travel import (

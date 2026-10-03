@@ -1,13 +1,13 @@
 import { ok, fail } from '../lib/envelope.js';
 import axios from 'axios';
 import { createTtlCache } from '../lib/ttlCache.js';
+import { uniqueKeys } from '../lib/apiKeys.js';
 
 const GEOCODE_TTL_MS = 60 * 60 * 1000; // 1 hour TTL
 const geocodeCache = createTtlCache({ ttlMs: GEOCODE_TTL_MS, maxEntries: 500 });
 
 function getGeocodeApiKeys() {
-  const keys = [process.env.GOOGLE_GEOCODE_API_KEY, process.env.GOOGLE_MAPS_API_KEY];
-  return Array.from(new Set(keys.filter(Boolean)));
+  return uniqueKeys([process.env.GOOGLE_GEOCODE_API_KEY, process.env.GOOGLE_MAPS_API_KEY]);
 }
 
 export async function geocode(address) {

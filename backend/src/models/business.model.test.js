@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import Business from "./business.model.js";
 import { REQUIRED_FIELDS_FOR_LIVE, hasRequiredFieldsForLive } from "../services/onboarding/stateMachine.js";
-import { getNextFollowUpQuestion } from "../services/onboarding/followUp.js";
+import { getNextFollowUpQuestion } from "../services/onboarding/messaging/followUp.js";
 
 let mongod;
 

@@ -2,10 +2,9 @@
 import assert from "node:assert/strict";
 import {
   composite, assembleRow, weatherPull, WEIGHTS,
-  emergingHotspot, normalizedCapacityGap, expectedSupplyFor,
+  normalizedCapacityGap, expectedSupplyFor,
   stayScarcity, roadFrequencyProxy,
 } from "./engine.js";
-import { spearman, linearRegression } from "./stats.js";
 
 // composite: verbatim §4 renormalise — drop a component, weights rescale to 1
 const c = composite([
@@ -72,21 +71,10 @@ const wsum = Object.values(WEIGHTS).reduce((s, w) => s + w, 0);
 assert.ok(Math.abs(wsum - 1) < 1e-3, "weights sum to 1");
 
 
-// §8 emerging hotspot: rising trend, still below 0.5, real capacity behind it
-const rising = [0.2, 0.22, 0.25, 0.28, 0.3, 0.33, 0.36, 0.38, 0.41, 0.43, 0.45, 0.47, 0.48, 0.49];
-assert.equal(emergingHotspot(rising, { capacityPrior: 0.7 }).isEmerging, true);
-assert.equal(emergingHotspot(rising, { capacityPrior: 0.3 }).isEmerging, false, "no capacity -> not emerging");
-assert.equal(emergingHotspot(new Array(14).fill(0.8), { capacityPrior: 0.7 }).isEmerging, false, "flat+high -> not emerging");
-assert.ok(linearRegression([1, 2, 3, 4]).slope > 0.99);
-
 // §8 capacity gap: dimensionally consistent, both sides 0..1
 const gap = normalizedCapacityGap(0.9, 20, expectedSupplyFor({ expectedSupply: 100 }));
 assert.ok(Math.abs(gap.supplyRatio - 0.2) < 1e-9);
 assert.ok(Math.abs(gap.normalizedCapacityGap - 0.7) < 1e-9);
 assert.equal(normalizedCapacityGap(0.9, 5, expectedSupplyFor({})), null);
-
-// §9 metric: perfect agreement -> 1, perfect reversal -> -1
-assert.equal(spearman([1, 2, 3, 4], [10, 20, 30, 40]), 1);
-assert.equal(spearman([1, 2, 3, 4], [40, 30, 20, 10]), -1);
 
 console.log("pressureEngine self-check OK");

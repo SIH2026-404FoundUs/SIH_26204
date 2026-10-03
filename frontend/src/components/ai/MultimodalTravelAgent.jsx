@@ -3,7 +3,7 @@ import { ArrowRight, Bot, CalendarDays, Image, Loader2, Map, Mic, RotateCcw, Sen
 import Card from '../ui/Card'
 import Button from '../ui/Button'
 import { useAuthStore } from '../../store/useAuthStore'
-import { aiApi, getErrorMessage } from '../../lib/api'
+import { aiApi, API_BASE, getErrorMessage } from '../../lib/api'
 
 const MAX_MESSAGE_CHARS = 500
 const LANGUAGES = [{ value: 'en', label: 'English' }, { value: 'te', label: 'తెలుగు' }, { value: 'hi', label: 'हिंदी' }]
@@ -91,7 +91,7 @@ const ROLE_COPY = {
 function placePhoto(place) {
   if (place?.photoUrl) return place.photoUrl
   if (!place?.photoName) return null
-  return `${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/places/photo?name=${encodeURIComponent(place.photoName)}`
+  return `${API_BASE}/places/photo?name=${encodeURIComponent(place.photoName)}`
 }
 
 function ResultCard({ item, kind }) {

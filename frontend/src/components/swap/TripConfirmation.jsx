@@ -3,13 +3,7 @@ import { CheckCircle2, TriangleAlert, ArrowLeft } from 'lucide-react'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
 import { getDestinationLabel } from '../../lib/destinations'
-
-function formatDate(dateString) {
-  if (!dateString) return 'the selected date'
-  const parsed = new Date(dateString)
-  if (Number.isNaN(parsed.getTime())) return dateString
-  return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
+import { formatDate } from '../../lib/time'
 
 export default function TripConfirmation() {
   const { state = {} } = useLocation()
@@ -67,7 +61,7 @@ export default function TripConfirmation() {
             </span>
             <h1 className="mt-4 text-xl font-semibold text-ink">Trip date moved</h1>
             <p className="mt-2 text-sm text-ash">
-              <strong className="text-ink">{requestedName}</strong>, now on <strong className="text-ink">{formatDate(selected.startDate)}</strong>.
+              <strong className="text-ink">{requestedName}</strong>, now on <strong className="text-ink">{formatDate(selected.startDate, 'the selected date')}</strong>.
             </p>
             <dl className="mt-6 grid grid-cols-2 gap-4 text-left">
               <div className="rounded-xl bg-paper p-3">

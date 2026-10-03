@@ -25,23 +25,23 @@ def _service_headers() -> dict:
     return headers
 
 
-def get(path: str, params: dict) -> dict:
+def _request(method: str, path: str, timeout: float = 5, **kwargs) -> dict:
     try:
-        response = requests.get(f"{BACKEND_URL}{path}", params=params, timeout=5, headers=_service_headers())
+        response = requests.request(method, f"{BACKEND_URL}{path}", timeout=timeout, headers=_service_headers(), **kwargs)
         return response.json()
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
-def post(path: str, body: dict) -> dict:
-    try:
-        response = requests.post(f"{BACKEND_URL}{path}", json=body, timeout=5, headers=_service_headers())
-        return response.json()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+
+def get(path: str, params: dict) -> dict:
+    return _request("GET", path, params=params)
+
+
+# timeout is per call: /api/alternatives fills a cache on its first call after a
+# backend start (~20s measured), far past the 5s budget meant for the fast routes.
+def post(path: str, body: dict, timeout: float = 5) -> dict:
+    return _request("POST", path, timeout=timeout, json=body)
+
 
 def patch(path: str, body: dict) -> dict:
-    try:
-        response = requests.patch(f"{BACKEND_URL}{path}", json=body, timeout=5, headers=_service_headers())
-        return response.json()
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+    return _request("PATCH", path, json=body)

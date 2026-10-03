@@ -53,10 +53,6 @@ services:
         sync: false
       - key: RAILRADAR_API_KEY
         sync: false
-      - key: AMADEUS_API_KEY
-        sync: false
-      - key: AMADEUS_API_SECRET
-        sync: false
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY

@@ -12,21 +12,20 @@
 import crypto from "crypto";
 import Business from "../../models/business.model.js";
 import BusinessAvailability from "../../models/businessAvailability.model.js";
-import { transcribeAudio } from "./transcription.js";
-import { extractFields } from "./extractFields.js";
-import { validateExtractionShape, checkExtractionHonesty } from "./extraction.js";
-import { transitionDraft, ONBOARDING_STATES } from "./stateMachine.js";
+import { transcribeAudio } from "./media/transcription.js";
+import { extractFields } from "./extraction/extractFields.js";
+import { validateExtractionShape, checkExtractionHonesty } from "./extraction/extraction.js";
+import { transitionDraft, isReplayedMessage, ONBOARDING_STATES } from "./stateMachine.js";
 import {
   getNextFollowUpQuestion,
   getNextMissingRequiredField,
   getInvalidDatesQuestion,
   getMissingUnitsQuestion,
-  getAvailabilityConfirmedMessage,
   getPhotosFollowUpQuestion,
-} from "./followUp.js";
-import { parseAvailabilityDates, parseUnitCount, generateDateRange } from "./dateParser.js";
-import { sendWhatsAppMessage } from "./sendMessage.js";
-import { resolveDestId } from "./destinationResolver.js";
+} from "./messaging/followUp.js";
+import { parseAvailabilityDates, parseUnitCount, generateDateRange } from "./extraction/dateParser.js";
+import { sendWhatsAppMessage } from "./messaging/sendMessage.js";
+import { resolveDestId } from "./extraction/destinationResolver.js";
 import { buildDraftConfirmationMessage, processDraftConfirmReply } from "./draftConfirm.js";
 
 /**
@@ -84,7 +83,7 @@ function walkStates(startState, targetState, baseMessageId) {
  */
 export async function isDuplicateMessage(ownerPhone, messageId) {
   const existing = await Business.findOne({ ownerPhone });
-  return Boolean(existing?.lastWhatsAppMessageId != null && existing.lastWhatsAppMessageId === messageId);
+  return isReplayedMessage(existing, messageId);
 }
 
 /**
@@ -175,7 +174,7 @@ export async function processInboundAudio({
   // Whole-attempt idempotency: a genuinely replayed message (same
   // messageId already persisted on this draft) does zero work — no
   // transcription, no extraction, no writes.
-  if (existing?.lastWhatsAppMessageId != null && existing.lastWhatsAppMessageId === attemptMessageId) {
+  if (isReplayedMessage(existing, attemptMessageId)) {
     return {
       applied: false,
       reason: "duplicate_message",

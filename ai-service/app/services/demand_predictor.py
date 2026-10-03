@@ -15,23 +15,15 @@ RUNTIME_CONFIG_PATH = BASE_DIR / "config" / "runtime_config.json"
 
 def _load_feature_order() -> list:
     """Load the strict feature order from features.json or runtime_config.json."""
-    if FEATURES_PATH.exists():
-        try:
-            with open(FEATURES_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if "production" in data and isinstance(data["production"], list):
-                    return data["production"]
-        except Exception as e:
-            logger.warning("Failed to parse features.json: %s", e)
-
-    if RUNTIME_CONFIG_PATH.exists():
-        try:
-            with open(RUNTIME_CONFIG_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if "production_features" in data and isinstance(data["production_features"], list):
-                    return data["production_features"]
-        except Exception as e:
-            logger.warning("Failed to parse runtime_config.json: %s", e)
+    for path, key in ((FEATURES_PATH, "production"), (RUNTIME_CONFIG_PATH, "production_features")):
+        if path.exists():
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if key in data and isinstance(data[key], list):
+                    return data[key]
+            except Exception as e:
+                logger.warning("Failed to parse %s: %s", path.name, e)
 
     raise RuntimeError("Could not load production feature order from features.json or runtime_config.json")
 
@@ -50,10 +42,6 @@ try:
         len(FEATURE_ORDER),
         FEATURE_ORDER[0] if FEATURE_ORDER else None,
         FEATURE_ORDER[-1] if FEATURE_ORDER else None,
-    )
-    print(
-        f"[DemandPredictor] Model loaded from {MODEL_PATH} ({len(FEATURE_ORDER)} features). "
-        f"First feature: {FEATURE_ORDER[0]}, Last feature: {FEATURE_ORDER[-1]}"
     )
 except Exception as e:
     logger.error("Failed to initialize demand predictor module: %s", e, exc_info=True)

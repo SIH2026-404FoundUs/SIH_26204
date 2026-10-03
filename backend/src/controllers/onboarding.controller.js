@@ -96,7 +96,7 @@ export function createOnboardingUploadHandler({ transcribeFn, extractFn, sendMes
       // existing test here does) without a live LLM. Absent entirely:
       // left as `undefined` and passed through to processInboundAudio
       // unchanged — its own three-way signal then triggers a real
-      // extraction call (services/onboarding/extractFields.js), so this
+      // extraction call (services/onboarding/extraction/extractFields.js), so this
       // endpoint genuinely runs "the exact same pipeline downstream of
       // the webhook" (transcription AND extraction both real) rather than
       // requiring a placeholder every time.

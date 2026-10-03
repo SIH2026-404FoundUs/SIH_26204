@@ -1,10 +1,10 @@
-import { describe, test, expect, jest, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
+import { describe, test, expect, jest, beforeAll, afterAll, afterEach } from "@jest/globals";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import Business from "../../models/business.model.js";
 import BusinessAvailability from "../../models/businessAvailability.model.js";
 import { processInboundAudio } from "./processInboundAudio.js";
-import { parseAvailabilityDates, parseUnitCount, generateDateRange } from "./dateParser.js";
+import { parseAvailabilityDates, parseUnitCount, generateDateRange } from "./extraction/dateParser.js";
 
 let mongod;
 const stubAudio = Buffer.from("fake-audio-bytes");

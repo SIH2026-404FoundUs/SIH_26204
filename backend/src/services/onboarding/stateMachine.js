@@ -113,6 +113,10 @@ export function hasRequiredFieldsForLive(fields = {}) {
   return REQUIRED_FIELDS_FOR_LIVE.every((key) => isRequiredFieldPresent(key, fields[key]));
 }
 
+// True when `messageId` is the one already persisted on `doc` (a replayed webhook).
+export const isReplayedMessage = (doc, messageId) =>
+  doc?.lastWhatsAppMessageId != null && doc.lastWhatsAppMessageId === messageId;
+
 /**
  * Attempts to move a business draft to `toState`. Pure function — never
  * mutates `draft`; the caller persists the returned state back to the

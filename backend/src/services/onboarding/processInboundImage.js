@@ -25,11 +25,11 @@
 // the same photo twice. Flagged, not silently ignored.
 
 import Business from "../../models/business.model.js";
-import { fetchWhatsAppMedia } from "./mediaDownload.js";
-import { uploadPhotoToCloudinary } from "./photoUpload.js";
+import { fetchWhatsAppMedia } from "./media/mediaDownload.js";
+import { uploadPhotoToCloudinary } from "./media/photoUpload.js";
 import { transitionDraft } from "./stateMachine.js";
-import { getDatesFollowUpQuestion } from "./followUp.js";
-import { sendWhatsAppMessage } from "./sendMessage.js";
+import { getDatesFollowUpQuestion } from "./messaging/followUp.js";
+import { sendWhatsAppMessage } from "./messaging/sendMessage.js";
 
 // bharani-tasks.md: "3-5 images". At least 3 before the requirement counts
 // as satisfied; capped at 5 -- once reached, further image messages are

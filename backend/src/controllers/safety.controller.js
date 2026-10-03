@@ -4,8 +4,8 @@ import {
   getShareableTripRecord,
   revokeShareableTripRecord,
   tripBelongsToUser,
-} from "../services/alerts/shareableTripService.js";
-import { submitTouristComplaint, getUserComplaints, getAllComplaints, updateComplaintStatus } from "../services/alerts/complaintService.js";
+} from "../services/alerts/shareable-trips/shareableTripService.js";
+import { submitTouristComplaint, getUserComplaints, getAllComplaints, updateComplaintStatus } from "../services/alerts/complaints/complaintService.js";
 import ShareableTrip from "../models/shareableTrip.model.js";
 import Complaint from "../models/complaint.model.js";
 import AuditLog from "../models/auditLog.model.js";

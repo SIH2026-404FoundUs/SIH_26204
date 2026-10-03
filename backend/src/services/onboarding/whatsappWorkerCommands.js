@@ -49,7 +49,7 @@ function findDestinationByText(text) {
  */
 export async function handleWorkerTextCommand({ from, text }, models, { sendMessageFn } = {}) {
   const { UserModel, WorkerProfileModel, GigMatchModel, GigRequestModel } = models;
-  const { sendWhatsAppMessage } = await import("./sendMessage.js");
+  const { sendWhatsAppMessage } = await import("./messaging/sendMessage.js");
 
   const user = await UserModel.findOne({ phone: from, role: "worker" });
   if (!user) return { handled: false };

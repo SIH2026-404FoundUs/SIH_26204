@@ -33,12 +33,6 @@ const router = express.Router();
 const destIdOf = (dest) =>
   dest && typeof dest === 'object' ? dest._id || dest.id : dest;
 
-const UNKNOWN_PRESSURE = 1;
-const pressureFn = async (dest, date) => {
-  const row = await getPressure(destIdOf(dest), date);
-  return row?.score ?? UNKNOWN_PRESSURE;
-};
-
 /** Dynamic destination budget estimator using budgetService and seeded baselines */
 const budgetFn = async (dest, date, travellers = 2) => {
   const id = destIdOf(dest);
@@ -67,13 +61,7 @@ const budgetFn = async (dest, date, travellers = 2) => {
   return { stayCost, transportCost, total, costBreakdown: calculated.costBreakdown };
 };
 
-/** Safe travel time wrapper ensuring Geocode API Key alias */
-const reachabilityFn = async (origin, dest) => {
-  if (!process.env.GOOGE_GEOCODE_API_KEY && process.env.GOOGLE_MAPS_API_KEY) {
-    process.env.GOOGE_GEOCODE_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
-  }
-  return travelTimeFn(origin, destIdOf(dest));
-};
+const reachabilityFn = (origin, dest) => travelTimeFn(origin, destIdOf(dest));
 
 router.post('/', async (req, res) => {
   const { origin, destId, startDate, endDate, travellers, budgetINR, interests } = req.body;

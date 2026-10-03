@@ -5,7 +5,7 @@
 # Replaces Whisper large-v3-turbo with Sarvam AI's Saaras v4 model via
 # synchronous REST API (POST https://api.sarvam.ai/speech-to-text).
 #
-# Satisfies the contract matching backend/src/services/onboarding/transcription.js:
+# Satisfies the contract matching backend/src/services/onboarding/media/transcription.js:
 # given raw audio bytes, returns { "transcript": str, "detectedLanguage": str }.
 
 import logging

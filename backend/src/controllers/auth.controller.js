@@ -106,6 +106,19 @@ export const signup = async (req, res) => {
 // ============================================================
 // SIGN IN
 // ============================================================
+// Shape shared by login/updateProfile/uploadProfilePhoto/removeProfilePhoto
+// (and what checkAuth returns), so the client's authUser stays consistent.
+const toAuthResponse = (user) => ({
+  _id: user._id,
+  fullName: user.fullName,
+  email: user.email,
+  role: user.role,
+  phone: user.phone,
+  preferredLanguage: user.preferredLanguage,
+  profilePhoto: optimizedImageUrl(user.profilePhoto, { width: 96 }),
+  createdAt: user.createdAt,
+});
+
 export const login = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -132,16 +145,7 @@ export const login = async (req, res) => {
     // preferredLanguage here, the just-logged-in authUser looks like it has
     // no phone on record (blanking the new editable Profile form) until the
     // next checkAuth() refetch happens to run.
-    res.status(200).json({
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-      phone: user.phone,
-      preferredLanguage: user.preferredLanguage,
-      profilePhoto: optimizedImageUrl(user.profilePhoto, { width: 96 }),
-      createdAt: user.createdAt,
-    });
+    res.status(200).json(toAuthResponse(user));
   } catch (error) {
     logger.error("Error in login controller", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -329,16 +333,7 @@ export const updateProfile = async (req, res) => {
     const user = await User.findByIdAndUpdate(req.user._id, { $set: update }, { new: true });
     if (!user) return res.status(404).json({ message: "user not found" });
 
-    res.status(200).json({
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-      phone: user.phone,
-      preferredLanguage: user.preferredLanguage,
-      profilePhoto: optimizedImageUrl(user.profilePhoto, { width: 96 }),
-      createdAt: user.createdAt,
-    });
+    res.status(200).json(toAuthResponse(user));
   } catch (error) {
     logger.error("Error in updateProfile controller", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -373,16 +368,7 @@ export const uploadProfilePhoto = async (req, res) => {
     const user = await User.findByIdAndUpdate(req.user._id, { $set: { profilePhoto: secureUrl } }, { new: true });
     if (!user) return res.status(404).json({ message: "user not found" });
 
-    res.status(200).json({
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-      phone: user.phone,
-      preferredLanguage: user.preferredLanguage,
-      profilePhoto: optimizedImageUrl(user.profilePhoto, { width: 96 }),
-      createdAt: user.createdAt,
-    });
+    res.status(200).json(toAuthResponse(user));
   } catch (error) {
     logger.error("Error in uploadProfilePhoto controller", error);
     res.status(500).json({ message: "Could not upload profile photo" });
@@ -396,16 +382,7 @@ export const removeProfilePhoto = async (req, res) => {
     const user = await User.findByIdAndUpdate(req.user._id, { $set: { profilePhoto: null } }, { new: true });
     if (!user) return res.status(404).json({ message: "user not found" });
 
-    res.status(200).json({
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-      phone: user.phone,
-      preferredLanguage: user.preferredLanguage,
-      profilePhoto: optimizedImageUrl(user.profilePhoto, { width: 96 }),
-      createdAt: user.createdAt,
-    });
+    res.status(200).json(toAuthResponse(user));
   } catch (error) {
     logger.error("Error in removeProfilePhoto controller", error);
     res.status(500).json({ message: "Internal Server Error" });

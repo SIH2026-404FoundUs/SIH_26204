@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, Users, Wallet, Navigation, Compass, Check, X, CalendarClock, Map as MapIcon, CloudSun, Hotel, ShieldCheck, Route as RouteIcon } from 'lucide-react'
+import { itineraryStopName } from '../../lib/itineraryStop'
 import { usePlannerStore } from '../../store/usePlannerStore'
 import { useTrustStore } from '../../store/useTrustStore'
 import PressureRing from '../pressure/PressureRing'
@@ -22,7 +23,6 @@ function TripForm({ onSubmit, isPlanning }) {
   // "How many people have suggested places worth visiting nearby" -- a real
   // geo-count over approved Suggest a Place submissions within ~30km of
   // this destination (GET /community/nearby-count), not a fabricated number.
-  const nearbySuggestionCount = useTrustStore((s) => s.nearbySuggestionCount)
   const fetchNearbySuggestionCount = useTrustStore((s) => s.fetchNearbySuggestionCount)
   useEffect(() => {
     if (form.destId) fetchNearbySuggestionCount(form.destId)
@@ -100,24 +100,10 @@ function AlternativeRow({ label, icon: Icon, pressure, requestedPressure, saving
 // The traveller sees the reading and the alternatives and must explicitly
 // accept or decline -- both buttons carry equal size, weight, and an icon,
 // per the doc's central integrity rule.
-function itineraryStopName(stop) {
-  if (!stop || typeof stop !== 'object') return 'Planned stop'
-  if (stop.location && typeof stop.location === 'object') return stop.location.name || 'Stay'
-  return stop.name || 'Planned stop'
-}
-
 function itineraryStopLabel(stop) {
   if (stop?.slot === 'start') return 'Start from'
   if (stop?.slot === 'end') return 'Return to'
   return stop?.time || stop?.slot || 'Visit'
-}
-
-function shiftedEndDate(startDate, endDate, nextStartDate) {
-  if (!startDate || !endDate || !nextStartDate) return endDate
-  const duration = Math.round((new Date(`${endDate}T00:00:00`) - new Date(`${startDate}T00:00:00`)) / 86400000)
-  const nextEnd = new Date(`${nextStartDate}T00:00:00`)
-  nextEnd.setDate(nextEnd.getDate() + duration)
-  return nextEnd.toISOString().slice(0, 10)
 }
 
 function DecisionPanel() {

@@ -1,3 +1,5 @@
+import { extractPressureScore, toPlain } from './standardize.js';
+
 /**
  * Estimates monetary savings (in INR) by substituting requested destination with candidate destination.
  * Formula: requestedBudget.total - candidateBudget.total
@@ -41,12 +43,12 @@ function normalizeSaving(saving, maxSaving) {
  * Formula: score = (1 - d / d*) * (1 - pressureCandidate) * normalizedSaving
  */
 async function computeScore(candidate, requestedDest, dStar, pressureFn, date, budgetFn, maxSaving = 0) {
-  const candObj = typeof candidate?.toObject === 'function' ? candidate.toObject() : { ...candidate };
+  const candObj = toPlain(candidate, true);
 
   if (candObj.pressure === undefined && typeof pressureFn === 'function') {
     const candId = candObj._id || candObj.id;
     const res = await pressureFn(candId, date);
-    candObj.pressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
+    candObj.pressure = extractPressureScore(res);
   }
 
   const savingINR = await estimateSaving(requestedDest, candObj, date, budgetFn);
@@ -77,7 +79,7 @@ async function rankCandidates(candidates, requestedDest, dStar, date, pressureFn
   }
 
   const processedCandidates = candidates.map((cand) =>
-    typeof cand?.toObject === 'function' ? cand.toObject() : { ...cand }
+    toPlain(cand, true)
   );
 
   // Step 1: Compute savings and fetch pressure if missing
@@ -85,7 +87,7 @@ async function rankCandidates(candidates, requestedDest, dStar, date, pressureFn
     if (cand.pressure === undefined && typeof pressureFn === 'function') {
       const candId = cand._id || cand.id;
       const res = await pressureFn(candId, date);
-      cand.pressure = typeof res === 'number' ? res : (res?.score ?? 0.5);
+      cand.pressure = extractPressureScore(res);
     }
     if (typeof budgetFn === 'function') {
       const candId = cand._id || cand.id;

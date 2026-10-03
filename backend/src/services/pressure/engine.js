@@ -8,7 +8,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { linearRegression } from "./stats.js";
 
 const CONFIG_PATH = join(dirname(fileURLToPath(import.meta.url)), "../../config/runtime_config.json");
 const runtimeConfig = JSON.parse(readFileSync(CONFIG_PATH, "utf8"));
@@ -21,13 +20,6 @@ export const FORMULA_VERSION = runtimeConfig.formula_version;
 const STATIC_KEYS = new Set(["capacity"]);
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 
-export function mlDemandPressure(predictedVisitors, baselineVisitors) {
-  const { k, midpoint } = runtimeConfig.sigmoid;
-  const ratio = predictedVisitors / baselineVisitors;
-  return 1 / (1 + Math.exp(-k * (ratio - midpoint)));
-}
-
-
 // --- Per-component normalisation to [0,1] against dest.baseline (§3).
 // Each takes provider data + the dest row, returns { value, ...meta } or null
 // (null = signal not retrievable -> component is dropped, never defaulted).
@@ -38,22 +30,6 @@ export function railDemand(services, baseline) {
   const top3 = [...services].sort((a, b) => b.waitlist - a.waitlist).slice(0, 3);
   const raw = top3.reduce((s, x) => s + x.waitlist, 0) / top3.length;
   return { value: clamp01(raw / (2 * baseline.railWL)), meanTop3WL: raw };
-}
-
-// spec §3 road_demand — for a real seat-data provider. Currently unreachable:
-// both the mock and Nishith's adapter are frequency-only, so collect() takes
-// the roadFrequencyProxy path (§5). Kept for when a seat-data source exists.
-export function roadDemand(services, baseline) {
-  // occupancy across corridor services on the date
-  if (!services?.length || baseline?.roadSeatsAvail == null) return null;
-  const free = services.reduce((s, x) => s + x.freeSeats, 0);
-  const total = services.reduce((s, x) => s + x.totalSeats, 0);
-  if (total === 0) return null;
-  const raw = 1 - free / total;
-  // Ananya's baseline.roadSeatsAvail is a seat count -> baseline occupancy ratio.
-  const baseRatio =
-    baseline.roadSeatsAvail > 1 ? 1 - baseline.roadSeatsAvail / total : baseline.roadSeatsAvail;
-  return { value: clamp01(raw / (baseRatio || 1)), occupancy: raw };
 }
 
 // Road provider returned schedule frequency only, no seats (spec §5). road_demand
@@ -172,23 +148,7 @@ export function assembleRow(values, { degradedRoad = false } = {}) {
 
 const round2 = (x) => Math.round(x * 100) / 100;
 
-// --- §8 Emerging hotspot + normalised capacity gap. Both read >=14 days of
-// history from destination_pressure (Ananya's seed + the precompute backfill).
-
-/**
- * A destination trending up but not yet saturated, with real capacity behind it.
- * @param {number[]} last14Scores  daily `score` for this dest, oldest -> newest
- * @param {object} dest            needs capacityPrior
- */
-export function emergingHotspot(last14Scores, dest) {
-  const { slope } = linearRegression(last14Scores);
-  const currentScore = last14Scores[last14Scores.length - 1] ?? 0;
-  return {
-    slope,
-    isEmerging:
-      slope > 0.02 && currentScore < 0.5 && (dest?.capacityPrior ?? 0) > 0.5,
-  };
-}
+// --- §8 normalised capacity gap. Reads history from destination_pressure.
 
 // expected bookable units for a destination — spec §8 `expectedSupplyFor(dest)`.
 // seed.js attaches `expectedSupply` (sum of seeded business capacity) on load.

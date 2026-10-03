@@ -1,6 +1,7 @@
 import { ok, fail } from '../lib/envelope.js';
 import axios from 'axios';
 import { createTtlCache } from '../lib/ttlCache.js';
+import { uniqueKeys } from '../lib/apiKeys.js';
 
 // Text Search is the expensive call in this file, and a trip plan re-runs the
 // same two queries ("hotels in X", "tourist attractions in X") for the same
@@ -31,10 +32,9 @@ function searchCacheKey(query, lat, lng, radiusMeters) {
 }
 
 function getApiKeys(preferGeocodeKey = false) {
-  const keys = preferGeocodeKey
+  return uniqueKeys(preferGeocodeKey
     ? [process.env.GOOGLE_GEOCODE_API_KEY, process.env.GOOGLE_MAPS_API_KEY]
-    : [process.env.GOOGLE_MAPS_API_KEY, process.env.GOOGLE_GEOCODE_API_KEY];
-  return Array.from(new Set(keys.filter(Boolean)));
+    : [process.env.GOOGLE_MAPS_API_KEY, process.env.GOOGLE_GEOCODE_API_KEY]);
 }
 
 async function searchPlaces(query, lat, lng, radiusMeters = 20000) {

@@ -59,7 +59,7 @@ import User from "../models/user.model.js";
 import WorkerProfile from "../models/workerProfile.model.js";
 import GigMatch from "../models/gigMatch.model.js";
 import GigRequest from "../models/gigRequest.model.js";
-import { fetchWhatsAppMedia } from "../services/onboarding/mediaDownload.js";
+import { fetchWhatsAppMedia } from "../services/onboarding/media/mediaDownload.js";
 import { processInboundAudio, isDuplicateMessage } from "../services/onboarding/processInboundAudio.js";
 import { processInboundImage } from "../services/onboarding/processInboundImage.js";
 import { processDraftConfirmReply } from "../services/onboarding/draftConfirm.js";

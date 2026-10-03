@@ -2,13 +2,7 @@ import { Calendar, TrendingDown, IndianRupee, Check } from 'lucide-react'
 import Card from '../ui/Card'
 import Badge from '../ui/Badge'
 import Button from '../ui/Button'
-
-function formatDate(dateString) {
-  if (!dateString) return ''
-  const parsed = new Date(dateString)
-  if (Number.isNaN(parsed.getTime())) return dateString
-  return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
+import { formatDate } from '../../lib/time'
 
 /** A less-crowded date for the same destination. Same card shape/metrics
  * grid as PlaceSwapVariant so the two alternative types read as one family,
