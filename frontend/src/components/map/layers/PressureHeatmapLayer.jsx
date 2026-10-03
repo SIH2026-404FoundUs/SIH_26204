@@ -125,35 +125,6 @@ export default function PressureHeatmapLayer({ map, mapsSDK, date, visible = fal
     };
   }, []);
 
-  if (!visible) return null;
-
-  const bands = [
-    { label: 'Calm', hint: 'under 35%', score: 0.15 },
-    { label: 'Moderate', hint: '35-60%', score: 0.5 },
-    { label: 'Crowded', hint: 'over 60%', score: 0.85 },
-  ];
-
-  return (
-    // Bottom-centre is the one free slot: the trip summary owns bottom-left,
-    // LayerControls bottom-right, RouteDetailsPanel the lower-left corner.
-    <div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-xl border border-slate-200 bg-white/92 px-3 py-2.5 shadow-md backdrop-blur-xs">
-      <p className="text-[10px] font-bold uppercase tracking-[.14em] text-slate-500">Crowd pressure</p>
-      <ul className="mt-1.5 space-y-1">
-        {bands.map((band) => (
-          <li key={band.label} className="flex items-center gap-2">
-            <span
-              className="h-3 w-3 shrink-0 rounded-full border border-white/60"
-              style={{ backgroundColor: scoreColor(band.score) }}
-              aria-hidden="true"
-            />
-            <span className="text-[11px] font-semibold text-slate-700">{band.label}</span>
-            <span className="text-[10px] text-slate-400">{band.hint}</span>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-1.5 max-w-[168px] text-[10px] leading-3.5 text-slate-400">
-        Bigger, warmer circles are busier. Click one for its exact reading.
-      </p>
-    </div>
-  );
+  // The legend is rendered separately (PressureLegend) by EverythingMap.
+  return null;
 }

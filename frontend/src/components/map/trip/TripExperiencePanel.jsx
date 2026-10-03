@@ -19,8 +19,11 @@ function collectPlaces(destination, stays, itineraryDays) {
       ...(Array.isArray(place.photos) ? place.photos : []),
     ].map(resolvePhotoUrl).filter(Boolean)
     if (!photoValues.length) return
+    const id = `${type}-${place.placeId}-${place.name}`
+    // The same stop can appear on several itinerary days; list it once.
+    if (places.some((existing) => existing.id === id)) return
     places.push({
-      id: `${type}-${place.placeId}-${place.name}`,
+      id,
       name: place.name,
       type,
       placeId: place.placeId,

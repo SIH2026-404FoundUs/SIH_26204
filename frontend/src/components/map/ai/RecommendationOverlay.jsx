@@ -181,7 +181,7 @@ export default function RecommendationOverlay({ onHighlight, onPreviewRoute, swa
   }
 
   return (
-    <aside className="absolute right-4 top-24 z-30 w-[min(440px,calc(100%-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md">
+    <aside className="w-full animate-slide-right overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md">
       <div className="bg-slate-950 px-4 py-3 text-white">
         <div className="flex items-start justify-between gap-3">
           <div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">Tourism command center</p><h2 className="mt-1 text-base font-extrabold">A lower-pressure option is available</h2></div>

@@ -414,6 +414,12 @@ export default function Header() {
   const authUser = useAuthStore((state) => state.authUser)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  // Published as a CSS variable so full-bleed pages (the one-map page) can
+  // reclaim the width when the sidebar is collapsed instead of keeping a
+  // fixed w-64 gutter. Matches the aside's w-64 / w-[76px] below.
+  useEffect(() => {
+    document.documentElement.style.setProperty('--sidebar-w', authUser ? (sidebarCollapsed ? '76px' : '16rem') : '0px')
+  }, [sidebarCollapsed, authUser])
   const location = useLocation()
   const navigate = useNavigate()
 

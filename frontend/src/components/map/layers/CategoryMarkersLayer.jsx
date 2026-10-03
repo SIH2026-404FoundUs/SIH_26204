@@ -142,7 +142,7 @@ export default function CategoryMarkersLayer({
               content: img
             });
 
-            marker.addListener('gmp-click', openInfoWindow);
+            marker.addEventListener('gmp-click', openInfoWindow);
             img.addEventListener('click', openInfoWindow);
           } else {
             marker = new mapsSDK.Marker({

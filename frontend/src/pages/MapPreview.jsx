@@ -1,62 +1,41 @@
-import { Compass, Layers3, MapPinned, Route, Sparkles, Utensils } from 'lucide-react';
+import { MapPinned } from 'lucide-react';
 import EverythingMap from '../components/map/EverythingMap';
 
 /**
  * MapPreview -- "Everything on One Map": the full-bleed canvas page at
  * /map. Source/destination/travel-mode/category-toggle state all live
  * inside EverythingMap itself (driven by its own MapControls overlay), not
- * here -- this page only supplies the initial center/zoom and its own
- * compact, canvas-first chrome around it.
+ * here -- this page only supplies the initial center/zoom and a one-line
+ * title, so the map gets every pixel of height it can.
  *
- * A slim custom header rather than the shared PageHeader component on
- * purpose: PageHeader's own bottom margin would eat into the map's already
- * viewport-constrained height, and this page has no description line to
- * carry -- the map is the entire point of the page.
+ * Left padding follows --sidebar-w (set by Header.jsx) rather than a fixed
+ * md:pl-72: this route uses RequireAuthBare so it can render its own
+ * full-bleed <main>, but it still sits beside the fixed workspace sidebar,
+ * and a fixed gutter left a dead strip whenever that sidebar was collapsed.
  *
- * md:pl-72 matches the exact offset Guards.jsx's <Page> applies for every
- * other authenticated route -- this route uses RequireAuthBare instead of
- * RequireAuth specifically so it can render its own full-bleed <main>
- * without Page's centred max-w-3xl/6xl wrapper, but it still sits behind
- * the same fixed, always-on-top workspace sidebar (Header.jsx's <aside>,
- * w-64/z-40) as every other page, and skipping RequireAuthBare's own
- * wrapper doesn't skip that sidebar. Without this, the header title, the
- * floating trip-planner command bar, and the map canvas all rendered
- * partly underneath the sidebar instead of only starting to its right.
+ * Height is the viewport minus the sticky header (4.5rem, the same offset
+ * the sidebar uses). It used to assume 65px, which is shorter than the
+ * header, so the bottom of the map was cut off. dvh keeps mobile browser
+ * toolbars from hiding the bottom edge; on very short screens the page
+ * scrolls rather than squashing the map below a usable size.
  */
 export default function MapPreview() {
   return (
-    <main className="flex-1 bg-paper px-3 py-3 sm:px-4 md:pl-72 flex flex-col h-[calc(100vh-65px)] overflow-hidden">
-      <div className="mx-auto w-full max-w-[98vw] flex flex-col flex-1">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-2 py-2">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-paper shadow-sm">
-              <MapPinned size={18} aria-hidden="true" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <Compass className="h-4 w-4 text-pressure" aria-hidden="true" />
-                <h1 className="font-display text-base font-semibold tracking-tight text-ink">One-map command center</h1>
-              </div>
-              <p className="mt-0.5 text-[11px] font-medium text-ash">Plan, compare, route, and explore without leaving the map</p>
-            </div>
-          </div>
-          <div className="hidden items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-ash md:flex">
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1"><Route size={12} /> Routes</span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-amber-700"><Layers3 size={12} /> Pressure</span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-1 text-indigo-700"><Utensils size={12} /> Places</span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-emerald-700"><Sparkles size={12} /> Planner</span>
-          </div>
-        </div>
+    <main className="flex h-[calc(100dvh-4.5rem)] flex-1 flex-col gap-2 overflow-y-auto bg-paper px-2 py-2 transition-[padding] duration-200 sm:px-4 sm:py-3 md:pl-[calc(var(--sidebar-w,16rem)+1rem)]">
+      <header className="flex shrink-0 items-center gap-2.5 px-1">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-paper">
+          <MapPinned size={16} aria-hidden="true" />
+        </span>
+        <h1 className="font-display text-base font-semibold tracking-tight text-ink">One map</h1>
+        <p className="hidden truncate text-xs text-ash sm:block">Plan, compare, route and explore without leaving the map</p>
+      </header>
 
-        <div className="mt-1 overflow-hidden rounded-[24px] border border-white/60 bg-white/55 p-1 shadow-[0_20px_60px_rgba(0,0,0,.08)] backdrop-blur-xl">
-          <EverythingMap
-            zoom={5}
-            center={{ lat: 20.5937, lng: 78.9629 }}
-            defaultHeatmap={false}
-            className="h-[calc(100vh-140px)] min-h-[550px] w-full rounded-xl overflow-hidden"
-          />
-        </div>
-      </div>
+      <EverythingMap
+        zoom={5}
+        center={{ lat: 20.5937, lng: 78.9629 }}
+        defaultHeatmap={false}
+        className="min-h-[460px] w-full flex-1 overflow-hidden rounded-xl border border-slate-200/80 shadow-[0_20px_60px_rgba(0,0,0,.08)] sm:rounded-2xl"
+      />
     </main>
   );
 }

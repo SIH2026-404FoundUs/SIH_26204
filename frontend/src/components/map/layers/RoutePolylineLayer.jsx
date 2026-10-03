@@ -42,6 +42,7 @@ function decodePolyline(encoded) {
 export default function RoutePolylineLayer({ map, mapsSDK, routeData }) {
   const directionsRendererRef = useRef(null);
   const customPolylineRef = useRef(null);
+  const casingPolylineRef = useRef(null);
   const startMarkerRef = useRef(null);
   const endMarkerRef = useRef(null);
 
@@ -54,6 +55,10 @@ export default function RoutePolylineLayer({ map, mapsSDK, routeData }) {
     if (customPolylineRef.current) {
       customPolylineRef.current.setMap(null);
       customPolylineRef.current = null;
+    }
+    if (casingPolylineRef.current) {
+      casingPolylineRef.current.setMap(null);
+      casingPolylineRef.current = null;
     }
     if (startMarkerRef.current) {
       if (typeof startMarkerRef.current.setMap === 'function') startMarkerRef.current.setMap(null);
@@ -177,12 +182,24 @@ export default function RoutePolylineLayer({ map, mapsSDK, routeData }) {
           decodedPath = decodePolyline(encodedPolyline);
         }
         if (decodedPath.length > 0) {
+          // White casing underneath keeps the route legible over roads,
+          // rivers and the heatmap circles that share its colours.
+          casingPolylineRef.current = new mapsSDK.Polyline({
+            path: decodedPath,
+            geodesic: true,
+            strokeColor: '#FFFFFF',
+            strokeOpacity: 0.95,
+            strokeWeight: 9,
+            zIndex: 1,
+            map,
+          });
           const polyline = new mapsSDK.Polyline({
             path: decodedPath,
             geodesic: true,
             strokeColor: modeColor,
-            strokeOpacity: 0.85,
+            strokeOpacity: 1,
             strokeWeight: 5,
+            zIndex: 2,
             map,
           });
 
@@ -221,7 +238,11 @@ export default function RoutePolylineLayer({ map, mapsSDK, routeData }) {
 
     // 4. Zoom map tightly between Source and Destination (below floating header controls)
     if (map && typeof map.fitBounds === 'function') {
-      map.fitBounds(bounds, { top: 180, bottom: 120, left: 80, right: 80 });
+      // Leave room for the RouteDetailsPanel card, scaled down on short maps
+      // so the route itself is never squeezed to a sliver.
+      const mapHeight = map.getDiv?.()?.clientHeight || 600;
+      const bottomPad = routeData.variant === 'preview' ? 120 : Math.min(300, Math.round(mapHeight * 0.4));
+      map.fitBounds(bounds, { top: Math.min(180, Math.round(mapHeight * 0.25)), bottom: bottomPad, left: 80, right: 80 });
     }
 
     return () => {

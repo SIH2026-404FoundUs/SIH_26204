@@ -17,11 +17,31 @@ import LayerControls from './controls/LayerControls';
 import AIAssistantCard from './ai/AIAssistantPremium';
 import CurrentLocationLayer from './layers/CurrentLocationLayer';
 import StopMarkersLayer from './layers/StopMarkersLayer';
+import PressureLegend from './PressureLegend';
+import MapToolRail from './MapToolRail';
 import { useDestinationsStore } from '../../store/useDestinationsStore';
 import { usePlannerStore } from '../../store/usePlannerStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { downloadTravelBrief } from '../../lib/travelBrief';
-import { LogIn, Lock } from 'lucide-react';
+import { AlertTriangle, LogIn, Lock, MapPinPlus, MousePointerClick, X } from 'lucide-react';
+
+// A scrolling column of floating panels. The column itself ignores the
+// pointer so the map stays draggable in the gaps between panels, and the
+// negative margin + padding stops overflow-y-auto clipping panel shadows.
+const DOCK_CLASS = 'pointer-events-none -m-4 flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain p-4 no-scrollbar [&>*]:pointer-events-auto [&>*]:shrink-0';
+
+function MapToast({ tone = 'error', children, onDismiss }) {
+  const toneClass = tone === 'error' ? 'border-rose-200 bg-rose-50/95 text-rose-700' : 'border-amber-200 bg-amber-50/95 text-amber-800';
+  return (
+    <div role={tone === 'error' ? 'alert' : 'status'} className={`pointer-events-auto flex max-w-md items-start gap-2 rounded-xl border px-3 py-2 text-xs font-semibold shadow-md backdrop-blur-xs animate-fade-up ${toneClass}`}>
+      <AlertTriangle size={14} className="mt-px shrink-0" />
+      <span className="min-w-0 flex-1">{children}</span>
+      <button type="button" onClick={onDismiss} className="-mr-1 rounded-md p-0.5 opacity-60 transition hover:opacity-100" aria-label="Dismiss">
+        <X size={13} />
+      </button>
+    </div>
+  );
+}
 
 function estimateIntercityDistanceKm(origin, destination) {
   const radians = (value) => (value * Math.PI) / 180;
@@ -50,7 +70,9 @@ export default function EverythingMap({
   onMapLoad
 }) {
   const mapRef = useRef(null);
+  const containerRef = useRef(null);
   const navigate = useNavigate();
+  const [layersOpen, setLayersOpen] = useState(false);
   const [mapInstance, setMapInstance] = useState(null);
   const [mapsSDK, setMapsSDK] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -92,6 +114,12 @@ export default function EverythingMap({
   // Stop Picker & Drawer State
   const [stops, setStops] = useState([]);
   const [showStopsPanel, setShowStopsPanel] = useState(false);
+  // The map click listener is registered once, so it reads the panel state
+  // through a ref. Clicks only drop stops while the Stops panel is open --
+  // previously every click on the map added a stop, including clicks meant
+  // to dismiss a popup or just focus the map.
+  const dropPinModeRef = useRef(false);
+  useEffect(() => { dropPinModeRef.current = showStopsPanel; }, [showStopsPanel]);
   const [highlightedDestId, setHighlightedDestId] = useState(null);
   const [showTripSummary, setShowTripSummary] = useState(true);
   // Dismissal applies to the plan it was made on, not to the whole session.
@@ -272,17 +300,25 @@ export default function EverythingMap({
           const defaultOptions = {
             center,
             zoom,
-            zoomControl: true,
+            // Required for AdvancedMarkerElement (used by the layers below) to
+            // render -- DEMO_MAP_ID is Google's documented placeholder with no
+            // cloud styling attached. Override with VITE_GOOGLE_MAPS_MAP_ID once
+            // a real Map ID is created in Cloud Console.
+            mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID',
+            // Zoom and fullscreen come from MapToolRail instead: Google's own
+            // buttons sat underneath the floating panels.
+            zoomControl: false,
             mapTypeControl: false,
             streetViewControl: false,
-            fullscreenControl: true,
-            styles: [
-              {
-                featureType: 'poi',
-                elementType: 'labels',
-                stylers: [{ visibility: 'simplified' }]
-              }
-            ],
+            fullscreenControl: false,
+            // The map is the whole page here, so scroll-to-zoom shouldn't
+            // need Ctrl held down.
+            gestureHandling: 'greedy',
+            // A Map cannot combine a mapId with inline `styles` -- Google
+            // rejects it outright ("A Map's styles property cannot be set
+            // when a mapId is present"). The POI-label simplification this
+            // used to apply inline now needs to be configured on the Map ID
+            // itself in Cloud Console instead.
             ...mapOptions
           };
 
@@ -290,7 +326,7 @@ export default function EverythingMap({
 
           // Add Map Click Listener to capture custom stops
           instance.addListener('click', (e) => {
-            if (e.latLng) {
+            if (e.latLng && dropPinModeRef.current) {
               const lat = e.latLng.lat();
               const lng = e.latLng.lng();
               handleAddStop({ name: `Pin Stop (${lat.toFixed(3)}, ${lng.toFixed(3)})`, lat, lng, type: 'map_click' });
@@ -378,6 +414,32 @@ export default function EverythingMap({
       mapInstance.setZoom(Math.max(mapInstance.getZoom() || 5, 13));
     }
   };
+
+  // Tool-rail "my location": follow the traveller's position on the map.
+  // Independent of whether that position is also the route's origin.
+  const toggleFollowLocation = () => {
+    const next = !locationTracking;
+    setLocationTracking(next);
+    if (next && currentLocation && mapInstance) {
+      mapInstance.panTo({ lat: currentLocation.lat, lng: currentLocation.lng });
+      mapInstance.setZoom(Math.max(mapInstance.getZoom() || 5, 13));
+    }
+  };
+
+  // Typing an origin means the traveller wants that place, not their GPS
+  // position -- which handleFetchRoute would otherwise silently keep using.
+  const handleChangeSource = (value) => {
+    if (useCurrentLocation) setUseCurrentLocation(false);
+    setSource(value);
+  };
+
+  useEffect(() => {
+    if (!routeError) return undefined;
+    const timer = window.setTimeout(() => setRouteError(null), 8000);
+    return () => window.clearTimeout(timer);
+  }, [routeError]);
+
+  const activeLayerCount = [heatmapVisible, visiblePlaces.hotels, visiblePlaces.restaurants, ...(selectedDestId ? Object.values(visibleCategories) : [])].filter(Boolean).length;
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSource(source), 500);
@@ -683,50 +745,25 @@ export default function EverythingMap({
     }
   }, [zoom, mapInstance]);
 
+  const showSwapCard = swapOffers && !swapDismissed && !swapPreviewOpen && !awaitingDecision;
+  const showSwapPreview = swapOffers && swapPreviewOpen && !awaitingDecision;
+  const showTripPanel = plan && showTripSummary;
+  const hasLeftPanels = showStopsPanel || showSwapCard || showTripPanel;
+  const hasRightPanels = awaitingDecision || showSwapPreview || (plan && !awaitingDecision);
+  const showRoutePanel = Boolean(routeData || isFetchingRoute);
+  const showEmptyHint = !selectedDestId && !plan && !awaitingDecision && !showStopsPanel;
+
   return (
-    <div className={`relative ${className}`}>
-      {/* 2-Row Ultra-Compact Floating Control Overlay */}
-      {!loading && !error && (
-        <MapControls
-           source={source}
-          useCurrentLocation={useCurrentLocation}
-          onChangeSource={setSource}
-          destId={selectedDestId}
-          onChangeDestId={setSelectedDestId}
-          startDate={startDate}
-          onChangeStartDate={setStartDate}
-          endDate={endDate}
-          onChangeEndDate={setEndDate}
-          budgetInr={budgetInr}
-          onChangeBudgetInr={setBudgetInr}
-          travellers={travellers}
-          onChangeTravellers={setTravellers}
-          travelMode={travelMode}
-          onChangeTravelMode={setTravelMode}
-          onFetchRoute={handleFetchRoute}
-          isFetchingRoute={isFetchingRoute}
-          heatmapVisible={heatmapVisible}
-          onToggleHeatmap={setHeatmapVisible}
-          visiblePlaces={visiblePlaces}
-          onTogglePlaces={handleTogglePlaces}
-          stopsCount={stops.length}
-          showStopsPanel={showStopsPanel}
-          onToggleStopsPanel={setShowStopsPanel}
-          onSearchAddStop={handleSearchAddStop}
-          isSearchingStop={isSearchingStop}
-          onDirectPlanTrip={handleDirectPlanTrip}
-          isPlanning={isPlanning}
-          plannerStage={plannerStage}
-          locationTracking={locationTracking}
-          onToggleCurrentLocation={toggleCurrentLocation}
-        />
-      )}
-
+    <div ref={containerRef} className={`@container relative isolate bg-slate-100 ${className}`}>
       {/* Map Container Canvas */}
-      <div ref={mapRef} className="h-full w-full min-h-[500px] bg-slate-100" />
+      {/* Absolutely filled: a percentage height on an in-flow child of a
+          flex item doesn't resolve, which left the canvas stuck at its
+          min-height while the overlay UI followed the real container size. */}
+      <div ref={mapRef} className="map-canvas absolute inset-0 bg-slate-100" />
 
-      {/* 1. Destination Pointers Layer (ALWAYS ACTIVE BY DEFAULT) */}
+      {/* Map layers: these draw onto the Google Map and render no DOM of their own */}
       {mapInstance && mapsSDK && (
+        <>
           <DestinationMarkersLayer
             map={mapInstance}
             mapsSDK={mapsSDK}
@@ -734,164 +771,194 @@ export default function EverythingMap({
             highlightedDestId={highlightedDestId}
             onSelectDestination={setSelectedDestId}
           />
-      )}
-
-      {/* 2. Pressure Heatmap Layer */}
-      {mapInstance && mapsSDK && (
-        <PressureHeatmapLayer
-          map={mapInstance}
-          mapsSDK={mapsSDK}
-          date={startDate}
-          visible={heatmapVisible}
-        />
-      )}
-
-      {/* 3. Category Markers Layer */}
-      {mapInstance && mapsSDK && selectedDestId && (
-        <CategoryMarkersLayer
-          map={mapInstance}
-          mapsSDK={mapsSDK}
-          destId={selectedDestId}
-          visibleCategories={visibleCategories}
-        />
-      )}
-
-      {/* 4. Google Places Nearby Layer (Hotels & Restaurants) */}
-      {mapInstance && mapsSDK && (
-        <PlacesLayer
-          map={mapInstance}
-          mapsSDK={mapsSDK}
-          center={activeCenter}
-          visiblePlaces={visiblePlaces}
-          onSelectHotel={setSelectedHotel}
-          onAddStop={handleAddStop}
-        />
-      )}
-
-      {/* 5. Custom Stop Picker Panel */}
-      {showStopsPanel && (
-          <StopPickerPanel
-            stops={stops}
+          <PressureHeatmapLayer map={mapInstance} mapsSDK={mapsSDK} date={startDate} visible={heatmapVisible} />
+          {selectedDestId && (
+            <CategoryMarkersLayer map={mapInstance} mapsSDK={mapsSDK} destId={selectedDestId} visibleCategories={visibleCategories} />
+          )}
+          <PlacesLayer
+            map={mapInstance}
+            mapsSDK={mapsSDK}
+            center={activeCenter}
+            visiblePlaces={visiblePlaces}
+            onSelectHotel={setSelectedHotel}
             onAddStop={handleAddStop}
-            onSearchAddStop={handleSearchAddStop}
-          onRemoveStop={handleRemoveStop}
-          onClearStops={handleClearStops}
-          onClose={() => setShowStopsPanel(false)}
-        />
-      )}
-
-      {/* 6. Route Polyline Layer */}
-      {mapInstance && mapsSDK && routeData && (
-        <RoutePolylineLayer
-          map={mapInstance}
-          mapsSDK={mapsSDK}
-          routeData={routeData}
-        />
-      )}
-
-      {/* 7. Route Details Floating Panel */}
-      {routeData && (
-        <RouteDetailsPanel
-          routeInfo={routeData}
-          onClose={() => setRouteData(null)}
-        />
-      )}
-
-      {mapInstance && mapsSDK && currentLocation && (
-        <CurrentLocationLayer map={mapInstance} mapsSDK={mapsSDK} location={currentLocation} />
-      )}
-
-      {mapInstance && mapsSDK && <StopMarkersLayer map={mapInstance} mapsSDK={mapsSDK} stops={stops} />}
-
-      {mapInstance && mapsSDK && previewRouteData && (
-        <RoutePolylineLayer
-          map={mapInstance}
-          mapsSDK={mapsSDK}
-          routeData={previewRouteData}
-        />
-      )}
-
-      {mapInstance && mapsSDK && selectedDestId && (
-        <LayerControls
-          visibleCategories={visibleCategories}
-          onToggle={handleToggleCategory}
-          visiblePlaces={visiblePlaces}
-          onTogglePlaces={handleTogglePlaces}
-          heatmapVisible={heatmapVisible}
-          onToggleHeatmap={setHeatmapVisible}
-        />
-      )}
-
-      {awaitingDecision && (
-        <RecommendationOverlay onHighlight={setHighlightedDestId} onPreviewRoute={setPreviewRouteData} />
-      )}
-
-      {swapOffers && !swapDismissed && !swapPreviewOpen && !awaitingDecision && (
-        <div className="absolute left-4 top-24 z-30">
-          <SwapCard
-            data={{ swapOffers }}
-            onPreview={() => setSwapPreviewOpen(true)}
-            onApply={async () => {
-              setSwapDismissed(true);
-              await applySwap(swapOffers);
-            }}
-            onDismiss={() => setSwapDismissed(true)}
           />
-        </div>
+          {routeData && <RoutePolylineLayer map={mapInstance} mapsSDK={mapsSDK} routeData={routeData} />}
+          {currentLocation && <CurrentLocationLayer map={mapInstance} mapsSDK={mapsSDK} location={currentLocation} />}
+          <StopMarkersLayer map={mapInstance} mapsSDK={mapsSDK} stops={stops} />
+          {previewRouteData && <RoutePolylineLayer map={mapInstance} mapsSDK={mapsSDK} routeData={previewRouteData} />}
+        </>
       )}
 
-      {swapOffers && swapPreviewOpen && !awaitingDecision && (
-        <RecommendationOverlay
-          swapOffers={swapOffers}
-          onHighlight={setHighlightedDestId}
-          onPreviewRoute={setPreviewRouteData}
-          onApplySwap={async (offers) => {
-            setSwapPreviewOpen(false);
-            setSwapDismissed(true);
-            await applySwap(offers);
-          }}
-          onClosePreview={() => setSwapPreviewOpen(false)}
-        />
-      )}
+      {/*
+        Floating UI. One layout owns every panel's position so nothing can
+        overlap: command bar on top, then a row of
+          [left dock: trip panels] [centre: toasts ... legend + route] [right dock: AI panels + tool rail]
+        On narrow maps (container < @4xl) the row stacks vertically instead.
+      */}
+      {!loading && !error && (
+        <div className="pointer-events-none absolute inset-0 z-20 flex flex-col gap-3 p-3 @3xl:p-4">
+          <div className="pointer-events-auto shrink-0">
+            <MapControls
+              source={source}
+              useCurrentLocation={useCurrentLocation}
+              onChangeSource={handleChangeSource}
+              destId={selectedDestId}
+              onChangeDestId={setSelectedDestId}
+              startDate={startDate}
+              onChangeStartDate={setStartDate}
+              endDate={endDate}
+              onChangeEndDate={setEndDate}
+              budgetInr={budgetInr}
+              onChangeBudgetInr={setBudgetInr}
+              travellers={travellers}
+              onChangeTravellers={setTravellers}
+              travelMode={travelMode}
+              onChangeTravelMode={setTravelMode}
+              stopsCount={stops.length}
+              showStopsPanel={showStopsPanel}
+              onToggleStopsPanel={setShowStopsPanel}
+              onDirectPlanTrip={handleDirectPlanTrip}
+              isPlanning={isPlanning}
+              plannerStage={plannerStage}
+              onToggleCurrentLocation={toggleCurrentLocation}
+            />
+          </div>
 
-      {plan && showTripSummary && (
-        <TripSummaryPanel plan={plan} onClose={() => setShowTripSummary(false)} />
-      )}
+          <div className="flex min-h-0 flex-1 flex-col gap-3 @4xl:flex-row">
+            {/* Left dock */}
+            {hasLeftPanels && (
+              <div className={`${DOCK_CLASS} max-h-[38vh] @4xl:max-h-none @4xl:w-[calc(340px+2rem)] @6xl:w-[calc(400px+2rem)]`}>
+                {showStopsPanel && (
+                  <StopPickerPanel
+                    stops={stops}
+                    onAddStop={handleAddStop}
+                    onSearchAddStop={handleSearchAddStop}
+                    isSearching={isSearchingStop}
+                    onRemoveStop={handleRemoveStop}
+                    onClearStops={handleClearStops}
+                    onClose={() => setShowStopsPanel(false)}
+                  />
+                )}
+                {showSwapCard && (
+                  <div className="[&>*]:w-full!">
+                    <SwapCard
+                      data={{ swapOffers }}
+                      onPreview={() => setSwapPreviewOpen(true)}
+                      onApply={async () => {
+                        setSwapDismissed(true);
+                        await applySwap(swapOffers);
+                      }}
+                      onDismiss={() => setSwapDismissed(true)}
+                    />
+                  </div>
+                )}
+                {showTripPanel && (
+                  <div className="mt-auto">
+                    <TripSummaryPanel plan={plan} onClose={() => setShowTripSummary(false)} />
+                  </div>
+                )}
+              </div>
+            )}
 
-      {plan && !awaitingDecision && (
-        <AIAssistantCard request={request} trip={plan.trip} onDownloadBrief={() => downloadTravelBrief(request, plan.trip)} />
-      )}
+            {/* Centre */}
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col items-center justify-between gap-3">
+              <div className="flex w-full flex-col items-center gap-2">
+                {routeError && <MapToast onDismiss={() => setRouteError(null)}>{routeError}</MapToast>}
+                {locationError && <MapToast tone="warning" onDismiss={() => setLocationError(null)}>{locationError}</MapToast>}
+                {showEmptyHint && (
+                  <p className="flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3.5 py-1.5 text-[11px] font-semibold text-slate-600 shadow-md backdrop-blur-xl animate-fade-up">
+                    <MousePointerClick size={14} className="shrink-0 text-[#6C63FF]" />
+                    Choose a destination above, or tap any pin on the map
+                  </p>
+                )}
+                {showStopsPanel && (
+                  <p className="flex items-center gap-2 rounded-full bg-slate-950/85 px-3.5 py-1.5 text-[11px] font-semibold text-white shadow-md backdrop-blur-xl animate-fade-up">
+                    <MapPinPlus size={14} className="shrink-0 text-amber-300" />
+                    Click the map to drop a stop
+                  </p>
+                )}
+              </div>
+              <div className="flex w-full flex-col items-center gap-2 [&>*]:pointer-events-auto">
+                {heatmapVisible && <PressureLegend />}
+                {showRoutePanel && (
+                  <RouteDetailsPanel
+                    routeInfo={routeData}
+                    stops={stops}
+                    isLoading={isFetchingRoute}
+                    onClose={() => setRouteData(null)}
+                  />
+                )}
+              </div>
+            </div>
 
-      {/* Route Error / Notification Toast */}
-      {routeError && (
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 rounded-xl border border-rose-200 bg-rose-50/95 px-4 py-2 text-xs font-bold text-rose-700 shadow-md backdrop-blur-xs flex items-center gap-2">
-          <span>⚠️ {routeError}</span>
-          <button
-            type="button"
-            onClick={() => setRouteError(null)}
-            className="text-rose-400 hover:text-rose-700 ml-1"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
-      {locationError && (
-        <div className="absolute bottom-4 right-4 z-20 max-w-xs rounded-xl border border-amber-200 bg-amber-50/95 px-3 py-2 text-[11px] font-semibold text-amber-800 shadow-md backdrop-blur-xs">
-          {locationError}
+            {/* Right dock */}
+            <div className="flex min-h-0 shrink-0 flex-col items-end gap-3">
+              {hasRightPanels && (
+                <div className={`${DOCK_CLASS} max-h-[38vh] w-[calc(100%+2rem)] @4xl:max-h-none @4xl:w-[calc(340px+2rem)] @6xl:w-[calc(380px+2rem)]`}>
+                  {awaitingDecision && (
+                    <RecommendationOverlay onHighlight={setHighlightedDestId} onPreviewRoute={setPreviewRouteData} />
+                  )}
+                  {showSwapPreview && (
+                    <RecommendationOverlay
+                      swapOffers={swapOffers}
+                      onHighlight={setHighlightedDestId}
+                      onPreviewRoute={setPreviewRouteData}
+                      onApplySwap={async (offers) => {
+                        setSwapPreviewOpen(false);
+                        setSwapDismissed(true);
+                        await applySwap(offers);
+                      }}
+                      onClosePreview={() => setSwapPreviewOpen(false)}
+                    />
+                  )}
+                  {plan && !awaitingDecision && (
+                    <AIAssistantCard request={request} trip={plan.trip} onDownloadBrief={() => downloadTravelBrief(request, plan.trip)} />
+                  )}
+                </div>
+              )}
+              <div className="pointer-events-auto relative mt-auto">
+                {layersOpen && (
+                  <div className="absolute bottom-full right-0 mb-2 @4xl:bottom-0 @4xl:right-full @4xl:mb-0 @4xl:mr-2">
+                    <LayerControls
+                      hasDestination={Boolean(selectedDestId)}
+                      visibleCategories={visibleCategories}
+                      onToggle={handleToggleCategory}
+                      visiblePlaces={visiblePlaces}
+                      onTogglePlaces={handleTogglePlaces}
+                      heatmapVisible={heatmapVisible}
+                      onToggleHeatmap={setHeatmapVisible}
+                      onClose={() => setLayersOpen(false)}
+                    />
+                  </div>
+                )}
+                <MapToolRail
+                  map={mapInstance}
+                  containerRef={containerRef}
+                  homeCenter={center}
+                  homeZoom={zoom}
+                  locating={locationTracking}
+                  onLocate={toggleFollowLocation}
+                  layersOpen={layersOpen}
+                  onToggleLayers={() => setLayersOpen((open) => !open)}
+                  activeLayerCount={activeLayerCount}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Authentication Alert Modal */}
       {authAlert && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl border border-slate-100 text-center animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl border border-slate-100 text-center animate-fade-up" role="dialog" aria-modal="true" aria-labelledby="map-auth-title">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 mb-3">
               <Lock size={24} />
             </div>
-            <h3 className="text-base font-extrabold text-slate-800">Authentication Required</h3>
+            <h3 id="map-auth-title" className="text-base font-extrabold text-slate-800">Log in to plan this trip</h3>
             <p className="mt-1 text-xs text-slate-500 font-medium">
-              Please log in to your Sahyatri account to create and save trip plans.
+              Your route and choices stay on the map. Log in to your Sahyatri account to create and save trip plans.
             </p>
             <div className="mt-4 flex items-center gap-2">
               <button
@@ -899,7 +966,7 @@ export default function EverythingMap({
                 onClick={() => setAuthAlert(false)}
                 className="w-1/2 rounded-xl border border-slate-200 bg-slate-50 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
               >
-                Cancel
+                Not now
               </button>
               <button
                 type="button"
@@ -907,7 +974,7 @@ export default function EverythingMap({
                 className="w-1/2 flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 py-2 text-xs font-bold text-white shadow-sm transition"
               >
                 <LogIn size={14} />
-                <span>Log In</span>
+                <span>Log in</span>
               </button>
             </div>
           </div>
@@ -916,20 +983,24 @@ export default function EverythingMap({
 
       {/* Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-50/80 backdrop-blur-xs">
-          <div className="flex flex-col items-center gap-2">
-            <div className="h-8 w-8 animate-spin rounded-full border-3 border-indigo-600 border-t-transparent" />
-            <span className="text-xs font-semibold text-slate-600">Initializing India Interactive Map...</span>
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-white/80 px-6 py-5 shadow-sm">
+            <div className="h-8 w-8 animate-spin rounded-full border-3 border-[#6C63FF] border-t-transparent" />
+            <span className="text-xs font-semibold text-slate-600">Loading the map of India…</span>
           </div>
         </div>
       )}
 
       {/* Error Overlay */}
       {error && !loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-rose-50/90 p-4">
-          <div className="rounded-xl border border-rose-200 bg-white p-4 text-center shadow-xs">
-            <p className="text-sm font-semibold text-rose-700">Map Loading Error</p>
-            <p className="mt-1 text-xs text-rose-500">{error}</p>
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-100 p-4">
+          <div className="max-w-sm rounded-2xl border border-rose-200 bg-white p-5 text-center shadow-sm">
+            <AlertTriangle size={22} className="mx-auto text-rose-500" />
+            <p className="mt-2 text-sm font-bold text-slate-900">The map couldn&apos;t load</p>
+            <p className="mt-1 text-xs text-slate-500">{error}</p>
+            <button type="button" onClick={() => window.location.reload()} className="mt-4 rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-[#6C63FF]">
+              Try again
+            </button>
           </div>
         </div>
       )}

@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { MapPin, Plus, Trash2, X } from 'lucide-react';
+import { Loader2, MapPinPlus, Milestone, Plus, Search, Trash2, X } from 'lucide-react';
 
 /**
- * StopPickerPanel - Floating panel overlay for displaying and managing custom trip stops.
+ * StopPickerPanel - Manage the custom stops on the current route.
+ * While this panel is open, clicking the map drops a stop (EverythingMap only
+ * listens for those clicks in this mode, so a stray click elsewhere never
+ * adds one).
  *
  * Props:
  * - stops: Array of { id, name, lat, lng, type }
- * - onAddStop: function(stopObj)
+ * - onSearchAddStop: function(query)
+ * - isSearching: a search is in flight
  * - onRemoveStop: function(stopId)
  * - onClearStops: function()
  * - onClose: function()
@@ -15,6 +19,7 @@ export default function StopPickerPanel({
   stops = [],
   onAddStop,
   onSearchAddStop,
+  isSearching = false,
   onRemoveStop,
   onClearStops,
   onClose
@@ -37,88 +42,86 @@ export default function StopPickerPanel({
   };
 
   return (
-    <div className="absolute left-4 top-24 z-30 w-[min(320px,calc(100%-2rem))] rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_20px_60px_rgba(15,23,42,.12)] backdrop-blur-2xl transition-all animate-in fade-in slide-in-from-left-4 duration-300">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-            <MapPin size={16} />
-          </div>
+    <section className="w-full rounded-2xl border border-white/70 bg-white/92 p-3.5 shadow-[0_20px_60px_rgba(15,23,42,.12)] backdrop-blur-2xl animate-fade-up" aria-label="Trip stops">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-amber-100">
+            <Milestone size={16} />
+          </span>
           <div>
-            <h4 className="text-xs font-bold text-slate-800">Trip Stops ({stops.length})</h4>
-            <p className="text-[11px] font-semibold text-slate-400">Click map or add custom stops</p>
+            <h4 className="text-sm font-extrabold text-slate-900">Stops along the way</h4>
+            <p className="text-[11px] font-medium text-slate-400">{stops.length ? `${stops.length} stop${stops.length > 1 ? 's' : ''} on this route` : 'Search, or click the map to drop a pin'}</p>
           </div>
         </div>
         <button
           type="button"
           onClick={() => onClose && onClose()}
-          className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+          className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+          aria-label="Close stops panel"
         >
-          <X size={14} />
+          <X size={15} />
         </button>
       </div>
 
-      {/* Add Custom Stop Input Form */}
-      <form onSubmit={handleAddManualStop} className="mt-3 flex items-center gap-2">
+      <form onSubmit={handleAddManualStop} className="mt-3 flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50/80 py-1 pl-2.5 pr-1 transition focus-within:border-[#6C63FF]/50 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#6C63FF]/10">
+        <Search size={14} className="shrink-0 text-slate-400" />
         <input
           type="text"
           value={customStopName}
           onChange={(e) => setCustomStopName(e.target.value)}
-          placeholder="Add a stop (e.g. Viewpoint)..."
-          className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none"
+          placeholder="Search a place, e.g. Solang Valley"
+          aria-label="Search a place to add as a stop"
+          className="min-w-0 flex-1 bg-transparent text-xs font-semibold text-slate-800 outline-none placeholder:font-medium placeholder:text-slate-400"
         />
         <button
           type="submit"
-          className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
-          title="Add Stop"
+          disabled={isSearching || !customStopName.trim()}
+          className="flex h-7 items-center gap-1 rounded-lg bg-slate-950 px-2.5 text-[11px] font-bold text-white transition hover:bg-[#6C63FF] disabled:bg-slate-300"
         >
-          <Plus size={16} />
+          {isSearching ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+          Add
         </button>
       </form>
 
-      {/* List of Current Stops */}
-      <div className="mt-3 max-h-48 overflow-y-auto space-y-2 pr-1">
-        {stops.length === 0 ? (
-          <p className="text-center py-4 text-xs font-medium text-slate-400">
-            No custom stops added yet.<br />Click anywhere on the map to drop a stop!
-          </p>
-        ) : (
-          stops.map((stop, idx) => (
-            <div
-              key={stop.id || `stop_${idx}`}
-              className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50/80 p-2.5 text-xs"
-            >
-              <div className="flex items-center gap-2 truncate">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-indigo-700">
+      <p className="mt-2 flex items-center gap-1.5 rounded-lg bg-[#6C63FF]/8 px-2.5 py-1.5 text-[11px] font-semibold text-[#5b52e6]">
+        <MapPinPlus size={13} className="shrink-0" />
+        Click anywhere on the map to drop a stop
+      </p>
+
+      {stops.length > 0 && (
+        <>
+          <ol className="relative mt-3 max-h-52 space-y-1 overflow-y-auto pr-1">
+            {stops.map((stop, idx) => (
+              <li
+                key={stop.id || `stop_${idx}`}
+                className="group flex items-center gap-2.5 rounded-xl px-1.5 py-1.5 text-xs transition hover:bg-slate-50"
+              >
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-400 text-[10px] font-extrabold text-white shadow-sm">
                   {idx + 1}
                 </span>
-                <span className="font-semibold text-slate-800 truncate">{stop.name}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => onRemoveStop && onRemoveStop(stop.id || idx)}
-                className="text-slate-400 hover:text-rose-600 transition"
-                title="Remove Stop"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Footer Clear All */}
-      {stops.length > 0 && (
-        <div className="mt-3 pt-2 border-t border-slate-100 text-right">
-          <button
-            type="button"
-            onClick={() => onClearStops && onClearStops()}
-            className="text-[11px] font-bold text-rose-600 hover:underline"
-          >
-            Clear All Stops
-          </button>
-        </div>
+                <span className="min-w-0 flex-1 truncate font-semibold text-slate-700" title={stop.name}>{stop.name}</span>
+                <button
+                  type="button"
+                  onClick={() => onRemoveStop && onRemoveStop(stop.id || idx)}
+                  className="rounded-md p-1 text-slate-300 transition hover:bg-rose-50 hover:text-rose-600 group-hover:text-slate-400"
+                  aria-label={`Remove ${stop.name}`}
+                >
+                  <Trash2 size={13} />
+                </button>
+              </li>
+            ))}
+          </ol>
+          <div className="mt-2 flex justify-end border-t border-slate-100 pt-2">
+            <button
+              type="button"
+              onClick={() => onClearStops && onClearStops()}
+              className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
+            >
+              Clear all
+            </button>
+          </div>
+        </>
       )}
-    </div>
+    </section>
   );
 }

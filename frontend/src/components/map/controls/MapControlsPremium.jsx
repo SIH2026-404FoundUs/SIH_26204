@@ -1,30 +1,161 @@
 import { useEffect, useState } from 'react'
-import { CalendarDays, Flame, LocateFixed, MapPin, Navigation, Search, Sparkles, Users, WalletCards, X, Plus, Loader2, Route, Hotel, Utensils, BookmarkPlus } from 'lucide-react'
+import { ArrowRight, CalendarDays, ChevronDown, LocateFixed, MapPin, Minus, Navigation, Plus, Sparkles, Loader2, Milestone, SlidersHorizontal, WalletCards } from 'lucide-react'
 import { useDestinationsStore } from '../../../store/useDestinationsStore'
 import TravelModeSelector from './TravelModeSelector'
+import { TRAVEL_MODES } from '../travelModes'
 
-const fieldClass = 'flex min-w-0 items-center gap-2 rounded-xl border border-slate-200/80 bg-white/65 px-3 py-2 transition focus-within:border-[#6C63FF]/50 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#6C63FF]/10'
-const inputClass = 'min-w-0 bg-transparent text-xs font-bold text-slate-900 outline-none placeholder:text-slate-400'
+// No display utility here: each group adds its own `flex` or the
+// collapsible `hidden @3xl:flex`, so the two never fight in one class list.
+const groupClass = 'min-w-0 items-center rounded-xl border border-slate-200/80 bg-white/70 transition focus-within:border-[#6C63FF]/50 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#6C63FF]/10'
+const inputClass = 'min-w-0 bg-transparent text-xs font-bold text-slate-900 outline-none placeholder:font-semibold placeholder:text-slate-400'
+const labelClass = 'block text-[9px] font-extrabold uppercase leading-none tracking-wider text-slate-400'
 
-export default function MapControlsPremium({ source = 'Delhi', useCurrentLocation = false, onChangeSource, destId = '', onChangeDestId, startDate = '2026-12-25', onChangeStartDate, endDate = '2026-12-28', onChangeEndDate, budgetInr = 20000, onChangeBudgetInr, travellers = 2, onChangeTravellers, travelMode = 'DRIVE', onChangeTravelMode, onFetchRoute, isFetchingRoute = false, heatmapVisible = false, onToggleHeatmap, showStopsPanel = false, onToggleStopsPanel, stopsCount = 0, visiblePlaces = { hotels: false, restaurants: false }, onTogglePlaces, onSearchAddStop, isSearchingStop = false, onDirectPlanTrip, isPlanning = false, plannerStage = '', onToggleCurrentLocation }) {
+function Field({ icon: Icon, label, children, className = '' }) {
+  return (
+    <label className={`flex min-w-0 items-center gap-2 px-2.5 py-1.5 ${className}`}>
+      <Icon size={15} className="shrink-0 text-slate-400" />
+      <span className="flex min-w-0 flex-1 flex-col gap-1">
+        <span className={labelClass}>{label}</span>
+        {children}
+      </span>
+    </label>
+  )
+}
+
+/**
+ * MapControlsPremium - The command bar across the top of the one-map page.
+ *
+ * Sized by the map container (@container queries), not the viewport. Wide
+ * maps show every field, wrapping onto extra rows as needed. Narrow maps
+ * (< @3xl) keep From -> To and Plan visible and fold dates, travellers, budget,
+ * mode and stops behind a one-line trip summary, so the bar doesn't bury the
+ * map under four rows of inputs. Map-display toggles are not here -- they
+ * live in the layers popover on the map tool rail.
+ */
+
+function shortDate(value) {
+  if (!value) return '—'
+  const date = new Date(`${value}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+}
+export default function MapControlsPremium({ source = 'Delhi', useCurrentLocation = false, onChangeSource, destId = '', onChangeDestId, startDate = '2026-12-25', onChangeStartDate, endDate = '2026-12-28', onChangeEndDate, budgetInr = 20000, onChangeBudgetInr, travellers = 2, onChangeTravellers, travelMode = 'DRIVE', onChangeTravelMode, showStopsPanel = false, onToggleStopsPanel, stopsCount = 0, onDirectPlanTrip, isPlanning = false, plannerStage = '', onToggleCurrentLocation }) {
   const destinations = useDestinationsStore((state) => state.destinations)
   const fetchDestinations = useDestinationsStore((state) => state.fetchDestinations)
-  const [stopSearchQuery, setStopSearchQuery] = useState('')
-  const [advancedOpen, setAdvancedOpen] = useState(false)
   useEffect(() => { fetchDestinations().catch(() => {}) }, [fetchDestinations])
   const items = destinations.length ? destinations.map((d) => ({ id: d._id || d.id, label: d.displayName || d.name || d._id })) : [{ id: 'manali', label: 'Manali, Himachal Pradesh' }, { id: 'shimla', label: 'Shimla, Himachal Pradesh' }, { id: 'dharamshala', label: 'Dharamshala, Himachal Pradesh' }]
-  const addStop = (event) => { event.preventDefault(); if (!stopSearchQuery.trim()) return; onSearchAddStop?.(stopSearchQuery.trim()); setStopSearchQuery('') }
+  const count = Math.max(1, Number(travellers) || 1)
+  const datesInvalid = Boolean(startDate && endDate && endDate < startDate)
+  const planDisabledReason = !destId ? 'Choose a destination first' : datesInvalid ? 'End date is before the start date' : null
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const collapsible = detailsOpen ? 'flex' : 'hidden @3xl:flex'
+  const modeLabel = (TRAVEL_MODES.find((m) => m.key === travelMode) || TRAVEL_MODES[0]).label
+
   return (
-    <div className="map-command-bar absolute left-1/2 top-4 z-20 w-[min(1180px,calc(100%-32px))] -translate-x-1/2 rounded-[22px] border border-white/70 bg-white/80 p-2 shadow-[0_20px_60px_rgba(15,23,42,.12)] backdrop-blur-2xl">
-      <div className="flex items-center gap-2 overflow-x-auto px-1 pb-1 no-scrollbar">
-        <button type="button" onClick={onToggleCurrentLocation} className={`rounded-xl border p-2 transition hover:-translate-y-0.5 ${useCurrentLocation ? 'border-blue-200 bg-blue-50 text-blue-600' : 'border-slate-200 bg-white/60 text-slate-500'}`} title={useCurrentLocation ? 'Using current location as starting point' : 'Use current location as starting point'} aria-label={useCurrentLocation ? 'Disable current location as starting point' : 'Use current location as starting point'}><LocateFixed size={16} /></button>
-        <div className={fieldClass}><Navigation size={15} className="shrink-0 text-[#6C63FF]" /><input aria-label="Origin" value={source} onChange={(e) => onChangeSource?.(e.target.value)} placeholder="Origin" className={`${inputClass} w-20 sm:w-28`} /></div><div className="text-slate-300">→</div>
-        <div className={fieldClass}><MapPin size={15} className="shrink-0 text-[#6C63FF]" /><select aria-label="Destination" value={destId} onChange={(e) => onChangeDestId?.(e.target.value)} className={`${inputClass} w-32 appearance-none sm:w-44`}><option value="">Choose destination</option>{items.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></div>
-        <div className={`${fieldClass} hidden lg:flex`}><CalendarDays size={15} className="shrink-0 text-slate-500" /><input aria-label="Start date" type="date" value={startDate} onChange={(e) => onChangeStartDate?.(e.target.value)} className={inputClass} /><span className="text-slate-300">—</span><input aria-label="End date" type="date" value={endDate} onChange={(e) => onChangeEndDate?.(e.target.value)} className={inputClass} /></div>
-        <div className={`${fieldClass} hidden xl:flex`}><WalletCards size={15} className="shrink-0 text-slate-500" /><span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">₹</span><input aria-label="Budget" type="number" step="1000" value={budgetInr} onChange={(e) => onChangeBudgetInr?.(e.target.value)} className={`${inputClass} w-20`} /></div><div className={`${fieldClass} shrink-0`}><Users size={15} className="shrink-0 text-slate-500" /><input aria-label="Travellers" type="number" min="1" max="20" value={travellers} onChange={(e) => onChangeTravellers?.(e.target.value)} className={`${inputClass} w-8`} /><span className="hidden text-[10px] font-extrabold uppercase tracking-wider text-slate-400 sm:inline">people</span></div>
-        <button type="button" onClick={() => setAdvancedOpen((value) => !value)} className="ml-auto rounded-xl border border-slate-200 bg-white/60 p-2 text-slate-500 transition hover:-translate-y-0.5 hover:text-slate-900" title="More trip options" aria-label="More trip options">{advancedOpen ? <X size={16} /> : <BookmarkPlus size={16} />}</button><button type="button" onClick={() => onDirectPlanTrip?.()} disabled={isPlanning || !destId} className="flex shrink-0 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-extrabold text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-[#6C63FF] disabled:cursor-not-allowed disabled:bg-slate-300">{isPlanning ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}{isPlanning ? (plannerStage || 'Planning…') : 'Plan with AI'}</button>
+    <div className="relative overflow-hidden rounded-[20px] border border-white/70 bg-white/85 p-2 shadow-[0_20px_60px_rgba(15,23,42,.12)] backdrop-blur-2xl">
+      <div className="flex flex-wrap items-stretch gap-2">
+        {/* Where: origin -> destination */}
+        <div className={`${groupClass} flex min-w-[min(100%,300px)] flex-[2_1_420px]`}>
+          <button
+            type="button"
+            onClick={onToggleCurrentLocation}
+            className={`ml-1.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition ${useCurrentLocation ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-200' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700'}`}
+            title={useCurrentLocation ? 'Starting from your current location (click to type a place instead)' : 'Start from my current location'}
+            aria-pressed={useCurrentLocation}
+            aria-label="Start from my current location"
+          >
+            <LocateFixed size={15} />
+          </button>
+          <Field icon={Navigation} label={useCurrentLocation ? 'From · your location' : 'From'} className="flex-1 pl-1.5">
+            <input aria-label="Origin" value={source} onChange={(e) => onChangeSource?.(e.target.value)} placeholder="City or address" className={`${inputClass} w-full truncate`} title={source} />
+          </Field>
+          <ArrowRight size={14} className="shrink-0 text-slate-300" aria-hidden="true" />
+          <Field icon={MapPin} label="To" className="relative flex-1">
+            <select aria-label="Destination" value={destId} onChange={(e) => onChangeDestId?.(e.target.value)} className={`${inputClass} w-full cursor-pointer appearance-none truncate pr-4 ${destId ? '' : 'text-slate-400'}`}>
+              <option value="">Choose destination</option>
+              {items.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+            </select>
+            <ChevronDown size={13} className="pointer-events-none absolute right-2.5 bottom-2 text-slate-400" aria-hidden="true" />
+          </Field>
+        </div>
+
+        {/* Narrow maps: one-line summary that opens the trip details */}
+        <button
+          type="button"
+          onClick={() => setDetailsOpen((open) => !open)}
+          aria-expanded={detailsOpen}
+          className={`flex min-h-10 min-w-0 flex-1 items-center gap-2 rounded-xl border px-2.5 text-left text-[11px] font-semibold transition @3xl:hidden ${detailsOpen ? 'border-[#6C63FF]/40 bg-[#6C63FF]/8 text-[#5b52e6]' : datesInvalid ? 'border-rose-300 bg-rose-50/60 text-rose-700' : 'border-slate-200/80 bg-white/70 text-slate-600'}`}
+        >
+          <SlidersHorizontal size={15} className="shrink-0" />
+          <span className="min-w-0 flex-1 truncate">
+            {shortDate(startDate)} – {shortDate(endDate)} · {count} {count === 1 ? 'person' : 'people'} · {modeLabel}{stopsCount ? ` · ${stopsCount} stop${stopsCount > 1 ? 's' : ''}` : ''}
+          </span>
+          <ChevronDown size={14} className={`shrink-0 transition-transform ${detailsOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        {/* When */}
+        <div className={`${groupClass} ${collapsible} ${datesInvalid ? 'border-rose-300 bg-rose-50/60' : ''}`} title={datesInvalid ? 'End date is before the start date' : undefined}>
+          <Field icon={CalendarDays} label="Dates">
+            <span className="flex items-center gap-1">
+              <input aria-label="Start date" type="date" value={startDate} onChange={(e) => onChangeStartDate?.(e.target.value)} className={`${inputClass} w-[6.9rem]`} />
+              <span className="text-slate-300">–</span>
+              <input aria-label="End date" type="date" min={startDate || undefined} value={endDate} onChange={(e) => onChangeEndDate?.(e.target.value)} className={`${inputClass} w-[6.9rem] ${datesInvalid ? 'text-rose-600' : ''}`} />
+            </span>
+          </Field>
+        </div>
+
+        {/* Who & budget */}
+        <div className={`${groupClass} ${collapsible} divide-x divide-slate-200/70`}>
+          <div className="flex items-center gap-2 px-2.5 py-1.5">
+            <span className="flex flex-col gap-1">
+              <span className={labelClass}>Travellers</span>
+              <span className="flex items-center gap-1">
+                <button type="button" onClick={() => onChangeTravellers?.(Math.max(1, count - 1))} disabled={count <= 1} className="flex h-4 w-4 items-center justify-center rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30" aria-label="Fewer travellers"><Minus size={11} /></button>
+                <span className="w-5 text-center text-xs font-bold tabular-nums text-slate-900" aria-live="polite">{count}</span>
+                <button type="button" onClick={() => onChangeTravellers?.(Math.min(20, count + 1))} disabled={count >= 20} className="flex h-4 w-4 items-center justify-center rounded text-slate-500 hover:bg-slate-100 disabled:opacity-30" aria-label="More travellers"><Plus size={11} /></button>
+              </span>
+            </span>
+          </div>
+          <Field icon={WalletCards} label="Budget">
+            <span className="flex items-center gap-0.5">
+              <span className="text-xs font-bold text-slate-400">₹</span>
+              <input aria-label="Budget in rupees" type="number" min="0" step="1000" value={budgetInr} onChange={(e) => onChangeBudgetInr?.(e.target.value)} className={`${inputClass} w-16 tabular-nums`} />
+            </span>
+          </Field>
+        </div>
+
+        {/* How */}
+        <div className={`${collapsible} flex-wrap items-center gap-2`}>
+          <TravelModeSelector value={travelMode} onChange={onChangeTravelMode} />
+          <button
+            type="button"
+            onClick={() => onToggleStopsPanel?.(!showStopsPanel)}
+            aria-pressed={showStopsPanel}
+            className={`flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-bold transition ${showStopsPanel ? 'border-[#6C63FF] bg-[#6C63FF] text-white' : 'border-slate-200/80 bg-white/70 text-slate-600 hover:bg-white hover:text-slate-900'}`}
+            title="Add stops along the way"
+          >
+            <Milestone size={15} />
+            Stops
+            {stopsCount > 0 && <span className={`rounded-full px-1.5 text-[10px] ${showStopsPanel ? 'bg-white/25' : 'bg-slate-900 text-white'}`}>{stopsCount}</span>}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onDirectPlanTrip?.()}
+          disabled={isPlanning || Boolean(planDisabledReason)}
+          title={planDisabledReason || 'Plan this trip with AI'}
+          className="ml-auto flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-xs font-extrabold text-white shadow-lg shadow-slate-950/15 transition hover:bg-[#6C63FF] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+        >
+          {isPlanning ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
+          <span className="min-w-0 truncate">{isPlanning ? (plannerStage || 'Planning…') : 'Plan with AI'}</span>
+        </button>
       </div>
-      {advancedOpen && <div className="flex flex-wrap items-center gap-2 border-t border-slate-200/70 px-1 pt-2 animate-fade-up"><div className="flex items-center gap-2 rounded-xl bg-slate-100/80 p-1"><span className="px-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Travel mode</span><TravelModeSelector value={travelMode} onChange={onChangeTravelMode} /></div><form onSubmit={addStop} className={fieldClass}><Search size={14} className="text-slate-400" /><input value={stopSearchQuery} onChange={(e) => setStopSearchQuery(e.target.value)} placeholder="Add a stop" className={`${inputClass} w-32`} /><button type="submit" disabled={isSearchingStop || !stopSearchQuery.trim()} className="rounded-lg bg-slate-950 p-1.5 text-white disabled:bg-slate-300" aria-label="Add stop">{isSearchingStop ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}</button></form><button type="button" onClick={() => onFetchRoute?.()} disabled={isFetchingRoute || !destId} className="map-chip" title="Calculate route"><Route size={14} /> Route</button><button type="button" onClick={() => onToggleHeatmap?.(!heatmapVisible)} className={`map-chip ${heatmapVisible ? 'map-chip-active' : ''}`} title="Toggle crowd heatmap"><Flame size={14} /> Heatmap</button><button type="button" onClick={() => onTogglePlaces?.('hotels', !visiblePlaces?.hotels)} className={`map-chip ${visiblePlaces?.hotels ? 'map-chip-active' : ''}`} title="Toggle hotels"><Hotel size={14} /> Hotels</button><button type="button" onClick={() => onTogglePlaces?.('restaurants', !visiblePlaces?.restaurants)} className={`map-chip ${visiblePlaces?.restaurants ? 'map-chip-active' : ''}`} title="Toggle restaurants"><Utensils size={14} /> Food</button><button type="button" onClick={() => onToggleStopsPanel?.(!showStopsPanel)} className={`map-chip ${showStopsPanel ? 'map-chip-active' : ''}`} title="Manage stops"><MapPin size={14} /> Stops {stopsCount ? `· ${stopsCount}` : ''}</button></div>}
+
+      {isPlanning && (
+        <div className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden bg-[#6C63FF]/15" aria-hidden="true">
+          <div className="h-full w-1/3 animate-pulse bg-[#6C63FF]" />
+        </div>
+      )}
     </div>
   )
 }

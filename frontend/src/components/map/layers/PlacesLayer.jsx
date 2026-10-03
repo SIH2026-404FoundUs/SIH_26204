@@ -156,7 +156,7 @@ export default function PlacesLayer({
             content: img
           });
 
-          marker.addListener('gmp-click', openInfoWindow);
+          marker.addEventListener('gmp-click', openInfoWindow);
           img.addEventListener('click', openInfoWindow);
         } else {
           marker = new mapsSDK.Marker({

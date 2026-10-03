@@ -1,14 +1,9 @@
 import { TRAVEL_MODES } from '../travelModes';
 
 /**
- * TravelModeSelector - UI selector component for travel modes.
- * Supports:
- * - 🚗 Car (DRIVE)
- * - 🚌 Bus (TRANSIT)
- * - 🚆 Train (TRAIN)
- * - ✈️ Flight (FLIGHT)
- * - 🛵 Two Wheeler (TWO_WHEELER)
- * - 🚶 Walk (WALK)
+ * TravelModeSelector - Segmented control for the route's travel mode.
+ * Icons only, with the selected mode's label shown inline so the current
+ * choice is always readable without spending width on every label.
  *
  * Props:
  * - value: string (Default: 'DRIVE')
@@ -16,7 +11,7 @@ import { TRAVEL_MODES } from '../travelModes';
  */
 export default function TravelModeSelector({ value = 'DRIVE', onChange }) {
   return (
-    <div className="flex flex-wrap items-center gap-1 rounded-lg bg-white/80 p-1">
+    <div className="flex items-center gap-0.5 rounded-xl border border-slate-200/80 bg-slate-100/70 p-0.5" role="group" aria-label="Travel mode">
       {TRAVEL_MODES.map((mode) => {
         const Icon = mode.icon;
         const isSelected = value === mode.key;
@@ -26,15 +21,16 @@ export default function TravelModeSelector({ value = 'DRIVE', onChange }) {
             key={mode.key}
             type="button"
             onClick={() => onChange && onChange(mode.key)}
-            className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-bold transition-all ${
+            aria-pressed={isSelected}
+            title={mode.label}
+            className={`flex h-8 items-center gap-1.5 rounded-[10px] px-2 text-[11px] font-bold transition-all ${
               isSelected
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                ? 'bg-white text-[#5b52e6] shadow-sm ring-1 ring-slate-200/80'
+                : 'text-slate-500 hover:bg-white/70 hover:text-slate-900'
             }`}
-            title={`${mode.label} (${mode.key})`}
           >
-            <Icon size={14} className={isSelected ? 'text-white' : 'text-slate-500'} />
-            <span className="hidden sm:inline">{mode.label}</span>
+            <Icon size={15} />
+            {isSelected && <span>{mode.label}</span>}
           </button>
         );
       })}
