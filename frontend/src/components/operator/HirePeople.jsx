@@ -3,6 +3,7 @@ import { Users, Store, Phone, Languages, Briefcase } from 'lucide-react'
 import { useOperatorStore } from '../../store/useOperatorStore'
 import PostGig from './PostGig'
 import PageHeader from '../ui/PageHeader'
+import TabBar from '../ui/TabBar'
 import Card from '../ui/Card'
 import Badge from '../ui/Badge'
 import Button from '../ui/Button'
@@ -42,20 +43,7 @@ function LocalBusinessesTab() {
         <DestinationSelect value={destId} onChange={setDestId} />
       </FormField>
 
-      <div className="my-4 flex gap-1.5 rounded-lg border border-paper-dim bg-white p-1">
-        {WORKER_TABS.map((tab) => (
-          <button
-            key={tab.type}
-            type="button"
-            onClick={() => setActiveType(tab.type)}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition ${
-              activeType === tab.type ? 'bg-ink text-paper' : 'text-ink/70 hover:bg-ink/5'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <TabBar tabs={WORKER_TABS} active={activeType} onChange={setActiveType} className="my-4 flex" />
 
       {workersError && <Alert tone="error">{workersError}</Alert>}
       {contactError && <Alert tone="error">{contactError}</Alert>}
@@ -137,21 +125,7 @@ export default function HirePeople() {
         <EmptyState icon={Store} title="Register a business first" description="Once you've registered a business, you can browse and hire local workers." />
       ) : (
         <>
-          <div className="mb-6 flex gap-1.5 rounded-lg border border-paper-dim bg-white p-1">
-            {PAGE_TABS.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition ${
-                  activeTab === tab.key ? 'bg-ink text-paper' : 'text-ink/70 hover:bg-ink/5'
-                }`}
-              >
-                <tab.icon size={15} aria-hidden="true" />
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <TabBar tabs={PAGE_TABS} active={activeTab} onChange={setActiveTab} className="mb-6 flex" />
 
           {activeTab === 'businesses' && <LocalBusinessesTab />}
           {activeTab === 'post-gig' && <PostGig />}

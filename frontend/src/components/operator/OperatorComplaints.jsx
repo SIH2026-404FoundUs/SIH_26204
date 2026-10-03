@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { ClipboardList } from 'lucide-react'
 import { useOperatorStore } from '../../store/useOperatorStore'
 import { OPERATOR_COMPLAINT_CATEGORIES } from '../../lib/labels'
-import ComplaintReport from '../trust/ComplaintReport'
+import ComplaintReport from '../trust/safety/ComplaintReport'
 import PageHeader from '../ui/PageHeader'
 
 // Operators previously had no way to raise a complaint at all -- the

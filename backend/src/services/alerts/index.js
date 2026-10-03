@@ -32,10 +32,10 @@ export {
   getShareableTripRecord,
   revokeShareableTripRecord,
   DEFAULT_SHARE_EXPIRATION_DAYS,
-} from "./shareableTripService.js";
+} from "./shareable-trips/shareableTripService.js";
 
 export {
   submitTouristComplaint,
   getUserComplaints,
   VALID_COMPLAINT_CATEGORIES,
-} from "./complaintService.js";
+} from "./complaints/complaintService.js";

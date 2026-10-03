@@ -6,6 +6,7 @@ import {
 import { useOperatorStore } from '../../store/useOperatorStore'
 import { useRevenueStore } from '../../store/useRevenueStore'
 import PageHeader from '../ui/PageHeader'
+import TabBar from '../ui/TabBar'
 import Card from '../ui/Card'
 import Badge from '../ui/Badge'
 import Button from '../ui/Button'
@@ -371,21 +372,7 @@ export default function RevenueDashboard() {
             <LoadingState label="Building your revenue picture…" />
           ) : !dashboard ? null : (
             <>
-              <div className="mb-6 flex flex-wrap gap-1.5 rounded-lg border border-paper-dim bg-white p-1">
-                {TABS.map((tabDef) => (
-                  <button
-                    key={tabDef.key}
-                    type="button"
-                    onClick={() => setActiveTab(tabDef.key)}
-                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition ${
-                      activeTab === tabDef.key ? 'bg-ink text-paper shadow-sm' : 'text-ink/70 hover:bg-ink/5'
-                    }`}
-                  >
-                    <tabDef.icon size={15} aria-hidden="true" />
-                    {tabDef.label}
-                  </button>
-                ))}
-              </div>
+              <TabBar tabs={TABS} active={activeTab} onChange={setActiveTab} activeClass="bg-ink text-paper shadow-sm" />
 
               {activeTab === 'simulator' ? (
                 <WhatIfSimulator businessId={businessId} defaultDate={t.date} defaultPrice={dashboard.forecast[0]?.declaredPriceINR} />

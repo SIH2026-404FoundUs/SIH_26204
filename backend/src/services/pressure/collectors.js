@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 import {
-  railDemand, roadDemand, roadFrequencyProxy, accessDemand,
+  railDemand, roadFrequencyProxy, accessDemand,
   stayScarcity, weatherPull,
 } from "./engine.js";
 import { getBaselineVisitors, getClimatology } from "./seeds_v3.js";
@@ -78,7 +78,7 @@ export async function collect(dest, date, { providers = {}, seed = {} } = {}) {
   // §5 degraded-road rule: seat data missing -> frequency-only -> access static
   const degradedRoad = !!roadRaw && roadRaw.seatDataAvailable === false;
   const road = withSource(
-    degradedRoad ? roadFrequencyProxy(dest) : roadDemand(roadRaw?.services, baseline),
+    degradedRoad ? roadFrequencyProxy(dest) : null, // no seat-data provider exists; failed road call -> dropped
     roadSource
   );
 

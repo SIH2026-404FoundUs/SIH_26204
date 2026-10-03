@@ -76,10 +76,5 @@ export function createTtlCache({ ttlMs, maxEntries = 500, maxBytes = null, sizeO
       entries.clear();
       totalBytes = 0;
     },
-
-    /** Exposed for tests and for a future /health cache-stats line. */
-    stats() {
-      return { size: entries.size, bytes: totalBytes };
-    },
   };
 }

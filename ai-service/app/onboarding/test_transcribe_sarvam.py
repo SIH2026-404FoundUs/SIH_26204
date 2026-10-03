@@ -8,7 +8,6 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from app.onboarding.transcribe import (
-    SARVAM_LANGUAGE_MAP,
     SARVAM_MODEL,
     SARVAM_STT_URL,
     detect_audio_mime,

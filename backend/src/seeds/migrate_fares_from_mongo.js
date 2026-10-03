@@ -6,10 +6,10 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import readline from "node:readline";
 import { fileURLToPath } from "node:url";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { askConfirmation } from "./_lib/cliPrompt.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,20 +18,6 @@ dotenv.config({ path: path.join(__dirname, "../../.env") });
 
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/tourism_platform";
-
-function askConfirmation(query) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  return new Promise((resolve) => {
-    rl.question(query, (answer) => {
-      rl.close();
-      resolve(answer.trim());
-    });
-  });
-}
 
 function roundVal(v) {
   if (v === null || v === undefined || Number.isNaN(Number(v))) return null;

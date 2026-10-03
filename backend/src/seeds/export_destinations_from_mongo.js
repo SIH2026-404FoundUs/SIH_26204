@@ -6,9 +6,9 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import readline from "readline";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { askConfirmation, cleanDoc } from "./_lib/cliPrompt.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,37 +16,6 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, "../../.env") });
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/tourism_platform";
-
-function askConfirmation(query) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  return new Promise((resolve) => {
-    rl.question(query, (answer) => {
-      rl.close();
-      resolve(answer.trim());
-    });
-  });
-}
-
-function cleanDocument(doc) {
-  const clean = { ...doc };
-
-  // Convert ObjectId instance to string if needed
-  if (clean._id && typeof clean._id === "object" && clean._id.toString) {
-    clean._id = clean._id.toString();
-  }
-
-  // Do not emit Mongoose version key __v unless originally present
-  if ("__v" in clean && clean.__v === undefined) {
-    delete clean.__v;
-  }
-  delete clean.__v;
-
-  return clean;
-}
 
 async function exportDestinations() {
   const args = process.argv.slice(2);
@@ -151,7 +120,7 @@ async function exportDestinations() {
         sampleFilename = filename;
       }
 
-      const cleanedDoc = cleanDocument(doc);
+      const cleanedDoc = cleanDoc(doc);
       const jsonContent = JSON.stringify(cleanedDoc, null, 2) + "\n";
 
       if (!isDryRun) {

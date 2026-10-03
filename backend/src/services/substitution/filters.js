@@ -1,5 +1,5 @@
 import { calculateDistance, computeMahalanobisContext, calculateDistanceWithContext } from './distance.js';
-import { getStats } from './standardize.js';
+import { extractPressureScore, toPlain } from './standardize.js';
 import DestinationPressure from '../../models/destinationPressure.model.js';
 
 async function mapWithConcurrency(items, limit, fn) {
@@ -74,7 +74,7 @@ async function filterSimilarity(candidates, requestedDest, dStar, interests, dis
 
     const dist = await calculateDistanceWithContext(requestedDest, candidate, context);
     if (dist <= dStar) {
-      const candObj = typeof candidate.toObject === 'function' ? candidate.toObject() : candidate;
+      const candObj = toPlain(candidate);
       candObj.distance = dist;
       filtered.push(candObj);
     }
@@ -105,7 +105,7 @@ async function filterReachability(candidates, origin, requestedDest, travelTimeF
     const candidate = candidates[i];
     const candidateTime = candidateTimes[i];
     const hasValidCandTime = typeof candidateTime === 'number' && candidateTime > 0;
-    const candObj = typeof candidate.toObject === 'function' ? candidate.toObject() : candidate;
+    const candObj = toPlain(candidate);
 
     // Attach raw times for frontend display
     candObj.travelTime = hasValidCandTime ? candidateTime : null;
@@ -142,7 +142,7 @@ async function filterRelief(candidates, requestedDest, date, pressureFn, relaxed
   const reqRes = precomputedPressures && precomputedPressures.has(String(reqId))
     ? precomputedPressures.get(String(reqId))
     : await pressureFn(reqId, date);
-  const requestedPressure = typeof reqRes === 'number' ? reqRes : (reqRes?.score ?? 0.5);
+  const requestedPressure = extractPressureScore(reqRes);
   const threshold = relaxed ? 0.20 : 0.30;
   const filtered = [];
 
@@ -151,10 +151,10 @@ async function filterRelief(candidates, requestedDest, date, pressureFn, relaxed
     const candRes = precomputedPressures && precomputedPressures.has(String(candId))
       ? precomputedPressures.get(String(candId))
       : await pressureFn(candId, date);
-    const candidatePressure = typeof candRes === 'number' ? candRes : (candRes?.score ?? 0.5);
+    const candidatePressure = extractPressureScore(candRes);
 
     if (candidatePressure <= requestedPressure - threshold) {
-      const candObj = typeof candidate.toObject === 'function' ? candidate.toObject() : candidate;
+      const candObj = toPlain(candidate);
       candObj.pressure = candidatePressure;
       filtered.push(candObj);
     }

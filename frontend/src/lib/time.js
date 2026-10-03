@@ -27,3 +27,11 @@ export function timeUntil(dateString) {
   }
   return '<1m'
 }
+
+// "Jan 5, 2026"; empty input returns `fallback`, unparseable input is echoed back.
+export function formatDate(dateString, fallback = '') {
+  if (!dateString) return fallback
+  const parsed = new Date(dateString)
+  if (Number.isNaN(parsed.getTime())) return dateString
+  return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}

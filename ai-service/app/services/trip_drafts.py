@@ -17,46 +17,6 @@ from app.services.backend_client import get, patch, post
 logger = logging.getLogger(__name__)
 
 
-def save_draft(
-    request: Dict[str, Any],
-    pressure: Dict[str, Any],
-    alternatives: Dict[str, Any],
-) -> str:
-    """Create a TRIPS document in draft state and return its id.
-
-    The trip's own id (a Mongo ObjectId string) IS the tripDraftId -- there is
-    no separate identifier space to keep in sync.
-    """
-    # request is PlanTripRequest.model_dump() -- that pydantic model's fields
-    # are already camelCase (userId, destId, startDate, ...), same as this
-    # service's own body, so no case conversion happens here.
-    body = {
-        "userId": request.get("userId"),
-        "origin": request.get("origin"),
-        "requestedDestId": request.get("destId"),
-        "requestedDates": {
-            "startDate": request.get("startDate"),
-            "endDate": request.get("endDate"),
-        },
-        "travellers": request.get("travellers"),
-        "budgetINR": request.get("budgetINR"),
-        "interests": request.get("interests") or {},
-        "_draftPressure": pressure,
-        "_draftAlternatives": alternatives,
-    }
-    result = post("/api/v1/trips", body)
-    trip_id = result.get("_id") if isinstance(result, dict) else None
-    if not trip_id:
-        raise RuntimeError(f"failed to create trip draft: {result}")
-    logger.info(
-        "trip draft %s saved (destId=%s startDate=%s)",
-        trip_id,
-        request.get("destId"),
-        request.get("startDate"),
-    )
-    return trip_id
-
-
 def get_draft(trip_draft_id: str) -> Optional[Dict[str, Any]]:
     """Return the stored draft in the {request, pressure, alternatives} shape
     main.py's confirm handler expects, or None if there is no such trip.
@@ -108,7 +68,7 @@ def save_trip(trip_draft_id: str, trip: Dict[str, Any]) -> None:
 def save_completed(request: Dict[str, Any], trip: Dict[str, Any]) -> Optional[str]:
     """Persist a normally generated plan so it appears in My Trips.
 
-    Pressure-gated plans use save_draft/save_trip. Plans that do not require a
+    Pressure-gated plans use save_trip. Plans that do not require a
     decision previously skipped persistence entirely; this creates the same
     TRIPS record and immediately marks it planned.
     """

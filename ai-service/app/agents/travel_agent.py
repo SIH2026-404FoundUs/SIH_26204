@@ -5,13 +5,13 @@ import os
 from google.adk.agents import Agent, SequentialAgent
 from google.adk.models.lite_llm import LiteLlm
 from app.tools.weather import get_weather
-from app.tools.trains import get_train_availability
+from app.tools.transport.trains import get_train_availability
 from app.tools.places import search_places
-from app.tools.routes import calculate_route
-from app.tools.fare import estimate_local_transport
-from app.tools.road import search_road_services
-from app.tools.pressure import get_pressure
-from app.tools.alternatives import find_alternatives, find_alternative_dates
+from app.tools.transport.routes import calculate_route
+from app.tools.transport.fare import estimate_local_transport
+from app.tools.transport.road import search_road_services
+from app.tools.pressure.pressure import get_pressure
+from app.tools.pressure.alternatives import find_alternatives, find_alternative_dates
 from app.tools.trip_cost import calculate_trip_cost
 from app.tools.itinerary import optimize_itinerary
 from app.tools.alerts import get_verified_alerts

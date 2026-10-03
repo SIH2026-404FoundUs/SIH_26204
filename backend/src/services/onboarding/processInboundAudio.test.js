@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import Business from "../../models/business.model.js";
 import { processInboundAudio } from "./processInboundAudio.js";
-import { getNextFollowUpQuestion } from "./followUp.js";
+import { getNextFollowUpQuestion } from "./messaging/followUp.js";
 
 let mongod;
 

@@ -6,9 +6,9 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import readline from "readline";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { askConfirmation, cleanDoc } from "./_lib/cliPrompt.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,35 +16,6 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, "../../.env") });
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/tourism_platform";
-
-function askConfirmation(query) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  return new Promise((resolve) => {
-    rl.question(query, (answer) => {
-      rl.close();
-      resolve(answer.trim());
-    });
-  });
-}
-
-function cleanDoc(doc, { keepId = true } = {}) {
-  const clean = { ...doc };
-
-  if (keepId && clean._id) {
-    if (typeof clean._id === "object" && clean._id.toString) {
-      clean._id = clean._id.toString();
-    }
-  } else if (!keepId) {
-    delete clean._id;
-  }
-
-  delete clean.__v;
-  return clean;
-}
 
 async function exportAllSeeds() {
   const args = process.argv.slice(2);

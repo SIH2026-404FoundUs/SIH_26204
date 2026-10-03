@@ -3,6 +3,7 @@ import { Car, Compass as GuideIcon, Home, Wrench, CalendarCheck } from 'lucide-r
 import { useTrustStore } from '../../store/useTrustStore'
 import { verificationTier, bookingStatus } from '../../lib/labels'
 import PageHeader from '../ui/PageHeader'
+import TabBar from '../ui/TabBar'
 import Card from '../ui/Card'
 import Badge from '../ui/Badge'
 import Button from '../ui/Button'
@@ -89,21 +90,7 @@ export default function AvailableServices() {
         </FormField>
       </div>
 
-      <div className="mb-6 flex gap-1.5 rounded-lg border border-paper-dim bg-white p-1">
-        {SERVICE_TABS.map((tab) => (
-          <button
-            key={tab.type}
-            type="button"
-            onClick={() => setActiveType(tab.type)}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition ${
-              activeType === tab.type ? 'bg-ink text-paper' : 'text-ink/70 hover:bg-ink/5'
-            }`}
-          >
-            <tab.icon size={15} aria-hidden="true" />
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <TabBar tabs={SERVICE_TABS} active={activeType} onChange={setActiveType} className="mb-6 flex" />
 
       {businessError && <div className="mb-4"><Alert tone="error">{businessError}</Alert></div>}
 

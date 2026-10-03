@@ -1,13 +1,11 @@
 import {
   getCurrentStep,
   generatePovCode,
-  getValidPovCodes,
   validatePovCode,
 } from "./povCrypto.js";
 import {
   isVelocityViolated,
   isSelfReferral,
-  calculateHaversineDistance,
 } from "./povValidation.js";
 
 /**

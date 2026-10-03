@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { extractPressureScore } from './standardize.js';
 import { applyAllFilters } from './filters.js';
 import { rankCandidates } from './ranking.js';
 import { findDateAlternatives } from './dateSubstitution.js';
@@ -31,7 +32,7 @@ async function getRequestedInfo(destId, date, pressureFn) {
   const dest = getDestination(destId);
   const result = typeof pressureFn === 'function' ? await pressureFn(destId, date) : null;
 
-  const pressure = typeof result === 'number' ? result : (result?.score ?? 0.5);
+  const pressure = extractPressureScore(result);
 
   let breakdown = null;
   if (result && typeof result === 'object' && result.components) {

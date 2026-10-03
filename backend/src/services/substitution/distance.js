@@ -125,7 +125,6 @@ function shouldUseMahalanobis(destinations) {
     if (useMahalanobis) break;
   }
 
-  console.log(`Using Mahalanobis: ${useMahalanobis}`);
   return useMahalanobis;
 }
 

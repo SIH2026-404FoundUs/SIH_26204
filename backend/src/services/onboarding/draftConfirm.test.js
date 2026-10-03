@@ -8,7 +8,6 @@ import {
   formatAvailabilityRange,
   isConfirmationReply,
   parsePriceCorrection,
-  parseDraftCorrection,
   processDraftConfirmReply,
   getClarificationMessage,
   getLiveConfirmedMessage,

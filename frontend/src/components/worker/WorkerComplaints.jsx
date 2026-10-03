@@ -1,6 +1,6 @@
 import { ClipboardList } from 'lucide-react'
 import { WORKER_COMPLAINT_CATEGORIES } from '../../lib/labels'
-import ComplaintReport from '../trust/ComplaintReport'
+import ComplaintReport from '../trust/safety/ComplaintReport'
 import PageHeader from '../ui/PageHeader'
 
 // Same shared infrastructure travellers and operators already raise

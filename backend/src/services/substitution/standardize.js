@@ -60,8 +60,6 @@ async function initializeStats() {
   };
 
   console.log(`Substitution stats initialized: ${count} destinations, attributes: [${ATTR_LIST.join(', ')}]`);
-  console.log('Mu values:', mu);
-  console.log('Sigma values:', sigma);
 
   return statsCache;
 }
@@ -112,7 +110,19 @@ getStats().catch((err) => {
   console.log(`Auto-initialization status: ${err.message}`);
 });
 
+// Pressure fn results are either a bare number or a row { score }.
+function extractPressureScore(result, fallback = 0.5) {
+  return typeof result === 'number' ? result : (result?.score ?? fallback);
+}
+
+// Mongoose doc -> plain object (optionally a shallow copy of non-docs).
+function toPlain(x, copy = false) {
+  return typeof x?.toObject === 'function' ? x.toObject() : (copy ? { ...x } : x);
+}
+
 export {
+  extractPressureScore,
+  toPlain,
   getStats,
   zScore,
   reloadStats,

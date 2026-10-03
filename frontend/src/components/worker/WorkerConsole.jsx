@@ -7,6 +7,7 @@ import { useWorkerStore } from '../../store/useWorkerStore'
 import { workerSkillLabel, WORKER_SKILL_LABEL, GOVERNMENT_ID_TYPE_LABEL, getWorkerBadges } from '../../lib/labels'
 import { getDestinationLabel, useDestinationGroups } from '../../lib/destinations'
 import PageHeader from '../ui/PageHeader'
+import TabBar from '../ui/TabBar'
 import Card from '../ui/Card'
 import Badge from '../ui/Badge'
 import Button from '../ui/Button'
@@ -323,21 +324,7 @@ export default function WorkerConsole() {
         </>
       ) : (
         <>
-          <div className="mb-6 flex flex-wrap gap-1.5 rounded-lg border border-paper-dim bg-white p-1">
-            {TABS.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition ${
-                  activeTab === tab.key ? 'bg-ink text-paper shadow-sm' : 'text-ink/70 hover:bg-ink/5'
-                }`}
-              >
-                <tab.icon size={15} aria-hidden="true" />
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <TabBar tabs={TABS} active={activeTab} onChange={setActiveTab} activeClass="bg-ink text-paper shadow-sm" />
           {activeTab === 'gigs' && <GigsNearYouTab />}
           {activeTab === 'profile' && <ProfileTab />}
         </>
