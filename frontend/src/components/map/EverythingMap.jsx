@@ -745,8 +745,15 @@ export default function EverythingMap({
     }
   }, [zoom, mapInstance]);
 
-  const showSwapCard = swapOffers && !swapDismissed && !swapPreviewOpen && !awaitingDecision;
-  const showSwapPreview = swapOffers && swapPreviewOpen && !awaitingDecision;
+  const currentPressure = swapOffers?.destination_swap?.pressure_before
+    ?? swapOffers?.date_swap?.pressure_before
+    ?? plan?.redistribution?.pressureBefore
+    ?? plan?.trip?.pressure?.score
+    ?? 0;
+  const isHighPressure = currentPressure > 0.6;
+
+  const showSwapCard = swapOffers && isHighPressure && !swapDismissed && !swapPreviewOpen && !awaitingDecision;
+  const showSwapPreview = swapOffers && isHighPressure && swapPreviewOpen && !awaitingDecision;
   const showTripPanel = plan && showTripSummary;
   const hasLeftPanels = showStopsPanel || showSwapCard || showTripPanel;
   const hasRightPanels = awaitingDecision || showSwapPreview || (plan && !awaitingDecision);
@@ -841,7 +848,7 @@ export default function EverythingMap({
                   />
                 )}
                 {showSwapCard && (
-                  <div className="[&>*]:w-full!">
+                  <div id="map-swap-card" className="[&>*]:w-full!">
                     <SwapCard
                       data={{ swapOffers }}
                       onPreview={() => setSwapPreviewOpen(true)}
