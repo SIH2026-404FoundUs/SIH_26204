@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, Users, Wallet, Navigation, Compass, Check, X, CalendarClock, Map as MapIcon, CloudSun, Hotel, ShieldCheck, Route as RouteIcon } from 'lucide-react'
+import { Calendar, Users, Wallet, Navigation, Compass, Check, X, CalendarClock, Map as MapIcon, CloudSun, Hotel, ShieldCheck, Route as RouteIcon, AlertTriangle, ChevronDown } from 'lucide-react'
 import { itineraryStopName } from '../../lib/itineraryStop'
 import { usePlannerStore } from '../../store/usePlannerStore'
 import { useTrustStore } from '../../store/useTrustStore'
@@ -192,7 +192,14 @@ function PlanResult() {
   const swapOffers = trip?.alternatives?.swapOffers
   const destinationSwap = swapOffers?.destination_swap
   const dateSwap = swapOffers?.date_swap
-  const hasSwapOffers = Boolean(destinationSwap || dateSwap)
+  const currentPressure = destinationSwap?.pressure_before
+    ?? dateSwap?.pressure_before
+    ?? plan?.redistribution?.pressureBefore
+    ?? pressure?.score
+    ?? trip?.pressure?.score
+    ?? 0
+  const isHighPressure = currentPressure > 0.6
+  const hasSwapOffers = Boolean((destinationSwap || dateSwap) && isHighPressure)
   const decisionAlternatives = plan?.alternatives
   const alternativePlaces = decisionAlternatives?.places || []
   const alternativeDates = decisionAlternatives?.dates || []
@@ -271,6 +278,39 @@ function PlanResult() {
         )}
       </div>
 
+      {isHighPressure && (
+        <div className="mt-4 rounded-xl border border-amber-300/60 bg-amber-500/10 p-3.5 sm:p-4 text-amber-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-700">
+              <AlertTriangle size={18} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-700">High Tourism Pressure</span>
+                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-extrabold text-amber-800">
+                  {Math.round(currentPressure * 100)}% crowding
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs text-amber-900/80">
+                This destination is currently heavily congested. Lower-crowd alternatives are available.
+              </p>
+            </div>
+          </div>
+          {hasSwapOffers && (
+            <button
+              type="button"
+              onClick={() => {
+                document.getElementById('swap-card-section')?.scrollIntoView({ behavior: 'smooth' })
+              }}
+              className="shrink-0 flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-amber-700 active:scale-95"
+            >
+              <span>Check alternatives</span>
+              <ChevronDown size={14} />
+            </button>
+          )}
+        </div>
+      )}
+
       {trip?.itinerary?.days?.length > 0 && (
         <div className="mt-4 space-y-2">
           <div className="text-xs font-medium uppercase tracking-wide text-ash">Day-by-day</div>
@@ -298,7 +338,7 @@ function PlanResult() {
       )}
 
       {hasSwapOffers && (
-        <div className="mt-5 rounded-lg border border-relief/25 bg-relief/5 p-4">
+        <div id="swap-card-section" className="mt-5 rounded-lg border border-relief/25 bg-relief/5 p-4 scroll-mt-6">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-xs font-medium uppercase tracking-wide text-relief">Quieter alternatives</div>

@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronDown, Download, Gauge, Hotel, Info, Loader2, Minus, Route, Sparkles, ThermometerSun, WalletCards, X } from 'lucide-react'
+import { AlertTriangle, CalendarDays, ChevronDown, Download, Gauge, Hotel, Info, Loader2, Minus, Route, Sparkles, ThermometerSun, WalletCards, X } from 'lucide-react'
 import { useState } from 'react'
 import { usePlannerStore } from '../../../store/usePlannerStore'
 import { useDestinationsStore } from '../../../store/useDestinationsStore'
@@ -147,6 +147,45 @@ export default function TripSummaryPremium({ plan, onClose }) {
           {trip.travel_tips && (
             <p className="mt-3 rounded-xl bg-[#6C63FF]/8 p-3 text-[11px] leading-5 text-slate-700">{trip.travel_tips}</p>
           )}
+
+          {(() => {
+            const swapOffers = trip?.alternatives?.swapOffers;
+            const currentPressure = swapOffers?.destination_swap?.pressure_before
+              ?? swapOffers?.date_swap?.pressure_before
+              ?? plan?.redistribution?.pressureBefore
+              ?? trip?.pressure?.score
+              ?? 0;
+            const isHighPressure = currentPressure > 0.6;
+            const hasSwapOffers = Boolean(swapOffers);
+            if (!isHighPressure) return null;
+            return (
+              <div className="mt-3 rounded-xl border border-amber-300/60 bg-amber-500/10 p-3 text-amber-950 flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle size={15} className="shrink-0 text-amber-600" />
+                    <span className="text-xs font-bold text-amber-900">High Tourism Pressure ({Math.round(currentPressure * 100)}%)</span>
+                  </div>
+                  {hasSwapOffers && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const swapEl = document.getElementById('map-swap-card');
+                        if (swapEl) {
+                          swapEl.scrollIntoView({ behavior: 'smooth' });
+                        }
+                      }}
+                      className="rounded-lg bg-amber-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-amber-700"
+                    >
+                      Check alternatives
+                    </button>
+                  )}
+                </div>
+                <p className="text-[11px] leading-4 text-amber-900/80">
+                  This location is experiencing high tourism pressure. Check alternatives to avoid crowds.
+                </p>
+              </div>
+            );
+          })()}
 
           {/* Previously this button dispatched a `sahyatri:view-itinerary`
               CustomEvent that nothing in the app listened for, so it did

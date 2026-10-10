@@ -34,7 +34,7 @@ export default function SwapCard({ data, onAcceptPlace, onAcceptDate, onDecline,
   const requestedName = requested.displayName || getDestinationLabel(requested.destId)
   const requestedPressure = typeof requested.pressure === 'number' ? requested.pressure : 0.5
   const pressurePercent = Math.round(requestedPressure * 100)
-  const isLowPressure = requestedPressure <= 0.65
+  const isLowPressure = requestedPressure <= 0.6
 
   if (isLowPressure) {
     return (
@@ -144,6 +144,8 @@ function GeneratedTripSwapCard({ offers, onPreview, onApply, onDismiss }) {
   const dates = offers?.date_swap
   const combined = offers?.combined
   if (!destination && !dates) return null
+  const pressureBefore = destination?.pressure_before ?? dates?.pressure_before ?? combined?.pressure_before ?? 0
+  if (pressureBefore <= 0.6) return null
   const both = Boolean(destination && dates)
   const title = both ? '⚠️ AI found a better plan' : destination ? '⚠️ Destination Swap' : '📅 Date Swap'
   const reasons = [...(destination?.reason || []), ...(dates?.reason || [])].filter((item, index, all) => all.indexOf(item) === index)
